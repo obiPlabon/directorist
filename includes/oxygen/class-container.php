@@ -44,6 +44,7 @@ class Container {
 		include_once 'elements/transaction-failure.php';
 		include_once 'elements/user-dashboard.php';
 		include_once 'elements/user-login.php';
+		include_once 'elements/single-details.php';
 
 		// elements with controls
 		include_once 'elements/all-listing.php';
