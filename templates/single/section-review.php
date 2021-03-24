@@ -9,6 +9,39 @@ use \Directorist\Helper;
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
+?>
+<div id="comments">
+	<?php if ( have_comments() ) : ?>
+		<ol class="commentlist">
+			<?php wp_list_comments(); ?>
+		</ol>
+
+		<?php
+		if ( get_comment_pages_count() > 1 && get_option( 'page_comments' ) ) :
+			echo '<nav class="directorist-pagination">';
+			paginate_comments_links( array(
+				'prev_text' => '&larr;',
+				'next_text' => '&rarr;',
+				'type'      => 'list',
+			) );
+			echo '</nav>';
+		endif;
+		?>
+	<?php else : ?>
+		<p class="directorist-noreviews"><?php esc_html_e( 'There are no reviews yet.', 'directorist' ); ?></p>
+	<?php endif; ?>
+</div>
+
+<?php
+$args = array(
+	'class_container'    => 'directorist-card directorist-card-rating-block',
+	'title_reply'        => __( 'Leave a Review', 'directorist' ),
+	'title_reply_before' => '<div class="directorist-card__header"><h4 id="reply-title" class="directorist-card__header--title "><span class="' . atbdp_icon_type() . '-star" aria-hidden="true"></span>',
+	'title_reply_after'  => '</h4></div>',
+	'class_form'         => 'directorist-card__body comment-form',
+);
+comment_form( $args );
+
 if ( !Helper::is_review_enabled() ) {
 	return;
 }
@@ -109,9 +142,9 @@ $review_content = $listing->current_review() ? $listing->current_review()->conte
 							</div>
 
 						<?php endif; ?>
-						
+
 						<div class="directorist-review-form-action">
-							
+
 							<?php if ($listing->current_review()): ?>
 
 								<button class="directorist-btn directorist-btn-primary directorist-btn-sm" type="submit" id="directorist-review-form-submit"><?php esc_html_e( 'Update', 'directorist' ); ?></button>
@@ -135,7 +168,7 @@ $review_content = $listing->current_review() ? $listing->current_review()->conte
 							<input type="hidden" name="approve_immediately" id="approve_immediately" value="<?php echo $listing->review_approve_immediately() ? 'yes' : 'no';?>">
 
 							<input type="hidden" name="review_duplicate" id="review_duplicate" value="<?php echo $listing->review_is_duplicate() ? 'yes' : '';?>">
-							
+
 						</div>
 
 					</form>
@@ -152,9 +185,9 @@ $review_content = $listing->current_review() ? $listing->current_review()->conte
 			<div class="directorist-alert__content">
 
 				<span class="<?php atbdp_icon_type( true ); ?>-info-circle" aria-hidden="true"></span>
-				
+
 				<p><?php printf(__('You need to <a href="%s">%s</a> or <a href="%s">%s</a> to submit a review', 'directorist'), ATBDP_Permalink::get_login_page_link(), esc_html__( 'Login', 'directorist' ), ATBDP_Permalink::get_registration_page_link(), esc_html__(' Sign Up', 'directorist' ) );?></p>
-			
+
 			</div>
 
 		</div>

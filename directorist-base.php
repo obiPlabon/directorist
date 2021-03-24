@@ -257,7 +257,7 @@ final class Directorist_Base
             self::$instance->announcement = new ATBDP_Announcement;
             self::$instance->ATBDP_Review_Custom_Post = new ATBDP_Review_Custom_Post;
             self::$instance->update_database();
-            
+
             /*Extensions Link*/
             /*initiate extensions link*/
             new ATBDP_Extensions();
@@ -472,7 +472,8 @@ final class Directorist_Base
             ATBDP_INC_DIR . 'custom-actions',
             ATBDP_INC_DIR . 'custom-filters',
             ATBDP_INC_DIR . 'elementor/init',
-            ATBDP_INC_DIR . 'system-status/class-system-status'
+            ATBDP_INC_DIR . 'system-status/class-system-status',
+			ATBDP_INC_DIR . 'advance-review/init',
         ]);
 
         load_dependencies('all', ATBDP_INC_DIR . 'data-store/');
@@ -1059,7 +1060,7 @@ final class Directorist_Base
      * @return object|WP_Query It returns the related listings if found.
      */
     public function get_related_listings_widget($post, $count)
-    {   
+    {
         $directory_type = get_the_terms( get_the_ID(), ATBDP_TYPE );
         $type_id        = ! empty( $directory_type ) ? $directory_type[0]->term_id : '';
         $same_author    = get_directorist_type_option( $type_id, 'listing_from_same_author', false );
@@ -1569,7 +1570,7 @@ final class Directorist_Base
 
     /**
      * Initialize appsero tracking
-     * 
+     *
      * @see https://github.com/Appsero/client
      *
      * @return void
