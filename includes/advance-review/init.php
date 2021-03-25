@@ -10,6 +10,8 @@ namespace wpWax\Directorist\Review;
 
 defined( 'ABSPATH' ) || die();
 
+use Directorist\Helper;
+
 function add_comment_support( $args, $post_type ) {
 	if ( $post_type !== ATBDP_POST_TYPE ) {
 		return $args;
@@ -43,3 +45,14 @@ function enqueue_comment_scripts() {
 	}
 }
 add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\enqueue_comment_scripts' );
+
+function load_comments_template( $template ) {
+	if ( get_post_type() !== ATBDP_POST_TYPE ) {
+		return $template;
+	}
+
+	if ( file_exists( Helper::template_path( 'single-reviews' ) ) ) {
+		return Helper::template_path( 'single-reviews' );
+	}
+}
+add_filter( 'comments_template', __NAMESPACE__ . '\load_comments_template' );
