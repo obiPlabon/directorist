@@ -257,7 +257,7 @@ final class Directorist_Base
             self::$instance->announcement = new ATBDP_Announcement;
             self::$instance->ATBDP_Review_Custom_Post = new ATBDP_Review_Custom_Post;
             self::$instance->update_database();
-            
+
             /*Extensions Link*/
             /*initiate extensions link*/
             new ATBDP_Extensions();
@@ -472,7 +472,8 @@ final class Directorist_Base
             ATBDP_INC_DIR . 'custom-actions',
             ATBDP_INC_DIR . 'custom-filters',
             ATBDP_INC_DIR . 'elementor/init',
-            ATBDP_INC_DIR . 'system-status/class-system-status'
+            ATBDP_INC_DIR . 'system-status/class-system-status',
+			ATBDP_INC_DIR . 'classes/class-installation'
         ]);
 
         load_dependencies('all', ATBDP_INC_DIR . 'data-store/');
@@ -498,7 +499,11 @@ final class Directorist_Base
         load_dependencies('all', ATBDP_INC_DIR . 'payments/');
         load_dependencies('all', ATBDP_INC_DIR . 'checkout/');
 
-
+		if ( is_admin() ) {
+			self::require_files( [
+				ATBDP_INC_DIR . 'classes/class-updater-notice'
+			] );
+		}
     }
 
     // require_files
@@ -510,9 +515,8 @@ final class Directorist_Base
         }
     }
 
-    public static function prepare_plugin()
+    public static function on_activation()
     {
-        include ATBDP_INC_DIR . 'classes/class-installation.php';
         ATBDP_Installation::install();
     }
 
@@ -1059,7 +1063,7 @@ final class Directorist_Base
      * @return object|WP_Query It returns the related listings if found.
      */
     public function get_related_listings_widget($post, $count)
-    {   
+    {
         $directory_type = get_the_terms( get_the_ID(), ATBDP_TYPE );
         $type_id        = ! empty( $directory_type ) ? $directory_type[0]->term_id : '';
         $same_author    = get_directorist_type_option( $type_id, 'listing_from_same_author', false );
@@ -1569,7 +1573,7 @@ final class Directorist_Base
 
     /**
      * Initialize appsero tracking
-     * 
+     *
      * @see https://github.com/Appsero/client
      *
      * @return void
@@ -1662,5 +1666,5 @@ function ATBDP()
 }
 
 ATBDP();
-register_activation_hook(__FILE__, array('Directorist_Base', 'prepare_plugin'));
 
+register_activation_hook( __FILE__, array( 'Directorist_Base', 'on_activation' ) );
