@@ -43,4 +43,8 @@ function directorist_7100_migrate_posts_table_to_comments_table() {
 //     MAX(CASE WHEN posts_join_table.meta_key = '_reviewer_rating' THEN posts_join_table.meta_value END) AS `rating`,
 //     MAX(CASE WHEN posts_join_table.meta_key = '_review_status' THEN posts_join_table.meta_value END) AS `status`
 // FROM (select meta_table.post_id, meta_table.meta_key, meta_table.meta_value from wp_posts left join wp_postmeta as meta_table on wp_posts.ID=meta_table.post_id where wp_posts.post_type='atbdp_listing_review') as posts_join_table group by post_id;
+
+/**
+ * Looks like first have to rotate the meta table then it'll be easier
+ */
 }
