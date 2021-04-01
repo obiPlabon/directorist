@@ -3,7 +3,7 @@
  * Plugin Name: Directorist - Business Directory Plugin
  * Plugin URI: https://wpwax.com
  * Description: A comprehensive solution to create professional looking directory site of any kind. Like Yelp, Foursquare, etc.
- * Version: 7.0.3.2
+ * Version: 7.0.3.3
  * Author: wpWax
  * Author URI: https://wpwax.com
  * Text Domain: directorist
@@ -233,7 +233,7 @@ final class Directorist_Base
             self::$instance->enqueue_assets = new Directorist\Enqueue_Assets;
 
             // ATBDP_Listing_Type_Manager
-            self::$instance->multi_directory_manager = new ATBDP_Multi_Directory_Manager;
+            self::$instance->multi_directory_manager = new Directorist\Multi_Directory_Manager;
             self::$instance->multi_directory_manager->run();
 
             self::$instance->settings_panel = new ATBDP_Settings_Panel;
@@ -474,6 +474,7 @@ final class Directorist_Base
             ATBDP_INC_DIR . 'elementor/init',
             ATBDP_INC_DIR . 'system-status/class-system-status',
 			ATBDP_INC_DIR . 'advance-review/init',
+			ATBDP_INC_DIR . 'classes/class-installation',
         ]);
 
         load_dependencies('all', ATBDP_INC_DIR . 'data-store/');
@@ -499,7 +500,11 @@ final class Directorist_Base
         load_dependencies('all', ATBDP_INC_DIR . 'payments/');
         load_dependencies('all', ATBDP_INC_DIR . 'checkout/');
 
-
+		if ( is_admin() ) {
+			self::require_files( [
+				ATBDP_INC_DIR . 'classes/class-updater-notice'
+			] );
+		}
     }
 
     // require_files
@@ -511,9 +516,8 @@ final class Directorist_Base
         }
     }
 
-    public static function prepare_plugin()
+    public static function on_activation()
     {
-        include ATBDP_INC_DIR . 'classes/class-installation.php';
         ATBDP_Installation::install();
     }
 
@@ -576,7 +580,7 @@ final class Directorist_Base
         register_widget('BD_Locations_Widget');
         register_widget('BD_Tags_Widget');
         register_widget('BD_Search_Widget');
-        // register_widget('BD_Map_Widget');
+        register_widget('BD_Map_Widget');
         // register_widget('BD_All_Map_Widget');
         register_widget('BD_Similar_Listings_Widget');
         register_widget('BD_Author_Info_Widget');
@@ -1663,5 +1667,5 @@ function ATBDP()
 }
 
 ATBDP();
-register_activation_hook(__FILE__, array('Directorist_Base', 'prepare_plugin'));
 
+register_activation_hook( __FILE__, array( 'Directorist_Base', 'on_activation' ) );
