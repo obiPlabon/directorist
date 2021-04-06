@@ -27,8 +27,9 @@ class ATBDP_Installation {
 	 */
 	private static $db_updates = array(
 		'7.0.3.2' => array(
-			'directorist_7032_do_some_db_updates',
-			'directorist_7032_do_something_else',
+			'directorist_7100_migrate_reviews_table_to_comments_table',
+			'directorist_7100_migrate_posts_table_to_comments_table',
+			'directorist_7100_update_db_version',
 		),
 	);
 
