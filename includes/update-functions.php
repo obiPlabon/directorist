@@ -10,6 +10,14 @@ function directorist_7100_migrate_reviews_table_to_comments_table() {
 	global $wpdb;
 
 	$review_table = $wpdb->prefix . 'atbdp_review';
+
+	$review_table_exists = $wpdb->get_results( "SHOW TABLES LIKE '{$review_table}'" );
+
+	// No need to move forward if table doesn't exist
+	if ( empty( $review_table_exists ) ) {
+		return;
+	}
+
 	$reviews = $wpdb->get_results( "SELECT * FROM {$review_table}" );
 
 	if ( ! empty( $reviews ) ) {
@@ -50,7 +58,7 @@ function directorist_7100_migrate_posts_table_to_comments_table() {
 			MAX(CASE WHEN posts_meta_join.meta_key = '_reviewer_details' THEN posts_meta_join.meta_value END) AS `comment`,
 			MAX(CASE WHEN posts_meta_join.meta_key = '_reviewer_rating' THEN posts_meta_join.meta_value END) AS `rating`,
 			MAX(CASE WHEN posts_meta_join.meta_key = '_review_status' THEN posts_meta_join.meta_value END) AS `status`
-		FROM (select posts_meta.post_id, posts_meta.meta_key, posts_meta.meta_value, posts.post_date from {$wpdb->posts} as posts left join {$wpdb->postmeta} as posts_meta on posts.ID=posts_meta.post_id where posts.post_type='atbdp_listing_review') as posts_meta_join group by post_id"
+		FROM (SELECT posts_meta.post_id, posts_meta.meta_key, posts_meta.meta_value, posts.post_date FROM {$wpdb->posts} AS posts LEFT JOIN {$wpdb->postmeta} AS posts_meta ON posts.ID=posts_meta.post_id WHERE posts.post_type='atbdp_listing_review') AS posts_meta_join GROUP BY post_id"
 	);
 
 	if ( ! empty( $reviews ) ) {
