@@ -74,7 +74,7 @@
 
         var _data = { action: 'save_listing_review' };
         _data = prepear_form_data( $form, field_field_map, _data );
-        
+
         // atbdp_do_ajax($form, 'save_listing_review', _data, function (response) {
 
         jQuery.post(atbdp_public_data.ajaxurl, _data, function(response) {
@@ -189,5 +189,60 @@
 
         return false;
     });
-    
+
+
+
+    //show review images before upload
+    let galleryUploadTotal = 2;
+
+    var imagesPreview = function(input, placeToInsertImagePreview) {
+
+        if (input.files) {
+
+            var filesAmount = input.files.length;
+
+            for (let i = 0; i < filesAmount; i++) {
+
+                var reader = new FileReader();
+
+                reader.onload = function(event) {
+
+                    let imgFile = event.target;
+
+                    let singleImgHtml = `
+                    <div class="directorist-review-gallery-preview directorist-preview-${galleryUploadTotal} preview-image">
+                        <img src="${imgFile.result}" alt="Directorist Review Preview">
+                        <a href="#" class="directorist-btn-delete" data-directorist-no="directorist-preview-${galleryUploadTotal}"><i class="la la-trash"></i></a>
+                    </div>
+                    `;
+
+                    $(placeToInsertImagePreview).append(singleImgHtml);
+
+                    galleryUploadTotal = galleryUploadTotal + 1;
+
+                }
+
+                reader.readAsDataURL(input.files[i]);
+            }
+        }
+
+    };
+
+    $('#directorist-add-review-img').on('change', function() {
+
+        imagesPreview(this, 'div.directorist-review-img-gallery');
+
+    });
+
+    // Remove The Preview Image Div 
+    $(document).on('click', '.directorist-btn-delete', function(e) {
+
+        e.preventDefault();
+
+        let previewNum = this.dataset.directoristNo;
+
+        $("."+previewNum).remove();
+
+    });
+
 })(jQuery);
