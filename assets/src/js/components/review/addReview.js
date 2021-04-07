@@ -193,7 +193,7 @@
 
 
     //show review images before upload
-    let galleryUploadTotal = 2;
+    let galleryUploadTotal = 1;
 
     var imagesPreview = function(input, placeToInsertImagePreview) {
 
