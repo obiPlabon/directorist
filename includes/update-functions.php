@@ -60,7 +60,7 @@ function directorist_7100_migrate_posts_table_to_comments_table() {
 				'comment_post_ID'      => $review->post_id,
 				'comment_author'       => $review->author,
 				'comment_author_email' => $review->author_email,
-				'comment_content'      => $review->content,
+				'comment_content'      => $review->comment,
 				'comment_date'         => $review->comment_date,
 				'comment_date_gmt'     => $review->comment_date,
 				'user_id'              => ! empty( $review->user_id ) ? absint( $review->user_id ) : 0,
