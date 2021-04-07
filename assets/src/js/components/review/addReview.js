@@ -74,7 +74,7 @@
 
         var _data = { action: 'save_listing_review' };
         _data = prepear_form_data( $form, field_field_map, _data );
-        
+
         // atbdp_do_ajax($form, 'save_listing_review', _data, function (response) {
 
         jQuery.post(atbdp_public_data.ajaxurl, _data, function(response) {
@@ -189,5 +189,31 @@
 
         return false;
     });
-    
+
+
+
+    //show review images before upload
+    var imagesPreview = function(input, placeToInsertImagePreview) {
+        if (input.files) {
+            var filesAmount = input.files.length;
+
+            for (let i = 0; i < filesAmount; i++) {
+                var reader = new FileReader();
+
+                reader.onload = function(event) {
+                    $($.parseHTML('<img>')).attr('src', event.target.result).appendTo(placeToInsertImagePreview);
+                }
+
+                reader.readAsDataURL(input.files[i]);
+            }
+        }
+
+    };
+
+    $('#directorist-add-review-img').on('change', function() {
+        imagesPreview(this, 'div.directorist-review-img-gallery');
+    });
+
+
+
 })(jQuery);
