@@ -331,14 +331,15 @@
                     display: flex;
                     align-items: center;
                     flex-wrap: wrap;
-                    margin: -10px;
+                    margin: -6px;
 
                     &>* {
-                        margin: 10px !important;
+                        margin: 6px !important;
                     }
 
                     label {
-                        flex: 0 0 calc(20% - 20px);
+                        flex: .1;
+                        min-width: 70px;
                         display: inline-block;
                         word-wrap: break-word;
                         word-break: break-all;
@@ -348,7 +349,7 @@
                     }
 
                     progress {
-                        flex: 0 0 calc(70% - 20px);
+                        flex: 1.5;
                         border-radius: 2px;
                         height: 5px;
                         box-shadow: none;
@@ -377,10 +378,11 @@
                     }
 
                     strong {
-                        flex: 0 0 calc(10% - 20px);
+                        flex: .1;
                         font-size: 15px;
                         font-weight: 500;
                         color: #090E30;
+                        text-align: right;
                     }
                 }
             }
@@ -700,12 +702,40 @@
                 flex-wrap: wrap;
                 margin: -5px -5px -5px 5px;
 
-                img {
-                    width: 115px;
-                    height: 100px;
-                    object-fit: cover;
-                    border-radius: 8px;
+                .directorist-review-gallery-preview {
+                    position: relative;
                     margin: 5px;
+
+                    &:hover{
+                        .directorist-btn-delete{
+                            opacity: 1;
+                            visibility: visible;
+                        }
+                    }
+
+                    img {
+                        width: 115px;
+                        height: 100px;
+                        max-width: 115px;
+                        object-fit: cover;
+                        border-radius: 8px;
+                    }
+
+                    .directorist-btn-delete{
+                        position: absolute;
+                        top: 6px;
+                        right: 6px;
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        height: 30px;
+                        width: 30px;
+                        border-radius: 50%;
+                        color: #fff;
+                        background-color: $danger;
+                        opacity: 0;
+                        visibility: hidden;
+                    }
                 }
             }
         }
