@@ -34,6 +34,8 @@ $listing = Directorist_Single_Listing::instance();
 					?>
 
 					<div class="directorist-review-container">
+
+						<?php /*
 						<div class="directorist-review-content">
 							<div class="directorist-review-content__header">
 								<h3>Foodies Ratings <span>452</span></h3>
@@ -121,6 +123,8 @@ $listing = Directorist_Single_Listing::instance();
 										<a href=""><i class="far fa-comment-alt"></i> Reply</a>
 									</div>
 								</div><!-- ends: .directorist-review-single -->
+
+
 								<div class="directorist-review-single directorist-review-single__has-comments">
 									<div class="directorist-review-single__contents-wrap">
 										<div class="directorist-review-single__header">
@@ -155,7 +159,7 @@ $listing = Directorist_Single_Listing::instance();
 										<a href=""><i class="far fa-comment-alt"></i> Reply</a>
 									</div>
 									<div class="directorist-review-single__comments">
-										<div class="directorist-review-single directorist-review-single--comment">
+										<div class="directorist-review-single directorist-review-single--comment directorist-review-single__has-comments">
 											<div class="directorist-review-single__contents-wrap">
 												<div class="directorist-review-single__header">
 													<div class="directorist-review-single__author">
@@ -178,10 +182,89 @@ $listing = Directorist_Single_Listing::instance();
 											<div class="directorist-review-single__reply">
 												<a href=""><i class="far fa-comment-alt"></i> Reply</a>
 											</div>
+
+											<div class="directorist-review-single__comments">
+												<div class="directorist-review-single directorist-review-single--comment">
+													<div class="directorist-review-single__contents-wrap">
+														<div class="directorist-review-single__header">
+															<div class="directorist-review-single__author">
+																<div class="directorist-review-single__author__img">
+																	<img src="https://via.placeholder.com/300x300" alt="">
+																</div>
+																<div class="directorist-review-single__author__details">
+																	<h2>Rodrick <span>August 2019</span></h2>
+																</div>
+															</div>
+														</div>
+														<div class="directorist-review-single__content">
+															<p>Kequi officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusan tium doloremque laudantium, totam rem.</p>
+														</div>
+													</div>
+													<div class="directorist-review-single__feedback">
+														<a href="" class="directorist-btn directorist-btn-outline-dark"><i class="far fa-thumbs-up"></i> Helpful <span>6</span></a>
+														<a href="" class="directorist-btn directorist-btn-outline-dark"><i class="far fa-thumbs-down"></i> Not Helpful <span>2</span></a>
+													</div>
+													<div class="directorist-review-single__reply">
+														<a href=""><i class="far fa-comment-alt"></i> Reply</a>
+													</div>
+												</div><!-- ends: .directorist-review-single -->
+											</div>
+										</div><!-- ends: .directorist-review-single -->
+
+										<div class="directorist-review-single directorist-review-single--comment directorist-review-single__has-comments">
+											<div class="directorist-review-single__contents-wrap">
+												<div class="directorist-review-single__header">
+													<div class="directorist-review-single__author">
+														<div class="directorist-review-single__author__img">
+															<img src="https://via.placeholder.com/300x300" alt="">
+														</div>
+														<div class="directorist-review-single__author__details">
+															<h2>Rodrick <span>August 2019</span></h2>
+														</div>
+													</div>
+												</div>
+												<div class="directorist-review-single__content">
+													<p>Kequi officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusan tium doloremque laudantium, totam rem.</p>
+												</div>
+											</div>
+											<div class="directorist-review-single__feedback">
+												<a href="" class="directorist-btn directorist-btn-outline-dark"><i class="far fa-thumbs-up"></i> Helpful <span>6</span></a>
+												<a href="" class="directorist-btn directorist-btn-outline-dark"><i class="far fa-thumbs-down"></i> Not Helpful <span>2</span></a>
+											</div>
+											<div class="directorist-review-single__reply">
+												<a href=""><i class="far fa-comment-alt"></i> Reply</a>
+											</div>
+
+											<div class="directorist-review-single__comments">
+												<div class="directorist-review-single directorist-review-single--comment">
+													<div class="directorist-review-single__contents-wrap">
+														<div class="directorist-review-single__header">
+															<div class="directorist-review-single__author">
+																<div class="directorist-review-single__author__img">
+																	<img src="https://via.placeholder.com/300x300" alt="">
+																</div>
+																<div class="directorist-review-single__author__details">
+																	<h2>Rodrick <span>August 2019</span></h2>
+																</div>
+															</div>
+														</div>
+														<div class="directorist-review-single__content">
+															<p>Kequi officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusan tium doloremque laudantium, totam rem.</p>
+														</div>
+													</div>
+													<div class="directorist-review-single__feedback">
+														<a href="" class="directorist-btn directorist-btn-outline-dark"><i class="far fa-thumbs-up"></i> Helpful <span>6</span></a>
+														<a href="" class="directorist-btn directorist-btn-outline-dark"><i class="far fa-thumbs-down"></i> Not Helpful <span>2</span></a>
+													</div>
+													<div class="directorist-review-single__reply">
+														<a href=""><i class="far fa-comment-alt"></i> Reply</a>
+													</div>
+												</div><!-- ends: .directorist-review-single -->
+											</div>
 										</div><!-- ends: .directorist-review-single -->
 									</div>
 								</div><!-- ends: .directorist-review-single -->
-							</div><!-- ends: .directorist-review-content__reviews -->
+							</div>ends: .directorist-review-content__reviews
 
 							<div class="directorist-review-content__pagination">
 								<ul>
@@ -194,6 +277,7 @@ $listing = Directorist_Single_Listing::instance();
 								</ul>
 							</div>
 						</div><!-- ends: .directorist-review-content -->
+						 */ ?>
 
 						<div class="directorist-review-submit" id="directorist-add-review">
 							<div class="directorist-review-submit__header">

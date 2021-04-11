@@ -56,3 +56,11 @@ function load_comments_template( $template ) {
 	}
 }
 add_filter( 'comments_template', __NAMESPACE__ . '\load_comments_template' );
+
+// Load comment walker
+function load_review_walker() {
+	if ( is_singular( ATBDP_POST_TYPE ) && comments_open() ) {
+		require_once ATBDP_INC_DIR . 'advance-review/class-review-walker.php';
+	}
+}
+add_action( 'template_redirect', __NAMESPACE__ . '\load_review_walker' );
