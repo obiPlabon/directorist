@@ -91,15 +91,102 @@ $listing = Directorist_Entry::instance();
 			<p class="directorist-noreviews"><?php esc_html_e( 'There are no reviews yet.', 'directorist' ); ?></p>
 		<?php endif; ?>
 	</div><!-- ends: .directorist-review-content -->
+
+	<?php
+	$args = array(
+		'class_container'    => 'directorist-review-submit',
+		'title_reply'        => __( 'Leave a Review', 'directorist' ),
+		'title_reply_before' => '<div class="directorist-review-submit__header"><h3 id="reply-title">',
+		'title_reply_after'  => '</h3></div>',
+		'class_form'         => 'comment-form directorist-review-submit__form',
+		'class_submit'       => 'directorist-btn directorist-btn-primary',
+		'label_submit'       => __( 'Submit your review', 'directorist' ),
+		'format'             => 'html5',
+		'submit_field'       => '<div class="directorist-form-group">%1$s %2$s</div>',
+		'submit_button'      => '<button name="%1$s" type="submit" id="%2$s" class="%3$s">%4$s</button>',
+	);
+
+	comment_form( $args );
+	?>
+
+	<div class="directorist-review-submit" id="directorist-add-review">
+		<div class="directorist-review-submit__header">
+			<h3>Leave a Review</h3>
+		</div><!-- ends: .directorist-review-submit__header -->
+		<div class="directorist-review-submit__form">
+			<form action="/">
+				<div class="directorist-review-criteria">
+					<div class="directorist-review-criteria__single">
+						<span class="directorist-review-criteria__single__label">Food</span>
+						<select id="directorist-review-criteria__one">
+							<option value="1">1</option>
+							<option value="2">2</option>
+							<option value="3">3</option>
+							<option value="4">4</option>
+							<option value="5">5</option>
+						</select>
+					</div><!-- ends: .directorist-review-criteria__one -->
+					<div class="directorist-review-criteria__single">
+						<span class="directorist-review-criteria__single__label">Location</span>
+						<select id="directorist-review-criteria__two">
+							<option value="1">1</option>
+							<option value="2">2</option>
+							<option value="3">3</option>
+							<option value="4">4</option>
+							<option value="5">5</option>
+						</select>
+					</div><!-- ends: .directorist-review-criteria__one -->
+					<div class="directorist-review-criteria__single">
+						<span class="directorist-review-criteria__single__label">Service</span>
+						<select id="directorist-review-criteria__three">
+							<option value="1">1</option>
+							<option value="2">2</option>
+							<option value="3">3</option>
+							<option value="4">4</option>
+							<option value="5">5</option>
+						</select>
+					</div><!-- ends: .directorist-review-criteria__one -->
+					<div class="directorist-review-criteria__single">
+						<span class="directorist-review-criteria__single__label">Ambience</span>
+						<select id="directorist-review-criteria__four">
+							<option value="1">1</option>
+							<option value="2">2</option>
+							<option value="3">3</option>
+							<option value="4">4</option>
+							<option value="5">5</option>
+						</select>
+					</div><!-- ends: .directorist-review-criteria__one -->
+					<div class="directorist-review-criteria__single">
+						<span class="directorist-review-criteria__single__label">Price</span>
+						<select id="directorist-review-criteria__five">
+							<option value="1">1</option>
+							<option value="2">2</option>
+							<option value="3">3</option>
+							<option value="4">4</option>
+							<option value="5">5</option>
+						</select>
+					</div><!-- ends: .directorist-review-criteria__one -->
+
+				</div><!-- ends: .directorist-review-criteria -->
+				<div class="directorist-form-group">
+					<textarea class="directorist-form-element" cols="30" rows="10" placeholder="Share your experience and help others make better choices"></textarea>
+				</div>
+				<div class="directorist-form-group directorist-review-media-upload">
+					<input type="file" name="" id="directorist-add-review-img" multiple>
+					<label for="directorist-add-review-img">
+						<i class="far fa-image"></i>
+						<span>Add a photo</span>
+					</label>
+					<div class="directorist-review-img-gallery"></div>
+				</div>
+				<div class="directorist-form-group">
+					<label for="">Your Email</label>
+					<input class="directorist-form-element" type="text" placeholder="Enter your email">
+				</div>
+				<div class="directorist-form-group">
+					<button class="directorist-btn directorist-btn-primary" type="submit">Submit your review</button>
+				</div>
+			</form>
+		</div><!-- ends: .directorist-review-submit__form -->
+	</div><!-- ends: .directorist-review-submit -->
 </div>
-
-<?php
-$args = array(
-	'class_container'    => 'directorist-card directorist-card-rating-block',
-	'title_reply'        => __( 'Leave a Review', 'directorist' ),
-	'title_reply_before' => '<div class="directorist-card__header"><h4 id="reply-title" class="directorist-card__header--title "><span class="' . atbdp_icon_type() . '-star" aria-hidden="true"></span>',
-	'title_reply_after'  => '</h4></div>',
-	'class_form'         => 'directorist-card__body comment-form',
-);
-
-comment_form( $args );
