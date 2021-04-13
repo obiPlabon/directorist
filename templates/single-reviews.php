@@ -118,52 +118,57 @@ $listing = Directorist_Entry::instance();
 				<div class="directorist-review-criteria">
 					<div class="directorist-review-criteria__single">
 						<span class="directorist-review-criteria__single__label">Food</span>
-						<select id="directorist-review-criteria__one">
-							<option value="1">1</option>
-							<option value="2">2</option>
-							<option value="3">3</option>
-							<option value="4">4</option>
-							<option value="5">5</option>
+						<select class="directorist-review-criteria-select">
+							<option value=""><?php esc_html_e( 'Rate...', 'directorist' ); ?></option>
+							<option value="1"><?php esc_html_e( 'Very poor', 'directorist' ); ?></option>
+							<option value="2"><?php esc_html_e( 'Not that bad', 'directorist' ); ?></option>
+							<option value="3"><?php esc_html_e( 'Average', 'directorist' ); ?></option>
+							<option value="4"><?php esc_html_e( 'Good', 'directorist' ); ?></option>
+							<option value="5"><?php esc_html_e( 'Perfect', 'directorist' ); ?></option>
 						</select>
 					</div><!-- ends: .directorist-review-criteria__one -->
 					<div class="directorist-review-criteria__single">
 						<span class="directorist-review-criteria__single__label">Location</span>
-						<select id="directorist-review-criteria__two">
-							<option value="1">1</option>
-							<option value="2">2</option>
-							<option value="3">3</option>
-							<option value="4">4</option>
-							<option value="5">5</option>
+						<select class="directorist-review-criteria-select">
+							<option value=""><?php esc_html_e( 'Rate...', 'directorist' ); ?></option>
+							<option value="1"><?php esc_html_e( 'Very poor', 'directorist' ); ?></option>
+							<option value="2"><?php esc_html_e( 'Not that bad', 'directorist' ); ?></option>
+							<option value="3"><?php esc_html_e( 'Average', 'directorist' ); ?></option>
+							<option value="4"><?php esc_html_e( 'Good', 'directorist' ); ?></option>
+							<option value="5"><?php esc_html_e( 'Perfect', 'directorist' ); ?></option>
 						</select>
 					</div><!-- ends: .directorist-review-criteria__one -->
 					<div class="directorist-review-criteria__single">
 						<span class="directorist-review-criteria__single__label">Service</span>
-						<select id="directorist-review-criteria__three">
-							<option value="1">1</option>
-							<option value="2">2</option>
-							<option value="3">3</option>
-							<option value="4">4</option>
-							<option value="5">5</option>
+						<select class="directorist-review-criteria-select">
+							<option value=""><?php esc_html_e( 'Rate...', 'directorist' ); ?></option>
+							<option value="1"><?php esc_html_e( 'Very poor', 'directorist' ); ?></option>
+							<option value="2"><?php esc_html_e( 'Not that bad', 'directorist' ); ?></option>
+							<option value="3"><?php esc_html_e( 'Average', 'directorist' ); ?></option>
+							<option value="4"><?php esc_html_e( 'Good', 'directorist' ); ?></option>
+							<option value="5"><?php esc_html_e( 'Perfect', 'directorist' ); ?></option>
 						</select>
 					</div><!-- ends: .directorist-review-criteria__one -->
 					<div class="directorist-review-criteria__single">
 						<span class="directorist-review-criteria__single__label">Ambience</span>
-						<select id="directorist-review-criteria__four">
-							<option value="1">1</option>
-							<option value="2">2</option>
-							<option value="3">3</option>
-							<option value="4">4</option>
-							<option value="5">5</option>
+						<select class="directorist-review-criteria-select">
+							<option value=""><?php esc_html_e( 'Rate...', 'directorist' ); ?></option>
+							<option value="1"><?php esc_html_e( 'Very poor', 'directorist' ); ?></option>
+							<option value="2"><?php esc_html_e( 'Not that bad', 'directorist' ); ?></option>
+							<option value="3"><?php esc_html_e( 'Average', 'directorist' ); ?></option>
+							<option value="4"><?php esc_html_e( 'Good', 'directorist' ); ?></option>
+							<option value="5"><?php esc_html_e( 'Perfect', 'directorist' ); ?></option>
 						</select>
 					</div><!-- ends: .directorist-review-criteria__one -->
 					<div class="directorist-review-criteria__single">
 						<span class="directorist-review-criteria__single__label">Price</span>
-						<select id="directorist-review-criteria__five">
-							<option value="1">1</option>
-							<option value="2">2</option>
-							<option value="3">3</option>
-							<option value="4">4</option>
-							<option value="5">5</option>
+						<select class="directorist-review-criteria-select">
+							<option value=""><?php esc_html_e( 'Rate...', 'directorist' ); ?></option>
+							<option value="1"><?php esc_html_e( 'Very poor', 'directorist' ); ?></option>
+							<option value="2"><?php esc_html_e( 'Not that bad', 'directorist' ); ?></option>
+							<option value="3"><?php esc_html_e( 'Average', 'directorist' ); ?></option>
+							<option value="4"><?php esc_html_e( 'Good', 'directorist' ); ?></option>
+							<option value="5"><?php esc_html_e( 'Perfect', 'directorist' ); ?></option>
 						</select>
 					</div><!-- ends: .directorist-review-criteria__one -->
 
