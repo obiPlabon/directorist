@@ -19,12 +19,11 @@ $listing = Directorist_Entry::instance();
 <div class="directorist-review-container">
 	<div class="directorist-review-content">
 		<div class="directorist-review-content__header">
-			<h3>Foodies Ratings <span>452</span></h3>
-			<a href="#directorist-add-review" class="directorist-btn directorist-btn-primary"><span class="fa fa-star"></span> Write a Review</a>
+			<h3><?php printf( '%s <span>%s</span>', strip_tags( get_the_title() ), get_comments_number() ); ?></h3>
+			<a href="#respond" class="directorist-btn directorist-btn-primary"><span class="fa fa-star"></span> <?php esc_html_e( 'Write a review', 'directorist' ); ?></a>
 		</div><!-- ends: .directorist-review-content__header -->
 
 		<?php if ( have_comments() ) : ?>
-
 			<div class="directorist-review-content__overview">
 				<div class="directorist-review-content__overview__rating">
 					<span class="directorist-rating-point">4.6</span>
@@ -68,11 +67,9 @@ $listing = Directorist_Entry::instance();
 
 			<ul class="commentlist directorist-review-content__reviews">
 				<?php wp_list_comments( array(
-					'avatar_size'  => 50,
-					'walker'       => new Review_Walker(),
-					'format' => 'html5',
-					// 'callback'     => '\wpWax\Directorist\Review\comments_callback',
-					// 'end-callback' => '\wpWax\Directorist\Review\comments_end_callback',
+					'avatar_size' => 50,
+					'format'      => 'html5',
+					'walker'      => new Review_Walker(),
 				) ); ?>
 			</ul>
 
@@ -93,7 +90,90 @@ $listing = Directorist_Entry::instance();
 	</div><!-- ends: .directorist-review-content -->
 
 	<?php
+	$commenter = wp_get_current_commenter();
+	$req       = get_option( 'require_name_email' );
+	$html_req  = ( $req ? " required='required'" : '' );
+
+	$fields = array(
+		'author' => sprintf(
+			'<div class="directorist-form-group form-group-author">%s %s</div>',
+			sprintf(
+				'<label for="author">%s%s</label>',
+				esc_html__( 'Name', 'directorist' ),
+				( $req ? ' <span class="required">*</span>' : '' )
+			),
+			sprintf(
+				'<input id="author" class="directorist-form-element" placeholder="%s" name="author" type="text" value="%s" size="30" maxlength="245"%s />',
+				esc_attr__( 'Enter your name', 'directorist' ),
+				esc_attr( $commenter['comment_author'] ),
+				$html_req
+			)
+		),
+		'email'  => sprintf(
+			'<div class="directorist-form-group form-group-email">%s %s</div>',
+			sprintf(
+				'<label for="email">%s%s</label>',
+				esc_html__( 'Email', 'directorist' ),
+				( $req ? ' <span class="required">*</span>' : '' )
+			),
+			sprintf(
+				'<input id="email" class="directorist-form-element" placeholder="%s" name="email" type="email" value="%s" size="30" maxlength="100" aria-describedby="email-notes"%s />',
+				esc_attr__( 'Enter your email', 'directorist' ),
+				esc_attr( $commenter['comment_author_email'] ),
+				$html_req
+			)
+		),
+		'url'    => sprintf(
+			'<div class="directorist-form-group form-group-url">%s %s</div>',
+			sprintf(
+				'<label for="url">%s</label>',
+				esc_html__( 'Website', 'directorist' ),
+			),
+			sprintf(
+				'<input id="url" class="directorist-form-element" placeholder="%s" name="url" type="url" value="%s" size="30" maxlength="200" />',
+				esc_attr__( 'Enter your website', 'directorist' ),
+				esc_attr( $commenter['comment_author_url'] )
+			)
+		),
+	);
+
+	$comment_field = sprintf(
+		'<div class="directorist-form-group form-group-comment">%s %s</div>',
+		sprintf(
+			'<label for="comment">%s</label>',
+			_x( 'Comment', 'noun', 'directorist' )
+		),
+		sprintf( '<textarea id="comment" class="directorist-form-element" placeholder="%s" name="comment" cols="30" rows="10" maxlength="65525" required="required"></textarea>',
+			esc_attr__( 'Share your experience and help others make better choices', 'directorist' )
+		)
+	);
+
+	$criteria_markup = '<div class="directorist-review-criteria">%s</div>' . "\n";
+
+	if ( \wpWax\Directorist\Review\is_criteria_enabled() ) {
+		$criteria_items_markup = '';
+		foreach ( \wpWax\Directorist\Review\get_criteria_names() as $criteria_key => $criteria_name ) {
+			$criteria_items_markup .= \wpWax\Directorist\Review\get_rating_markup( 'rating['.$criteria_key.']', $criteria_name ) . "\n";
+		}
+
+		$criteria_markup = sprintf(
+			$criteria_markup,
+			$criteria_items_markup
+		);
+
+		unset( $criteria_items_markup );
+	} else {
+		$criteria_markup = sprintf(
+			$criteria_markup,
+			\wpWax\Directorist\Review\get_rating_markup( 'rating', 'Rating' )
+		);
+	}
+
+	$comment_field = $criteria_markup . "\n" . $comment_field . "\n" . \wpWax\Directorist\Review\get_media_uploader_markup();
+
 	$args = array(
+		'fields'             => $fields,
+		'comment_field'      => $comment_field,
 		'class_container'    => 'directorist-review-submit',
 		'title_reply'        => __( 'Leave a Review', 'directorist' ),
 		'title_reply_before' => '<div class="directorist-review-submit__header"><h3 id="reply-title">',
@@ -103,7 +183,7 @@ $listing = Directorist_Entry::instance();
 		'label_submit'       => __( 'Submit your review', 'directorist' ),
 		'format'             => 'html5',
 		'submit_field'       => '<div class="directorist-form-group">%1$s %2$s</div>',
-		'submit_button'      => '<button name="%1$s" type="submit" id="%2$s" class="%3$s">%4$s</button>',
+		'submit_button'      => '<button name="%1$s" type="submit" id="%2$s" class="%3$s" value="%4$s">%4$s</button>',
 	);
 
 	comment_form( $args );
@@ -116,74 +196,16 @@ $listing = Directorist_Entry::instance();
 		<div class="directorist-review-submit__form">
 			<form action="/">
 				<div class="directorist-review-criteria">
-					<div class="directorist-review-criteria__single">
-						<span class="directorist-review-criteria__single__label">Food</span>
-						<select class="directorist-review-criteria-select">
-							<option value=""><?php esc_html_e( 'Rate...', 'directorist' ); ?></option>
-							<option value="1"><?php esc_html_e( 'Very poor', 'directorist' ); ?></option>
-							<option value="2"><?php esc_html_e( 'Not that bad', 'directorist' ); ?></option>
-							<option value="3"><?php esc_html_e( 'Average', 'directorist' ); ?></option>
-							<option value="4"><?php esc_html_e( 'Good', 'directorist' ); ?></option>
-							<option value="5"><?php esc_html_e( 'Perfect', 'directorist' ); ?></option>
-						</select>
-					</div><!-- ends: .directorist-review-criteria__one -->
-					<div class="directorist-review-criteria__single">
-						<span class="directorist-review-criteria__single__label">Location</span>
-						<select class="directorist-review-criteria-select">
-							<option value=""><?php esc_html_e( 'Rate...', 'directorist' ); ?></option>
-							<option value="1"><?php esc_html_e( 'Very poor', 'directorist' ); ?></option>
-							<option value="2"><?php esc_html_e( 'Not that bad', 'directorist' ); ?></option>
-							<option value="3"><?php esc_html_e( 'Average', 'directorist' ); ?></option>
-							<option value="4"><?php esc_html_e( 'Good', 'directorist' ); ?></option>
-							<option value="5"><?php esc_html_e( 'Perfect', 'directorist' ); ?></option>
-						</select>
-					</div><!-- ends: .directorist-review-criteria__one -->
-					<div class="directorist-review-criteria__single">
-						<span class="directorist-review-criteria__single__label">Service</span>
-						<select class="directorist-review-criteria-select">
-							<option value=""><?php esc_html_e( 'Rate...', 'directorist' ); ?></option>
-							<option value="1"><?php esc_html_e( 'Very poor', 'directorist' ); ?></option>
-							<option value="2"><?php esc_html_e( 'Not that bad', 'directorist' ); ?></option>
-							<option value="3"><?php esc_html_e( 'Average', 'directorist' ); ?></option>
-							<option value="4"><?php esc_html_e( 'Good', 'directorist' ); ?></option>
-							<option value="5"><?php esc_html_e( 'Perfect', 'directorist' ); ?></option>
-						</select>
-					</div><!-- ends: .directorist-review-criteria__one -->
-					<div class="directorist-review-criteria__single">
-						<span class="directorist-review-criteria__single__label">Ambience</span>
-						<select class="directorist-review-criteria-select">
-							<option value=""><?php esc_html_e( 'Rate...', 'directorist' ); ?></option>
-							<option value="1"><?php esc_html_e( 'Very poor', 'directorist' ); ?></option>
-							<option value="2"><?php esc_html_e( 'Not that bad', 'directorist' ); ?></option>
-							<option value="3"><?php esc_html_e( 'Average', 'directorist' ); ?></option>
-							<option value="4"><?php esc_html_e( 'Good', 'directorist' ); ?></option>
-							<option value="5"><?php esc_html_e( 'Perfect', 'directorist' ); ?></option>
-						</select>
-					</div><!-- ends: .directorist-review-criteria__one -->
-					<div class="directorist-review-criteria__single">
-						<span class="directorist-review-criteria__single__label">Price</span>
-						<select class="directorist-review-criteria-select">
-							<option value=""><?php esc_html_e( 'Rate...', 'directorist' ); ?></option>
-							<option value="1"><?php esc_html_e( 'Very poor', 'directorist' ); ?></option>
-							<option value="2"><?php esc_html_e( 'Not that bad', 'directorist' ); ?></option>
-							<option value="3"><?php esc_html_e( 'Average', 'directorist' ); ?></option>
-							<option value="4"><?php esc_html_e( 'Good', 'directorist' ); ?></option>
-							<option value="5"><?php esc_html_e( 'Perfect', 'directorist' ); ?></option>
-						</select>
-					</div><!-- ends: .directorist-review-criteria__one -->
-
+					<?php
+					foreach ( ['one', 'two', 'three'] as $num ) {
+						echo wpWax\Directorist\Review\get_rating_markup( "criteria[{$num}]", ucfirst( $num ) );
+					}
+					?>
 				</div><!-- ends: .directorist-review-criteria -->
 				<div class="directorist-form-group">
 					<textarea class="directorist-form-element" cols="30" rows="10" placeholder="Share your experience and help others make better choices"></textarea>
 				</div>
-				<div class="directorist-form-group directorist-review-media-upload">
-					<input type="file" name="" id="directorist-add-review-img" multiple>
-					<label for="directorist-add-review-img">
-						<i class="far fa-image"></i>
-						<span>Add a photo</span>
-					</label>
-					<div class="directorist-review-img-gallery"></div>
-				</div>
+
 				<div class="directorist-form-group">
 					<label for="">Your Email</label>
 					<input class="directorist-form-element" type="text" placeholder="Enter your email">

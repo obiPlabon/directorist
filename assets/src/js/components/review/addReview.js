@@ -191,58 +191,175 @@
     });
 
 
+    class AttachmentPreview {
+        constructor(form) {
+            this.$form = $(form);
+            this.$input = this.$form.find('.directorist-review-images');
+            this.$preview = this.$form.find('.directorist-review-img-gallery');
 
-    //show review images before upload
-    let galleryUploadTotal = 1;
+            this.bindEvents();
+        }
 
-    var imagesPreview = function(input, placeToInsertImagePreview) {
+        bindEvents() {
+            const self = this;
 
-        if (input.files) {
+            this.$input.on('change', function() {
+                self.showPreview(this);
+            });
 
-            var filesAmount = input.files.length;
+            this.$form.on('click', '.directorist-btn-delete', function(e) {
+                e.preventDefault();
+                $(this).parent().remove();
+            });
+        }
 
-            for (let i = 0; i < filesAmount; i++) {
+        // deleteFromFileList(fileField, index) {
+        //     let fileBuffer = Array.from(fileField.files);
+        //     fileBuffer.splice(index, 1);
 
-                var reader = new FileReader();
+        //     /** Code from: https://stackoverflow.com/a/47172409/8145428 */
+        //     // Firefox < 62 workaround exploiting https://bugzilla.mozilla.org/show_bug.cgi?id=1422655
+        //     // specs compliant (as of March 2018 only Chrome)
+        //     const dataTransfer = new ClipboardEvent('').clipboardData || new DataTransfer();
 
-                reader.onload = function(event) {
+        //     for (let file of fileBuffer) {
+        //         dataTransfer.items.add(file);
+        //     }
+        //     fileField.files = dataTransfer.files;
+        // }
 
-                    let imgFile = event.target;
+        // addToFileList(fileField, index) {
+        //     let fileBuffer = Array.from(fileField.files);
+        //     fileBuffer.splice(index, 1);
 
-                    let singleImgHtml = `
-                    <div class="directorist-review-gallery-preview directorist-preview-${galleryUploadTotal} preview-image">
-                        <img src="${imgFile.result}" alt="Directorist Review Preview">
-                        <a href="#" class="directorist-btn-delete" data-directorist-no="directorist-preview-${galleryUploadTotal}"><i class="la la-trash"></i></a>
+        //     /** Code from: https://stackoverflow.com/a/47172409/8145428 */
+        //     // Firefox < 62 workaround exploiting https://bugzilla.mozilla.org/show_bug.cgi?id=1422655
+        //     // specs compliant (as of March 2018 only Chrome)
+        //     const dataTransfer = new ClipboardEvent('').clipboardData || new DataTransfer();
+
+        //     for (let file of fileBuffer) {
+        //         dataTransfer.items.add(file);
+        //     }
+        //     fileField.files = dataTransfer.files;
+        // }
+
+        showPreview(input) {
+            this.$preview.html('');
+
+            for (let i = 0, len = input.files.length; i < len; i++) {
+                const fileReader = new FileReader();
+                let file = input.files[i];
+
+                if (!file.type.startsWith('image/')) {
+                    continue;
+                }
+
+                fileReader.onload = event => {
+                    const html = `
+                    <div class="directorist-review-gallery-preview preview-image">
+                        <img src="${event.target.result}" alt="Directorist Review Preview">
+                        <a href="#" class="directorist-btn-delete"><i class="la la-trash"></i></a>
                     </div>
                     `;
 
-                    $(placeToInsertImagePreview).append(singleImgHtml);
-
-                    galleryUploadTotal = galleryUploadTotal + 1;
-
+                    this.$preview.append(html);
                 }
 
-                reader.readAsDataURL(input.files[i]);
+                fileReader.readAsDataURL(file);
             }
         }
+    }
 
-    };
+    class CommentInteraction {
+        constructor() {
+            this.selector = '[data-comment-interaction]';
+            this.$wrap    = $('.directorist-review-content__reviews');
 
-    $('#directorist-add-review-img').on('change', function() {
+            this.events();
 
-        imagesPreview(this, 'div.directorist-review-img-gallery');
+            console.log('started');
+        }
 
-    });
+        events() {
+            this.$wrap.on(
+                'click.directoristInteractionClick',
+                this.selector,
+                this.callback.bind(this)
+            );
+        }
 
-    // Remove The Preview Image Div 
-    $(document).on('click', '.directorist-btn-delete', function(e) {
+        callback(event) {
+            event.preventDefault();
 
-        e.preventDefault();
+            const $target = $(event.currentTarget);
+            const config = $target.data('comment-interaction');
 
-        let previewNum = this.dataset.directoristNo;
+            if (!config) {
+                return;
+            }
 
-        $("."+previewNum).remove();
+            const [commentId, interaction] = config.split(':');
 
-    });
+            if (!commentId || !interaction) {
+                return;
+            }
 
+            if ($target.hasClass('processing')) {
+                return;
+            } else {
+                $target.addClass('processing').attr('disabled', true);
+            }
+
+            console.log(commentId, interaction);
+
+            this.send(commentId, interaction)
+                .done(response => {
+                    const $comment = $('#div-comment-'+commentId);
+                    let type = 'warning';
+
+                    if (response.success) {
+                        $target.removeClass('processing').removeAttr('disabled', true);
+                        type = 'success';
+                    }
+
+                    console.log(this);
+                    $comment.find('.directorist-alert').remove();
+                    $comment.prepend(this.getAlert(type).html(response.data));
+                });
+        }
+
+        getAlert(type) {
+            return $('<div />', {
+                class: 'directorist-alert directorist-alert-' + type
+            });
+        }
+
+        send(commentId, interaction) {
+            return $.post(
+                directorist.ajaxUrl,
+                {
+                    action: directorist.action,
+                    nonce: directorist.nonce,
+                    comment_id: commentId,
+                    interaction: interaction
+                }
+            );
+        }
+    }
+
+    class AdvancedReview {
+        constructor() {
+            this.form = document.querySelector('#commentform');
+            this.setFormEncoding();
+
+            new AttachmentPreview(this.form);
+            new CommentInteraction();
+        }
+
+        setFormEncoding() {
+            this.form.encoding = 'multipart/form-data';
+        }
+    }
+
+    const advancedReview = new AdvancedReview();
 })(jQuery);
