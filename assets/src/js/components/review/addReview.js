@@ -276,8 +276,6 @@
             this.$wrap    = $('.directorist-review-content__reviews');
 
             this.events();
-
-            console.log('started');
         }
 
         events() {
@@ -308,9 +306,14 @@
                 return;
             } else {
                 $target.addClass('processing').attr('disabled', true);
+
+                if (interaction === 'helpful' || interaction === 'unhelpful') {
+                    $target.find('span').html($target.data('count') + 1);
+                    $target.data('count', $target.data('count') + 1);
+                }
             }
 
-            console.log(commentId, interaction);
+            this.timeout && clearTimeout(this.timeout);
 
             this.send(commentId, interaction)
                 .done(response => {
@@ -322,9 +325,13 @@
                         type = 'success';
                     }
 
-                    console.log(this);
                     $comment.find('.directorist-alert').remove();
                     $comment.prepend(this.getAlert(type).html(response.data));
+
+                    this.timeout = setTimeout(() => {
+                        $comment.find('.directorist-alert').slideUp('medium');
+                        clearTimeout(this.timeout);
+                    }, 3000);
                 });
         }
 

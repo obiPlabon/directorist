@@ -101,6 +101,11 @@ class Walker extends Walker_Comment {
 		if ( $has_parent ) {
 			$comment_class .= ' directorist-review-single--comment';
 		}
+
+		$helpful   = get_comment_meta( get_comment_ID(), 'helpful', true );
+		$helpful   = empty( $helpful ) ? 0 : absint( $helpful );
+		$unhelpful = get_comment_meta( get_comment_ID(), 'unhelpful', true );
+		$unhelpful = empty( $unhelpful ) ? 0 : absint( $unhelpful );
 		?>
 		<li id="comment-<?php comment_ID(); ?>" <?php comment_class( $comment_class ); ?>>
 			<article id="div-comment-<?php comment_ID(); ?>" class="comment-body">
@@ -140,8 +145,8 @@ class Walker extends Walker_Comment {
 					<em class="comment-awaiting-moderation"><?php _e( 'Your comment is awaiting moderation.' ); ?></em><br/><?php
 				} ?>
 				<footer class="directorist-review-single__feedback">
-					<a <?php self::add_interaction( 'helpful' ); ?> role="button" href="#" class="directorist-btn directorist-btn-outline-dark"><i class="far fa-thumbs-up"></i> Helpful <span>6</span></a>
-					<a <?php self::add_interaction( 'unhelpful' ); ?> role="button" href="#" class="directorist-btn directorist-btn-outline-dark"><i class="far fa-thumbs-down"></i> Not Helpful <span>2</span></a>
+					<a <?php self::add_interaction( 'helpful' ); ?> role="button" data-count="<?php echo $helpful; ?>" href="#" class="directorist-btn directorist-btn-outline-dark"><i class="far fa-thumbs-up"></i> <?php echo esc_html_x( 'Helpful', 'comment feedback button', 'directorist' ); ?> (<span><?php echo $helpful; ?></span>)</a>
+					<a <?php self::add_interaction( 'unhelpful' ); ?> role="button" data-count="<?php echo $unhelpful; ?>" href="#" class="directorist-btn directorist-btn-outline-dark"><i class="far fa-thumbs-down"></i> <?php echo esc_html_x( 'Not Helpful', 'comment feedback button', 'directorist' ); ?> (<span><?php echo $unhelpful; ?></span>)</a>
 				</footer>
 
 				<?php comment_reply_link(

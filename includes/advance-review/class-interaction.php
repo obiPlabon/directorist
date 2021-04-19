@@ -72,16 +72,40 @@ class Interaction {
 		}
 	}
 
-	protected static function handle_report() {
+	protected static function handle_report( $comment_id ) {
+		$reported = get_comment_meta( $comment_id, 'reported', true );
 
+		if ( empty( $reported ) ) {
+			$reported = 0;
+		}
+
+		update_comment_meta(  $comment_id, 'reported', $reported + 1 );
+
+		return __( 'Thank you for reporting.', 'directorist' );
 	}
 
-	protected static function handle_helpful() {
+	protected static function handle_helpful( $comment_id ) {
+		$helpful = get_comment_meta( $comment_id, 'helpful', true );
 
+		if ( empty( $helpful ) ) {
+			$helpful = 0;
+		}
+
+		update_comment_meta(  $comment_id, 'helpful', $helpful + 1 );
+
+		return __( 'Nice to hear that it has been helpful.', 'directorist' );
 	}
 
-	protected static function handle_unhelpful() {
+	protected static function handle_unhelpful( $comment_id ) {
+		$unhelpful = get_comment_meta( $comment_id, 'unhelpful', true );
 
+		if ( empty( $unhelpful ) ) {
+			$unhelpful = 0;
+		}
+
+		update_comment_meta(  $comment_id, 'unhelpful', $unhelpful + 1 );
+
+		return __( 'Thank you for your feedback.', 'directorist' );
 	}
 
 	protected static function get_login_required_interactions() {
