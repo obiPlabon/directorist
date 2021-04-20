@@ -11,6 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 comments_template();
 
+return;
 if ( ! Directorist\Helper::is_review_enabled() ) {
 	return;
 }

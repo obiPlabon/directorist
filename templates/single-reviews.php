@@ -188,32 +188,4 @@ $listing = Directorist_Entry::instance();
 
 	comment_form( $args );
 	?>
-
-	<div class="directorist-review-submit" id="directorist-add-review">
-		<div class="directorist-review-submit__header">
-			<h3>Leave a Review</h3>
-		</div><!-- ends: .directorist-review-submit__header -->
-		<div class="directorist-review-submit__form">
-			<form action="/">
-				<div class="directorist-review-criteria">
-					<?php
-					foreach ( ['one', 'two', 'three'] as $num ) {
-						echo wpWax\Directorist\Review\get_rating_markup( "criteria[{$num}]", ucfirst( $num ) );
-					}
-					?>
-				</div><!-- ends: .directorist-review-criteria -->
-				<div class="directorist-form-group">
-					<textarea class="directorist-form-element" cols="30" rows="10" placeholder="Share your experience and help others make better choices"></textarea>
-				</div>
-
-				<div class="directorist-form-group">
-					<label for="">Your Email</label>
-					<input class="directorist-form-element" type="text" placeholder="Enter your email">
-				</div>
-				<div class="directorist-form-group">
-					<button class="directorist-btn directorist-btn-primary" type="submit">Submit your review</button>
-				</div>
-			</form>
-		</div><!-- ends: .directorist-review-submit__form -->
-	</div><!-- ends: .directorist-review-submit -->
 </div>

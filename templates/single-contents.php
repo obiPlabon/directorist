@@ -33,9 +33,8 @@ $listing = Directorist_Single_Listing::instance();
 					}
 					?>
 
+					<?php /*
 					<div class="directorist-review-container">
-
-						<?php /*
 						<div class="directorist-review-content">
 							<div class="directorist-review-content__header">
 								<h3>Foodies Ratings <span>452</span></h3>
@@ -277,7 +276,6 @@ $listing = Directorist_Single_Listing::instance();
 								</ul>
 							</div>
 						</div><!-- ends: .directorist-review-content -->
-						 */ ?>
 
 						<div class="directorist-review-submit" id="directorist-add-review">
 							<div class="directorist-review-submit__header">
@@ -360,8 +358,8 @@ $listing = Directorist_Single_Listing::instance();
 							</div><!-- ends: .directorist-review-submit__form -->
 						</div><!-- ends: .directorist-review-submit -->
 					</div><!-- ends: .directorist-review-container -->
+					*/ ?>
 				</div>
-
 			</div>
 
 			<?php Helper::get_template( 'single-sidebar' ); ?>
