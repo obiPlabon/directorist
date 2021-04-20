@@ -9,11 +9,14 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
+use wpWax\Directorist\Review\Review_Data;
 use Directorist\Helper;
 use Directorist\Directorist_Single_Listing as Directorist_Entry;
 use wpWax\Directorist\Review\Walker as Review_Walker;
 
 $listing = Directorist_Entry::instance();
+$review_count = Review_Data::get_review_count( get_the_ID() );
+$review_rating = Review_Data::get_rating( get_the_ID() );
 ?>
 
 <div class="directorist-review-container">
@@ -26,15 +29,14 @@ $listing = Directorist_Entry::instance();
 		<?php if ( have_comments() ) : ?>
 			<div class="directorist-review-content__overview">
 				<div class="directorist-review-content__overview__rating">
-					<span class="directorist-rating-point">4.6</span>
+					<span class="directorist-rating-point"><?php echo $review_rating; ?></span>
 					<span class="directorist-rating-stars">
-						<i class="fa fa-star"></i>
-						<i class="fa fa-star"></i>
-						<i class="fa fa-star"></i>
-						<i class="fa fa-star"></i>
-						<i class="fa fa-star"></i>
+						<?php
+						echo str_repeat( '<i class="fas fa-star"></i>', floor( $review_rating ) );
+						echo str_repeat( '<i class="far fa-star"></i>', ( 5 - floor( $review_rating ) ) );
+						?>
 					</span>
-					<span class="directorist-rating-overall">653 reviews</span>
+					<span class="directorist-rating-overall"><?php printf( _n( '%s review', '%s reviews', $review_count, 'directorist' ), number_format_i18n( $review_count ) ); ?></span>
 				</div>
 				<div class="directorist-review-content__overview__benchmarks">
 					<div class="directorist-benchmark-single">
@@ -153,7 +155,7 @@ $listing = Directorist_Entry::instance();
 	if ( \wpWax\Directorist\Review\is_criteria_enabled() ) {
 		$criteria_items_markup = '';
 		foreach ( \wpWax\Directorist\Review\get_criteria_names() as $criteria_key => $criteria_name ) {
-			$criteria_items_markup .= \wpWax\Directorist\Review\get_rating_markup( 'rating['.$criteria_key.']', $criteria_name ) . "\n";
+			$criteria_items_markup .= \wpWax\Directorist\Review\get_rating_markup( $criteria_name, $criteria_key ) . "\n";
 		}
 
 		$criteria_markup = sprintf(
@@ -165,7 +167,7 @@ $listing = Directorist_Entry::instance();
 	} else {
 		$criteria_markup = sprintf(
 			$criteria_markup,
-			\wpWax\Directorist\Review\get_rating_markup( 'rating', 'Rating' )
+			\wpWax\Directorist\Review\get_rating_markup( __( 'Rating', 'directorist' ) )
 		);
 	}
 

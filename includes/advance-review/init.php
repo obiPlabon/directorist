@@ -14,6 +14,7 @@ use Directorist\Helper;
 
 require_once 'class-comment.php';
 require_once 'class-interaction.php';
+require_once 'class-review-data.php';
 
 function add_comment_support( $args, $post_type ) {
 	if ( $post_type !== ATBDP_POST_TYPE ) {
@@ -68,18 +69,26 @@ function load_review_walker() {
 }
 add_action( 'template_redirect', __NAMESPACE__ . '\load_review_walker' );
 
-function get_rating_markup( $name, $label ) {
+function get_rating_markup( $label, $subname = '' ) {
+	$name     = 'rating';
+	$selected = isset( $_REQUEST['rating'] ) ? $_REQUEST['rating'] : '';
+
+	if ( is_criteria_enabled() && $subname ) {
+		$name .= "[{$subname}]";
+		$selected = isset( $_REQUEST['rating'], $_REQUEST['rating'][ $subname ] ) ? $_REQUEST['rating'][ $subname ] : '';
+	}
+
 	ob_start();
 	?>
 	<div class="directorist-review-criteria__single">
 		<span class="directorist-review-criteria__single__label"><?php echo esc_html( $label ); ?></span>
 		<select required="required" name="<?php echo esc_attr( $name ); ?>" class="directorist-review-criteria-select">
 			<option value=""><?php esc_html_e( 'Rate...', 'directorist' ); ?></option>
-			<option value="1"><?php esc_html_e( 'Very poor', 'directorist' ); ?></option>
-			<option value="2"><?php esc_html_e( 'Not that bad', 'directorist' ); ?></option>
-			<option value="3"><?php esc_html_e( 'Average', 'directorist' ); ?></option>
-			<option value="4"><?php esc_html_e( 'Good', 'directorist' ); ?></option>
-			<option value="5"><?php esc_html_e( 'Perfect', 'directorist' ); ?></option>
+			<option <?php selected( $selected, '1' ); ?> value="1"><?php esc_html_e( 'Very poor', 'directorist' ); ?></option>
+			<option <?php selected( $selected, '2' ); ?> value="2"><?php esc_html_e( 'Not that bad', 'directorist' ); ?></option>
+			<option <?php selected( $selected, '3' ); ?> value="3"><?php esc_html_e( 'Average', 'directorist' ); ?></option>
+			<option <?php selected( $selected, '4' ); ?> value="4"><?php esc_html_e( 'Good', 'directorist' ); ?></option>
+			<option <?php selected( $selected, '5' ); ?> value="5"><?php esc_html_e( 'Perfect', 'directorist' ); ?></option>
 		</select>
 	</div><!-- ends: .directorist-review-criteria__one -->
 	<?php

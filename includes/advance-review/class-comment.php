@@ -13,7 +13,6 @@ defined( 'ABSPATH' ) || die();
 class Comment {
 
 	public static function init() {
-
 		// Rating posts.
 		add_filter( 'comments_open', array( __CLASS__, 'comments_open' ), 10, 2 );
 		add_filter( 'preprocess_comment', array( __CLASS__, 'check_review_rating' ), 0 );
@@ -170,16 +169,29 @@ class Comment {
 	}
 
 	/**
-	 * Ensure product average rating and review count is kept up to date.
+	 * Ensure listing average rating and review count is kept up to date.
 	 *
 	 * @param int $post_id Post ID.
 	 */
 	public static function clear_transients( $post_id ) {
 		if ( ATBDP_POST_TYPE === get_post_type( $post_id ) ) {
-			self::get_rating_counts_for_listing( $post_id );
-			self::get_average_rating_for_listing( $post_id );
-			self::get_review_count_for_listing( $post_id );
+			// Make sure to maintain the sequence. Update review count before updating the rating
+			Review_Data::update_rating_counts( $post_id, self::get_rating_counts_for_listing( $post_id ) );
+			Review_Data::update_review_count( $post_id, self::get_review_count_for_listing( $post_id ) );
+			Review_Data::update_rating( $post_id, self::get_average_rating_for_listing( $post_id ) );
 		}
+	}
+
+	/**
+	 * Get listing review count for a listing (not replies). Please note this is not cached.
+	 *
+	 * @param int $post_id.
+	 * @return int
+	 */
+	public static function get_review_count_for_listing( $post_id ) {
+		$counts = self::get_review_counts_for_listing_ids( array( $post_id ) );
+
+		return $counts[ $post_id ];
 	}
 
 	/**
@@ -215,7 +227,7 @@ class Comment {
 	}
 
 	/**
-	 * Get product rating for a product. Please note this is not cached.
+	 * Get listing rating for a listing. Please note this is not cached.
 	 *
 	 * @param $post_id.
 	 * @return float
@@ -223,7 +235,7 @@ class Comment {
 	public static function get_average_rating_for_listing( $post_id ) {
 		global $wpdb;
 
-		$count = $product->get_rating_count();
+		$count = Review_Data::get_review_count( $post_id );
 
 		if ( $count ) {
 			$ratings = $wpdb->get_var(
