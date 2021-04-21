@@ -14,9 +14,10 @@ use Directorist\Helper;
 use Directorist\Directorist_Single_Listing as Directorist_Entry;
 use wpWax\Directorist\Review\Walker as Review_Walker;
 
-$listing = Directorist_Entry::instance();
-$review_count = Review_Data::get_review_count( get_the_ID() );
-$review_rating = Review_Data::get_rating( get_the_ID() );
+$listing         = Directorist_Entry::instance();
+$review_count    = Review_Data::get_review_count( get_the_ID() );
+$review_rating   = Review_Data::get_rating( get_the_ID() );
+$criteria_rating = Review_Data::get_criteria_rating( get_the_ID() );
 ?>
 
 <div class="directorist-review-container">
@@ -39,31 +40,20 @@ $review_rating = Review_Data::get_rating( get_the_ID() );
 					<span class="directorist-rating-overall"><?php printf( _n( '%s review', '%s reviews', $review_count, 'directorist' ), number_format_i18n( $review_count ) ); ?></span>
 				</div>
 				<div class="directorist-review-content__overview__benchmarks">
-					<div class="directorist-benchmark-single">
-						<label>Food</label>
-						<progress value="5" max="5"> 5.0 </progress>
-						<strong>5.0</strong>
-					</div>
-					<div class="directorist-benchmark-single">
-						<label>Location</label>
-						<progress value="4.5" max="5"> 4.5 </progress>
-						<strong>4.5</strong>
-					</div>
-					<div class="directorist-benchmark-single">
-						<label>Service</label>
-						<progress value="4.7" max="5"> 4.7 </progress>
-						<strong>4.7</strong>
-					</div>
-					<div class="directorist-benchmark-single">
-						<label>Quality</label>
-						<progress value="5" max="5"> 5.0 </progress>
-						<strong>5.0</strong>
-					</div>
-					<div class="directorist-benchmark-single">
-						<label>Price</label>
-						<progress value="4.2" max="5"> 4.2 </progress>
-						<strong>4.2</strong>
-					</div>
+					<?php
+					if ( \wpWax\Directorist\Review\is_criteria_enabled() ) :
+						foreach ( \wpWax\Directorist\Review\get_criteria_names() as $criteria_key => $criteria_name ) :
+							$_rating = isset( $criteria_rating[ $criteria_key ] ) ? $criteria_rating[ $criteria_key ] : 0;
+							?>
+							<div class="directorist-benchmark-single">
+								<label><?php echo $criteria_name; ?></label>
+								<progress value="<?php echo esc_attr( $_rating ); ?>" max="5"><?php echo $_rating; ?></progress>
+								<strong><?php echo $_rating; ?></strong>
+							</div>
+							<?php
+						endforeach;
+					endif;
+					?>
 				</div>
 			</div><!-- ends: .directorist-review-content__overview -->
 

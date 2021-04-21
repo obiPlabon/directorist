@@ -16,6 +16,8 @@ class Review_Data {
 
 	const AVG_RATING_DB_KEY = '_directorist_listing_rating';
 
+	const AVG_CRITERIA_RATING_DB_KEY = '_directorist_listing_criteria_rating';
+
 	const REVIEW_COUNT_DB_KEY = '_directorist_listing_review_count';
 
 	public static function get_rating_counts( $listing_id ) {
@@ -34,6 +36,14 @@ class Review_Data {
 
 	public static function update_rating( $listing_id, $rating ) {
 		update_post_meta( $listing_id, self::AVG_RATING_DB_KEY, (float) $rating );
+	}
+
+	public static function get_criteria_rating( $listing_id ) {
+		return get_post_meta( $listing_id, self::AVG_CRITERIA_RATING_DB_KEY, true );
+	}
+
+	public static function update_criteria_rating( $listing_id, $criteria_rating ) {
+		update_post_meta( $listing_id, self::AVG_CRITERIA_RATING_DB_KEY, $criteria_rating );
 	}
 
 	public static function get_review_count( $listing_id ) {

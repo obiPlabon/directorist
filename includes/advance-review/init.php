@@ -123,7 +123,7 @@ function is_criteria_enabled() {
 }
 
 function get_criteria_names() {
-	return [];
+	// return [];
 	return array(
 		'food'     => 'Food',
 		'location' => 'Location',

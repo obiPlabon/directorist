@@ -21,6 +21,9 @@ class Comment {
 		// Support avatars for `review` comment type.
 		add_filter( 'get_avatar_comment_types', array( __CLASS__, 'add_avatar_for_review_comment_type' ) );
 
+		// Clear transients.
+		add_action( 'wp_update_comment_count', array( __CLASS__, 'clear_transients' ) );
+
 		// Set comment type.
 		add_action( 'preprocess_comment', array( __CLASS__, 'update_comment_type' ), 1 );
 
@@ -158,10 +161,11 @@ class Comment {
 	}
 
 	public static function save_review_data( $comment_ID, $comment_approved, $commentdata ) {
-		if ( isset( $_POST['comment_post_ID'] ) && ATBDP_POST_TYPE === get_post_type( absint( $_POST['comment_post_ID'] ) ) ) {
+		$post_id = isset( $_POST['comment_post_ID'] ) ? absint( $_POST['comment_post_ID'] ) : 0; // WPCS: input var ok, CSRF ok.
+
+		if ( isset( $_POST['comment_post_ID'] ) && ATBDP_POST_TYPE === get_post_type( $post_id ) ) {
 			self::save_rating( $comment_ID, $commentdata );
 
-			$post_id = isset( $_POST['comment_post_ID'] ) ? absint( $_POST['comment_post_ID'] ) : 0; // WPCS: input var ok, CSRF ok.
 			if ( $post_id ) {
 				self::clear_transients( $post_id );
 			}
@@ -179,6 +183,7 @@ class Comment {
 			Review_Data::update_rating_counts( $post_id, self::get_rating_counts_for_listing( $post_id ) );
 			Review_Data::update_review_count( $post_id, self::get_review_count_for_listing( $post_id ) );
 			Review_Data::update_rating( $post_id, self::get_average_rating_for_listing( $post_id ) );
+			Review_Data::update_criteria_rating( $post_id, self::get_criteria_rating_for_listing( $post_id ) );
 		}
 	}
 
@@ -300,32 +305,70 @@ class Comment {
 		return $counts;
 	}
 
+	private static function get_criteria_rating_for_listing( $post_id ) {
+		if ( ! \wpWax\Directorist\Review\is_criteria_enabled() ) {
+			return array();
+		}
+
+		global $wpdb;
+
+		$results = $wpdb->get_results(
+			$wpdb->prepare(
+				"
+			SELECT meta_value FROM $wpdb->commentmeta
+			LEFT JOIN $wpdb->comments ON $wpdb->commentmeta.comment_id = $wpdb->comments.comment_ID
+			WHERE meta_key = 'criteria_rating'
+			AND comment_post_ID = %d
+			AND comment_approved = '1'
+			AND meta_value != ''
+				",
+				$post_id
+			)
+		);
+
+		if ( empty( $results ) ) {
+			return array();
+		}
+
+		$results = array_map( function( $row ) {
+			return maybe_unserialize( $row->meta_value );
+		}, $results );
+
+		$rating_map = array();
+
+		foreach ( \wpWax\Directorist\Review\get_criteria_names() as $criteria_key => $criteria_name ) {
+			$criteria = array_column( $results, $criteria_key );
+			$rating_map[ $criteria_key ] = number_format( array_sum( $criteria ) / count( $criteria ), 2, '.', '' );
+		}
+
+		return $rating_map;
+	}
+
 	private static function save_rating( $comment_ID, $commentdata ) {
 		if ( $commentdata['comment_type'] !== 'review' || empty( $_POST['rating'] ) ) {
 			return;
 		}
 
-		if ( is_array( $_POST['rating'] ) ) {
-			if ( is_criteria_enabled() ) {
-				$_criteria = array();
+		if ( is_array( $_POST['rating'] ) && is_criteria_enabled() ) {
+			$_criteria = array();
 
-				foreach( get_criteria_names() as $criterion_key => $criterion_name ) {
-					if ( empty( $_POST['rating'][ $criterion_key ] ) ) {
-						continue;
-					}
-
-					$_criteria[ $criterion_key ] = absint( $_POST['rating'][ $criterion_key ] );
+			foreach( get_criteria_names() as $criterion_key => $criterion_name ) {
+				if ( empty( $_POST['rating'][ $criterion_key ] ) ) {
+					continue;
 				}
 
-				$_criteria = array_map( 'intval', $_criteria );
-				$_total    = array_sum( $_criteria );
-				$avg       = number_format( $_total / count( $_criteria ), 2, '.', '' );
-
-				add_comment_meta( $comment_ID, 'criteria_rating', $_criteria, true );
-			} else {
-				$rating = current( $_POST['rating'] );
-				$rating = number_format( intval( $rating ), 2, '.', '' );
+				$_criteria[ $criterion_key ] = absint( $_POST['rating'][ $criterion_key ] );
 			}
+
+			$_criteria      = array_map( 'intval', $_criteria );
+			$criteria_total = array_sum( $_criteria );
+			$criteria_count = count( $_criteria );
+			$rating         = number_format( $criteria_total / $criteria_count, 2, '.', '' );
+
+			add_comment_meta( $comment_ID, 'criteria_rating', $_criteria, true );
+		} else if ( is_array( $_POST['rating'] ) && ! is_criteria_enabled() ) {
+			$rating = current( $_POST['rating'] );
+			$rating = number_format( intval( $rating ), 2, '.', '' );
 		} else {
 			$rating = number_format( intval( $_POST['rating'] ), 2, '.', '' );
 		}
