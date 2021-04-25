@@ -108,7 +108,7 @@ class Walker extends Walker_Comment {
 		$unhelpful = get_comment_meta( get_comment_ID(), 'unhelpful', true );
 		$unhelpful = empty( $unhelpful ) ? 0 : absint( $unhelpful );
 
-		$attachments = (array) get_comment_meta( get_comment_ID(), 'attachments', true )
+		$attachments = get_comment_meta( get_comment_ID(), 'attachments', true )
 		?>
 		<li id="comment-<?php comment_ID(); ?>" <?php comment_class( $comment_class ); ?>>
 			<article id="div-comment-<?php comment_ID(); ?>" class="comment-body">
@@ -139,7 +139,7 @@ class Walker extends Walker_Comment {
 					<div class="directorist-review-single__content">
 						<?php comment_text(); ?>
 
-						<?php if ( ! empty( $attachments ) ) : ?>
+						<?php if ( ! empty( $attachments ) && is_array( $attachments ) ) : ?>
 							<div class="directorist-review-single__content__img">
 								<?php
 								$dir = wp_get_upload_dir();
