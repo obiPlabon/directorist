@@ -80,7 +80,11 @@ $criteria_rating = Review_Data::get_criteria_rating( get_the_ID() );
 			endif;
 			?>
 		<?php else : ?>
-			<p class="directorist-noreviews"><?php esc_html_e( 'There are no reviews yet.', 'directorist' ); ?></p>
+			<div class="directorist-review-content__reviews">
+				<p class="directorist-review-single directorist-noreviews">
+					<?php printf( esc_html__( 'There are no reviews yet. %1$sBe the first reviewer%2$s.', 'directorist' ), '<a href="#respond">', '</a>' ); ?>
+				</p>
+			</div>
 		<?php endif; ?>
 	</div><!-- ends: .directorist-review-content -->
 

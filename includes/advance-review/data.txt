@@ -1,0 +1,14 @@
+Array
+(
+    [file] => /Users/obi/Local Sites/directorist/app/public/wp-content/uploads/2021/04/keya-photo.jpg
+    [url] => http://directorist.local/wp-content/uploads/2021/04/keya-photo.jpg
+    [type] => image/jpeg
+    [error] => 
+)
+Array
+(
+    [file] => /Users/obi/Local Sites/directorist/app/public/wp-content/uploads/2021/04/keya-signature.jpg
+    [url] => http://directorist.local/wp-content/uploads/2021/04/keya-signature.jpg
+    [type] => image/jpeg
+    [error] => 
+)

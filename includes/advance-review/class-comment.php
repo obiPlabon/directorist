@@ -10,6 +10,9 @@ namespace wpWax\Directorist\Review;
 
 defined( 'ABSPATH' ) || die();
 
+use function wpWax\Directorist\Review\get_criteria_names;
+use function wpWax\Directorist\Review\is_criteria_enabled;
+
 class Comment {
 
 	public static function init() {
@@ -165,6 +168,7 @@ class Comment {
 
 		if ( isset( $_POST['comment_post_ID'] ) && ATBDP_POST_TYPE === get_post_type( $post_id ) ) {
 			self::save_rating( $comment_ID, $commentdata );
+			self::save_media( $comment_ID, $commentdata );
 
 			if ( $post_id ) {
 				self::clear_transients( $post_id );
@@ -306,7 +310,7 @@ class Comment {
 	}
 
 	private static function get_criteria_rating_for_listing( $post_id ) {
-		if ( ! \wpWax\Directorist\Review\is_criteria_enabled() ) {
+		if ( ! is_criteria_enabled() ) {
 			return array();
 		}
 
@@ -336,9 +340,12 @@ class Comment {
 
 		$rating_map = array();
 
-		foreach ( \wpWax\Directorist\Review\get_criteria_names() as $criteria_key => $criteria_name ) {
+		foreach ( get_criteria_names() as $criteria_key => $criteria_name ) {
 			$criteria = array_column( $results, $criteria_key );
-			$rating_map[ $criteria_key ] = number_format( array_sum( $criteria ) / count( $criteria ), 2, '.', '' );
+
+			if ( $criteria ) {
+				$rating_map[ $criteria_key ] = number_format( array_sum( $criteria ) / count( $criteria ), 2, '.', '' );
+			}
 		}
 
 		return $rating_map;
@@ -374,6 +381,22 @@ class Comment {
 		}
 
 		add_comment_meta( $comment_ID, 'rating', $rating, true );
+	}
+
+	private static function save_media( $comment_ID, $commentdata ) {
+		if ( ! empty( $_FILES['review_images'] ) ) {
+			$length = count( $_FILES['review_images']['name'] );
+
+			for ( $i = 0; $i < $length; $i++ ) {
+				$data = wp_upload_bits(
+					$_FILES['review_images']['name'][ $i ],
+					null,
+					file_get_contents( $_FILES['review_images']['tmp_name'][ $i ] )
+				);
+
+				file_put_contents( __DIR__ . '/data.txt', print_r( $data, 1 ), FILE_APPEND );
+			}
+		}
 	}
 
 	/**
