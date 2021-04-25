@@ -70,10 +70,10 @@ $criteria_rating = Review_Data::get_criteria_rating( get_the_ID() );
 
 			<?php
 			if ( get_comment_pages_count() > 1 && get_option( 'page_comments' ) ) :
-				echo '<nav class="directorist-pagination">';
+				echo '<nav class="directorist-review-content__pagination">';
 				paginate_comments_links( array(
-					'prev_text' => '&larr;',
-					'next_text' => '&rarr;',
+					'prev_text' => '<i class="la la-arrow-left"></i>',
+					'next_text' => '<i class="la la-arrow-right"></i>',
 					'type'      => 'list',
 				) );
 				echo '</nav>';

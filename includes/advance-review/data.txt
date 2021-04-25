@@ -12,3 +12,19 @@ Array
     [type] => image/jpeg
     [error] => 
 )
+Array
+(
+    [error] => Empty filename
+)
+Array
+(
+    [error] => Empty filename
+)
+Array
+(
+    [error] => Empty filename
+)
+Array
+(
+    [error] => Empty filename
+)
