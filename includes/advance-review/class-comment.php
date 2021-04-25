@@ -18,7 +18,7 @@ class Comment {
 	public static function init() {
 		// Rating posts.
 		add_filter( 'comments_open', array( __CLASS__, 'comments_open' ), 10, 2 );
-		add_filter( 'preprocess_comment', array( __CLASS__, 'check_review_rating' ), 0 );
+		add_filter( 'preprocess_comment', array( __CLASS__, 'on_preprocess_comment' ), 0 );
 		add_action( 'comment_post', array( __CLASS__, 'save_review_data' ) , 10, 3 );
 
 		// Support avatars for `review` comment type.
@@ -383,20 +383,47 @@ class Comment {
 		add_comment_meta( $comment_ID, 'rating', $rating, true );
 	}
 
+	private static function has_media() {
+		if ( ! isset( $_FILES['review_images'], $_FILES['review_images']['name'] ) ||
+			empty( $_FILES['review_images']['name'] ) ||
+			count( array_filter( $_FILES['review_images']['name'] ) ) < 1 ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	private static function get_image_partial_path( $image_url ) {
+		$dir = wp_get_upload_dir();
+		return str_replace( $dir['basedir'] . '/', '', $image_url );
+	}
+
 	private static function save_media( $comment_ID, $commentdata ) {
-		if ( ! empty( $_FILES['review_images'] ) ) {
-			$length = count( $_FILES['review_images']['name'] );
+		if ( ! self::has_media() ) {
+			return;
+		}
 
-			for ( $i = 0; $i < $length; $i++ ) {
-				$data = wp_upload_bits(
-					$_FILES['review_images']['name'][ $i ],
-					null,
-					file_get_contents( $_FILES['review_images']['tmp_name'][ $i ] )
-				);
+		$length = count( $_FILES['review_images']['name'] );
+		$images = array();
 
-				file_put_contents( __DIR__ . '/data.txt', print_r( $data, 1 ), FILE_APPEND );
+		for ( $i = 0; $i < $length; $i++ ) {
+			$data = wp_upload_bits(
+				$_FILES['review_images']['name'][ $i ],
+				null,
+				file_get_contents( $_FILES['review_images']['tmp_name'][ $i ] )
+			);
+
+			if ( ! $data['error'] ) {
+				$images[] = self::get_image_partial_path( $data['file'] );
 			}
 		}
+
+		if ( ! empty( $images ) ) {
+			update_comment_meta( $comment_ID, 'attachments', $images );
+		}
+
+		// return new WP_Error( 'Something wrong' );
+		// file_put_contents( __DIR__ . '/data.txt', print_r( $images, 1 ), FILE_APPEND );
 	}
 
 	/**
@@ -405,7 +432,7 @@ class Comment {
 	 * @param  array $comment_data Comment data.
 	 * @return array
 	 */
-	public static function check_review_rating( $comment_data ) {
+	public static function on_preprocess_comment( $comment_data ) {
 		// If posting a comment (not trackback etc) and not logged in.
 		if ( ! is_admin() &&
 			isset( $_POST['comment_post_ID'], $_POST['comment_parent'], $_POST['rating'], $comment_data['comment_type'] ) &&

@@ -107,6 +107,8 @@ class Walker extends Walker_Comment {
 		$helpful   = empty( $helpful ) ? 0 : absint( $helpful );
 		$unhelpful = get_comment_meta( get_comment_ID(), 'unhelpful', true );
 		$unhelpful = empty( $unhelpful ) ? 0 : absint( $unhelpful );
+
+		$attachments = (array) get_comment_meta( get_comment_ID(), 'attachments', true )
 		?>
 		<li id="comment-<?php comment_ID(); ?>" <?php comment_class( $comment_class ); ?>>
 			<article id="div-comment-<?php comment_ID(); ?>" class="comment-body">
@@ -136,6 +138,17 @@ class Walker extends Walker_Comment {
 					</header>
 					<div class="directorist-review-single__content">
 						<?php comment_text(); ?>
+
+						<?php if ( ! empty( $attachments ) ) : ?>
+							<div class="directorist-review-single__content__img">
+								<?php
+								$dir = wp_get_upload_dir();
+								foreach ( $attachments as $attachment ) {
+									printf( '<img src="%s" alt="comment attachment image" />', $dir['baseurl'] . '/' . $attachment );
+								}
+								?>
+							</div>
+						<?php endif; ?>
 					</div>
 				</div>
 				<?php
@@ -152,7 +165,7 @@ class Walker extends Walker_Comment {
 						$args,
 						array(
 							/* translators: 1: is the reply icon */
-							'reply_text' => sprintf( esc_html( '%1$s Reply', 'directorist' ), '<i class="far fa-comment-alt"></i>' ),
+							'reply_text' => sprintf( esc_html( '%1$s Reply', 'directorist' ), '<img class="far fa-comment-alt"></img>' ),
 							'depth'      => $depth,
 							'max_depth'  => $args['max_depth'],
 							'add_below'  => 'div-comment',
