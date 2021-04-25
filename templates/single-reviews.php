@@ -9,14 +9,20 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-use wpWax\Directorist\Review\Review_Data;
 use Directorist\Helper;
-use Directorist\Directorist_Single_Listing as Directorist_Entry;
+use wpWax\Directorist\Review\Review_Data;
 use wpWax\Directorist\Review\Walker as Review_Walker;
+use Directorist\Directorist_Single_Listing as Directorist_Listing;
 
-$listing         = Directorist_Entry::instance();
-$review_count    = Review_Data::get_review_count( get_the_ID() );
+use function wpWax\Directorist\Review\show_rating_stars;
+use function wpWax\Directorist\Review\get_rating_markup;
+use function wpWax\Directorist\Review\get_criteria_names;
+use function wpWax\Directorist\Review\is_criteria_enabled;
+use function wpWax\Directorist\Review\get_media_uploader_markup;
+
+$listing         = Directorist_Listing::instance();
 $review_rating   = Review_Data::get_rating( get_the_ID() );
+$review_count    = Review_Data::get_review_count( get_the_ID() );
 $criteria_rating = Review_Data::get_criteria_rating( get_the_ID() );
 ?>
 
@@ -32,17 +38,14 @@ $criteria_rating = Review_Data::get_criteria_rating( get_the_ID() );
 				<div class="directorist-review-content__overview__rating">
 					<span class="directorist-rating-point"><?php echo $review_rating; ?></span>
 					<span class="directorist-rating-stars">
-						<?php
-						echo str_repeat( '<i class="fas fa-star"></i>', floor( $review_rating ) );
-						echo str_repeat( '<i class="far fa-star"></i>', ( 5 - floor( $review_rating ) ) );
-						?>
+						<?php show_rating_stars( $review_rating ); ?>
 					</span>
 					<span class="directorist-rating-overall"><?php printf( _n( '%s review', '%s reviews', $review_count, 'directorist' ), number_format_i18n( $review_count ) ); ?></span>
 				</div>
 				<div class="directorist-review-content__overview__benchmarks">
 					<?php
-					if ( \wpWax\Directorist\Review\is_criteria_enabled() ) :
-						foreach ( \wpWax\Directorist\Review\get_criteria_names() as $criteria_key => $criteria_name ) :
+					if ( is_criteria_enabled() ) :
+						foreach ( get_criteria_names() as $criteria_key => $criteria_name ) :
 							$_rating = isset( $criteria_rating[ $criteria_key ] ) ? $criteria_rating[ $criteria_key ] : 0;
 							?>
 							<div class="directorist-benchmark-single">
@@ -142,26 +145,20 @@ $criteria_rating = Review_Data::get_criteria_rating( get_the_ID() );
 
 	$criteria_markup = '<div class="directorist-review-criteria">%s</div>' . "\n";
 
-	if ( \wpWax\Directorist\Review\is_criteria_enabled() ) {
+	if ( is_criteria_enabled() ) {
 		$criteria_items_markup = '';
-		foreach ( \wpWax\Directorist\Review\get_criteria_names() as $criteria_key => $criteria_name ) {
-			$criteria_items_markup .= \wpWax\Directorist\Review\get_rating_markup( $criteria_name, $criteria_key ) . "\n";
+		foreach ( get_criteria_names() as $criteria_key => $criteria_name ) {
+			$criteria_items_markup .= get_rating_markup( $criteria_name, $criteria_key ) . "\n";
 		}
 
-		$criteria_markup = sprintf(
-			$criteria_markup,
-			$criteria_items_markup
-		);
+		$criteria_markup = sprintf( $criteria_markup, $criteria_items_markup );
 
 		unset( $criteria_items_markup );
 	} else {
-		$criteria_markup = sprintf(
-			$criteria_markup,
-			\wpWax\Directorist\Review\get_rating_markup( __( 'Rating', 'directorist' ) )
-		);
+		$criteria_markup = sprintf( $criteria_markup, get_rating_markup( __( 'Rating', 'directorist' ) ) );
 	}
 
-	$comment_field = $criteria_markup . "\n" . $comment_field . "\n" . \wpWax\Directorist\Review\get_media_uploader_markup();
+	$comment_field = $criteria_markup . "\n" . $comment_field . "\n" . get_media_uploader_markup();
 
 	$args = array(
 		'fields'             => $fields,

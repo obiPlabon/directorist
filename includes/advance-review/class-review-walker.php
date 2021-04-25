@@ -11,6 +11,7 @@ namespace wpWax\Directorist\Review;
 defined( 'ABSPATH' ) || die();
 
 use Walker_Comment;
+use function wpWax\Directorist\Review\show_rating_stars;
 
 class Walker extends Walker_Comment {
 
@@ -122,10 +123,7 @@ class Walker extends Walker_Comment {
 
 								<?php if ( ! $has_parent ) : ?>
 									<span class="directorist-rating-stars">
-										<?php
-										echo str_repeat( '<i class="fas fa-star"></i>', floor( $rating ) );
-										echo str_repeat( '<i class="far fa-star"></i>', ( 5 - floor( $rating ) ) );
-										?>
+										<?php show_rating_stars( $rating ); ?>
 									</span>
 								<?php endif; ?>
 							</div>

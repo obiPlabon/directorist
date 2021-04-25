@@ -96,18 +96,12 @@ function get_rating_markup( $label, $subname = '' ) {
 }
 
 function get_media_uploader_markup() {
-	$accepted_types = array(
-		'image/jpeg',
-		'image/jpg',
-		'image/png',
-	);
-
 	$uid = uniqid( 'directorist-' );
 
 	ob_start();
 	?>
 	<div class="directorist-form-group directorist-review-media-upload">
-		<input class="directorist-review-images" type="file" accept="<?php echo implode( ',', $accepted_types ); ?>" name="review_images[]" id="<?php echo $uid; ?>" multiple="multiple">
+		<input class="directorist-review-images" type="file" accept="<?php echo implode( ',', get_accepted_media_types() ); ?>" name="review_images[]" id="<?php echo $uid; ?>" multiple="multiple">
 		<label for="<?php echo $uid; ?>">
 			<i class="far fa-image"></i>
 			<span><?php esc_html_e( 'Add a photo', 'diretorist' ); ?></span>
@@ -131,4 +125,24 @@ function get_criteria_names() {
 		'quality'  => 'Quality',
 		'price'    => 'Price',
 	);
+}
+
+function get_accepted_media_types() {
+	return array(
+		'image/jpeg',
+		'image/jpg',
+		'image/png',
+	);
+}
+
+function get_rating_stars( $rating = 0, $base_rating = 5 ) {
+	if ( is_float( $rating ) ) {
+		$rating = floor( $rating );
+	}
+
+	return str_repeat( '<i class="fas fa-star"></i>', $rating ) . str_repeat( '<i class="far fa-star"></i>', ( $base_rating - $rating ) );
+}
+
+function show_rating_stars( $rating = 0, $base_rating = 5 ) {
+	echo get_rating_stars( $rating, $base_rating );
 }
