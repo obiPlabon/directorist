@@ -9,6 +9,8 @@ use \ATBDP_Permalink;
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
+use wpWax\Directorist\Review\Review_Data;
+
 class Directorist_Single_Listing {
 
 	protected static $instance = null;
@@ -57,7 +59,7 @@ class Directorist_Single_Listing {
 		$this->type          = (int) $term->term_id;
 		$this->header_data   = get_term_meta( $this->type, 'single_listing_header', true );
 		$this->content_data  = $this->build_content_data();
-		
+
 		$this->fm_plan               = get_post_meta( $id, '_fm_plans', true );
 		$this->price_range           = get_post_meta( $id, '_price_range', true );
 		$this->atbd_listing_pricing  = get_post_meta( $id, '_atbd_listing_pricing', true );
@@ -73,7 +75,7 @@ class Directorist_Single_Listing {
 		if( !empty( $data['fields'] ) ) {
 			foreach ( $data['fields'] as $key => $value) {
 				if ( ! is_array( $value ) ) { continue; }
-				
+
 				$data['fields'][$key]['field_key'] = !empty( $submission_form_fields['fields'][$key]['field_key'] ) ? $submission_form_fields['fields'][$key]['field_key'] : '';
 				if( !empty( $submission_form_fields['fields'][$key]['label'] ) )
 				$data['fields'][$key]['label'] = $submission_form_fields['fields'][$key]['label'];
@@ -168,7 +170,7 @@ class Directorist_Single_Listing {
 
 		$load_template = true;
 		$group = !empty( $data['original_data']['widget_group'] ) ? $data['original_data']['widget_group'] : '';
-		
+
 		if( ( ( $group === 'custom' ) || ( $group === 'preset' ) ) && !$value ) {
 			$load_template = false;
 		}
@@ -189,7 +191,7 @@ class Directorist_Single_Listing {
 		else {
 			$template = 'single/fields/' . $data['widget_name'];
 		}
-		
+
 		$template = apply_filters( 'directorist_single_item_template', $template, $data );
 
 		if( $load_template ) {
@@ -209,7 +211,7 @@ class Directorist_Single_Listing {
 	public function get_custom_field_value( $type, $data ) {
 		$result = '';
 		$value = is_array( $data['value'] ) ? join( ",",$data['value'] ) : $data['value'];
-		
+
 		switch ( $type ) {
 			case 'radio':
 			case 'select':
@@ -307,7 +309,7 @@ class Directorist_Single_Listing {
 
 	public function quick_actions_template() {
 		$actions = ! empty( $this->header_data['listings_header']['quick_actions'] ) ? $this->header_data['listings_header']['quick_actions'] : '';
-		
+
 		$args = array(
 			'listing'  => $this,
 			'actions'  => $actions,
@@ -320,7 +322,7 @@ class Directorist_Single_Listing {
 
 	public function quick_info_template() {
 		$quick_info = ! empty( $this->header_data['listings_header']['quick_info'] ) ? $this->header_data['listings_header']['quick_info'] : '';
-		
+
 		$args = array(
 			'listing' => $this,
 			'info'    => $quick_info,
@@ -361,7 +363,7 @@ class Directorist_Single_Listing {
 
 		// Get the options
 		$background_type  = get_directorist_option('single_slider_background_type', 'custom-color');
-		
+
 		// Set the options
 		$data = array(
 			'images'             => [],
@@ -389,7 +391,7 @@ class Directorist_Single_Listing {
 
 			array_unshift( $data['images'], $preview_img );
 		}
-		
+
 		if ( count( $data['images'] ) < 1 ) {
 			$data['images'][] = [
 				'alt' => $listing_title,
@@ -478,7 +480,7 @@ class Directorist_Single_Listing {
 	public function has_price() {
 		$id         = $this->id;
 		$plan_price = is_fee_manager_active() ? is_plan_allowed_price( $this->fm_plan ) : true;
-		
+
 		return ( $this->price && $plan_price ) ? true : false;
 	}
 
@@ -577,11 +579,13 @@ class Directorist_Single_Listing {
 	}
 
 	public function get_review_count() {
-		return ATBDP()->review->db->count(array('post_id' => $this->id));
+		// return ATBDP()->review->db->count(array('post_id' => $this->id));
+		return Review_Data::get_review_count( $this->id );
 	}
 
 	public function get_rating_count() {
-		return ATBDP()->review->get_average( $this->id );
+		// return ATBDP()->review->get_average( $this->id );
+		return Review_Data::get_rating( $this->id );
 	}
 
 	public function submit_link() {
@@ -658,7 +662,7 @@ class Directorist_Single_Listing {
 	public function notice_template() {
 		$args = array(
 			'listing'     => $this,
-			'notice_text' => $this->notice_text(),		
+			'notice_text' => $this->notice_text(),
 		);
 
 		Helper::get_template('single/notice', $args );
@@ -692,7 +696,7 @@ class Directorist_Single_Listing {
 		$display_title = !empty( $this->header_data['options']['content_settings']['listing_title']['enable_title'] ) ? $this->header_data['options']['content_settings']['listing_title']['enable_title'] : '';
 		$display_tagline = !empty( $this->header_data['options']['content_settings']['listing_title']['enable_tagline'] ) ? $this->header_data['options']['content_settings']['listing_title']['enable_tagline'] : '';
 		$display_content = !empty( $this->header_data['options']['content_settings']['listing_description']['enable'] ) ? $this->header_data['options']['content_settings']['listing_description']['enable'] : '';
-		
+
 		$args = array(
 			'listing'           => $this,
 			'section_title'     => $section_title,
@@ -701,12 +705,12 @@ class Directorist_Single_Listing {
 			'display_tagline'   => $display_tagline,
 			'display_content'   => $display_content,
 		);
-		
+
 		return Helper::get_template('single/header', $args);
 	}
 
 	public function render_shortcode_single_listing() {
-		
+
 		if ( !is_singular( ATBDP_POST_TYPE ) ) {
 			return;
 		}
@@ -762,19 +766,19 @@ class Directorist_Single_Listing {
 	}
 
 	public function get_tagline() {
-		return get_post_meta( $this->id, '_tagline', true );	
+		return get_post_meta( $this->id, '_tagline', true );
 	}
 
-	public function contact_owner_email() {	
+	public function contact_owner_email() {
 		$email = get_post_meta( $this->id, '_email', true );
 		return $email;
 	}
 
-	public function guest_email_label() {	
+	public function guest_email_label() {
 		return get_directorist_option( 'guest_email', __( 'Your Email', 'directorist' ) );
 	}
 
-	public function guest_email_placeholder() {	
+	public function guest_email_placeholder() {
 		return get_directorist_option( 'guest_email_placeholder', __( 'example@gmail.com', 'directorist' ) );
 	}
 
