@@ -88,9 +88,15 @@ class Walker extends Walker_Comment {
 		$rating             = Comment::get_rating( get_comment_ID() );
 
 		if ( $commenter['comment_author_email'] ) {
-			$moderation_note = __( 'Your comment is awaiting moderation.' );
+			$moderation_note = __( 'Your %1$s is awaiting moderation.', 'directorist' );
 		} else {
-			$moderation_note = __( 'Your comment is awaiting moderation. This is a preview; your comment will be visible after it has been approved.' );
+			$moderation_note = __( 'Your %1$s is awaiting moderation. This is a preview; your comment will be visible after it has been approved.', 'directorist' );
+		}
+
+		if ( $comment->comment_type === 'review' ) {
+			$moderation_note = sprintf( $moderation_note, 'review' );
+		} else {
+			$moderation_note = sprintf( $moderation_note, 'comment' );
 		}
 
 		$comment_class = 'directorist-review-single';
@@ -103,11 +109,8 @@ class Walker extends Walker_Comment {
 			$comment_class .= ' directorist-review-single--comment';
 		}
 
-		$helpful   = get_comment_meta( get_comment_ID(), 'helpful', true );
-		$helpful   = empty( $helpful ) ? 0 : absint( $helpful );
-		$unhelpful = get_comment_meta( get_comment_ID(), 'unhelpful', true );
-		$unhelpful = empty( $unhelpful ) ? 0 : absint( $unhelpful );
-
+		$helpful     = absint( get_comment_meta( get_comment_ID(), 'helpful', true ) );
+		$unhelpful   = absint( get_comment_meta( get_comment_ID(), 'unhelpful', true ) );
 		$attachments = get_comment_meta( get_comment_ID(), 'attachments', true )
 		?>
 		<li id="comment-<?php comment_ID(); ?>" <?php comment_class( $comment_class ); ?>>
@@ -153,7 +156,7 @@ class Walker extends Walker_Comment {
 				</div>
 				<?php
 				if ( $comment->comment_approved == '0' ) { ?>
-					<em class="comment-awaiting-moderation"><?php _e( 'Your comment is awaiting moderation.' ); ?></em><br/><?php
+					<p><em class="comment-awaiting-moderation"><?php echo $moderation_note; ?></em></p><?php
 				} ?>
 				<footer class="directorist-review-single__feedback">
 					<a <?php self::add_interaction( 'helpful' ); ?> role="button" data-count="<?php echo $helpful; ?>" href="#" class="directorist-btn directorist-btn-outline-dark"><i class="far fa-thumbs-up"></i> <?php echo esc_html_x( 'Helpful', 'comment feedback button', 'directorist' ); ?> (<span><?php echo $helpful; ?></span>)</a>
