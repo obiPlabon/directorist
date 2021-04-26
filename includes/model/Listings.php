@@ -9,6 +9,8 @@ use \ATBDP_Listings_Data_Store;
 use \ATBDP_Permalink;
 use Directory;
 use WP_Query;
+use wpWax\Directorist\Review\Review_Data;
+use function wpWax\Directorist\Review\get_rating_stars;
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
@@ -380,40 +382,43 @@ class Directorist_Listings {
 
 	public function get_review_data() {
 		// Review
-		$average           = ATBDP()->review->get_average(get_the_ID());
-		$average           = (int) $average;
-		$average_with_zero = number_format( $average, 1 );
-		$reviews_count     = ATBDP()->review->db->count(array('post_id' => get_the_ID()));
-		$review_text       = ( $reviews_count > 1 ) ? 'Reviews' : 'Review';
+		// $average           = ATBDP()->review->get_average(get_the_ID());
+		// $average           = (int) $average;
+		// $average_with_zero = number_format( $average, 1 );
+		// $reviews_count     = ATBDP()->review->db->count(array('post_id' => get_the_ID()));
+		// $review_text       = ( $reviews_count > 1 ) ? 'Reviews' : 'Review';
 
-		// Icons
-		$icon_empty_star = '<i class="'. 'far fa-star'.'"></i>';
-		$icon_half_star  = '<i class="'. 'fas fa-star-half-alt'.'"></i>';
-		$icon_full_star  = '<i class="'. 'fas fa-star'.'"></i>';
+		// // Icons
+		// $icon_empty_star = '<i class="'. 'far fa-star'.'"></i>';
+		// $icon_half_star  = '<i class="'. 'fas fa-star-half-alt'.'"></i>';
+		// $icon_full_star  = '<i class="'. 'fas fa-star'.'"></i>';
 
-		// Stars
-		$star_1 = ( $average >= 0.5 && $average < 1) ? $icon_half_star : $icon_empty_star;
-		$star_1 = ( $average >= 1) ? $icon_full_star : $star_1;
+		// // Stars
+		// $star_1 = ( $average >= 0.5 && $average < 1) ? $icon_half_star : $icon_empty_star;
+		// $star_1 = ( $average >= 1) ? $icon_full_star : $star_1;
 
-		$star_2 = ( $average >= 1.5 && $average < 2) ? $icon_half_star : $icon_empty_star;
-		$star_2 = ( $average >= 2) ? $icon_full_star : $star_2;
+		// $star_2 = ( $average >= 1.5 && $average < 2) ? $icon_half_star : $icon_empty_star;
+		// $star_2 = ( $average >= 2) ? $icon_full_star : $star_2;
 
-		$star_3 = ( $average >= 2.5 && $average < 3) ? $icon_half_star : $icon_empty_star;
-		$star_3 = ( $average >= 3) ? $icon_full_star : $star_3;
+		// $star_3 = ( $average >= 2.5 && $average < 3) ? $icon_half_star : $icon_empty_star;
+		// $star_3 = ( $average >= 3) ? $icon_full_star : $star_3;
 
-		$star_4 = ( $average >= 3.5 && $average < 4) ? $icon_half_star : $icon_empty_star;
-		$star_4 = ( $average >= 4) ? $icon_full_star : $star_4;
+		// $star_4 = ( $average >= 3.5 && $average < 4) ? $icon_half_star : $icon_empty_star;
+		// $star_4 = ( $average >= 4) ? $icon_full_star : $star_4;
 
-		$star_5 = ( $average >= 4.5 && $average < 5 ) ? $icon_half_star : $icon_empty_star;
-		$star_5 = ( $average >= 5 ) ? $icon_full_star : $star_5;
+		// $star_5 = ( $average >= 4.5 && $average < 5 ) ? $icon_half_star : $icon_empty_star;
+		// $star_5 = ( $average >= 5 ) ? $icon_full_star : $star_5;
 
-		$review_stars = "{$star_1}{$star_2}{$star_3}{$star_4}{$star_5}";
+		// $review_stars = "{$star_1}{$star_2}{$star_3}{$star_4}{$star_5}";
+
+		$rating       = Review_Data::get_rating( get_the_ID() );
+		$review_count = Review_Data::get_review_count( get_the_ID() );
 
 		return [
-			'review_stars'    => $review_stars,
-			'review_text'     => $review_text,
-			'average_reviews' => $average_with_zero,
-			'total_reviews'   => $reviews_count,
+			'review_stars'    => get_rating_stars( $rating ),
+			'review_text'     => _n( 'Review', 'Reviews', $review_count, 'directorist' ),
+			'average_reviews' => $rating,
+			'total_reviews'   => $review_count,
 		];
 	}
 
@@ -436,7 +441,7 @@ class Directorist_Listings {
 			'value'   => 'expired',
 			'compare' => '!=',
 		);
-			
+
 		if ( $this->has_featured ) {
 			if ( '_featured' == $this->filterby ) {
 				$meta_queries['_featured'] = array(
@@ -1079,7 +1084,7 @@ class Directorist_Listings {
 		if ( ! empty( $atts['shortcode'] ) ) {
 			Helper::add_shortcode_comment( $atts['shortcode'] );
 		}
-		
+
 		// Load the template
 		Helper::get_template( 'archive-contents', array( 'listings' => $this ), 'listings_archive' );
 
@@ -1111,7 +1116,7 @@ class Directorist_Listings {
 			$template = ( $active_template == 'list_view_with_thumbnail' ) ? 'loop-list' : 'loop-list-nothumb';
 			Helper::get_template( 'archive/' . $template, array( 'listings' => $this ) );
 		}
-		
+
 		wp_reset_postdata();
 	}
 
@@ -1704,7 +1709,7 @@ class Directorist_Listings {
 			}
 
 			$class  = apply_filters( 'directorist_loop_wrapper_class', $class, $this->current_listing_type );
-			
+
 			return implode( ' ' , $class );
 		}
 
@@ -1751,7 +1756,7 @@ class Directorist_Listings {
 				if ( ! empty( $original_field ) ) {
 					$field['original_field'] = $original_field;
 				}
-				
+
 				$id = get_the_id();
 				$load_template = true;
 				$value = get_post_meta( $id, '_'.$field['widget_key'], true );
@@ -1840,7 +1845,7 @@ class Directorist_Listings {
 		}
 
 		public function render_loop_fields( $fields, $before = '', $after = '' ) {
-			
+
 			if( !empty( $fields ) ) {
 				foreach ( $fields as $field ) {
 					echo $before;$this->render_card_field( $field );echo $after;
@@ -1851,7 +1856,7 @@ class Directorist_Listings {
 		public function render_badge_template( $field ) {
 			global $post;
 			$id = get_the_ID();
-			
+
 			// for development purpose
 			do_action( 'atbdp_all_listings_badge_template', $field );
 
