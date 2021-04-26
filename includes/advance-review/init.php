@@ -101,7 +101,7 @@ function get_media_uploader_markup() {
 	ob_start();
 	?>
 	<div class="directorist-form-group directorist-review-media-upload">
-		<input class="directorist-review-images" type="file" accept="<?php echo implode( ',', get_accepted_media_types() ); ?>" name="review_images[]" id="<?php echo $uid; ?>" multiple="multiple">
+		<input class="directorist-review-images" type="file" accept="<?php echo implode( ',', get_accepted_media_types() ); ?>" name="review_attachments[]" id="<?php echo $uid; ?>" multiple="multiple">
 		<label for="<?php echo $uid; ?>">
 			<i class="far fa-image"></i>
 			<span><?php esc_html_e( 'Add a photo', 'diretorist' ); ?></span>

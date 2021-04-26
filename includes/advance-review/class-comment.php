@@ -18,7 +18,7 @@ class Comment {
 	public static function init() {
 		// Rating posts.
 		add_filter( 'comments_open', array( __CLASS__, 'comments_open' ), 10, 2 );
-		add_filter( 'preprocess_comment', array( __CLASS__, 'on_preprocess_comment' ), 0 );
+		add_filter( 'preprocess_comment', array( __CLASS__, 'validate_comment_data' ), 0 );
 		add_action( 'comment_post', array( __CLASS__, 'save_review_data' ) , 10, 3 );
 
 		// Support avatars for `review` comment type.
@@ -383,47 +383,44 @@ class Comment {
 		add_comment_meta( $comment_ID, 'rating', $rating, true );
 	}
 
-	private static function has_media() {
-		if ( ! isset( $_FILES['review_images'], $_FILES['review_images']['name'] ) ||
-			empty( $_FILES['review_images']['name'] ) ||
-			count( array_filter( $_FILES['review_images']['name'] ) ) < 1 ) {
+	private static function is_request_contains_attachments() {
+		if ( ! isset( $_FILES['review_attachments'], $_FILES['review_attachments']['name'] ) ||
+			empty( $_FILES['review_attachments']['name'] ) ||
+			count( array_filter( $_FILES['review_attachments']['name'] ) ) < 1 ) {
 			return false;
 		}
 
 		return true;
 	}
 
-	private static function get_image_partial_path( $image_url ) {
+	private static function get_attachment_storable_path_only( $image_url ) {
 		$dir = wp_get_upload_dir();
 		return str_replace( $dir['basedir'] . '/', '', $image_url );
 	}
 
 	private static function save_media( $comment_ID, $commentdata ) {
-		if ( ! self::has_media() ) {
+		if ( ! self::is_request_contains_attachments() ) {
 			return;
 		}
 
-		$length = count( $_FILES['review_images']['name'] );
+		$length = count( $_FILES['review_attachments']['name'] );
 		$images = array();
 
 		for ( $i = 0; $i < $length; $i++ ) {
 			$data = wp_upload_bits(
-				$_FILES['review_images']['name'][ $i ],
+				$_FILES['review_attachments']['name'][ $i ],
 				null,
-				file_get_contents( $_FILES['review_images']['tmp_name'][ $i ] )
+				file_get_contents( $_FILES['review_attachments']['tmp_name'][ $i ] )
 			);
 
 			if ( ! $data['error'] ) {
-				$images[] = self::get_image_partial_path( $data['file'] );
+				$images[] = self::get_attachment_storable_path_only( $data['file'] );
 			}
 		}
 
 		if ( ! empty( $images ) ) {
 			update_comment_meta( $comment_ID, 'attachments', $images );
 		}
-
-		// return new WP_Error( 'Something wrong' );
-		// file_put_contents( __DIR__ . '/data.txt', print_r( $images, 1 ), FILE_APPEND );
 	}
 
 	/**
@@ -432,16 +429,16 @@ class Comment {
 	 * @param  array $comment_data Comment data.
 	 * @return array
 	 */
-	public static function on_preprocess_comment( $comment_data ) {
-		// If posting a comment (not trackback etc) and not logged in.
-		if ( ! is_admin() &&
-			isset( $_POST['comment_post_ID'], $_POST['comment_parent'], $_POST['rating'], $comment_data['comment_type'] ) &&
-			ATBDP_POST_TYPE === get_post_type( absint( $_POST['comment_post_ID'] ) ) &&
-			$comment_data['comment_parent'] === 0 &&
-			self::is_default_comment_type( $comment_data['comment_type'] ) &&
+	public static function validate_comment_data( $comment_data ) {
+		if ( is_admin() || ! isset( $_POST['comment_post_ID'] ) || ATBDP_POST_TYPE !== get_post_type( absint( $_POST['comment_post_ID'] ) ) ) {
+			return $comment_data;
+		}
+
+		if ( isset( $_POST['comment_parent'], $_POST['rating'], $comment_data['comment_type'] ) &&
+			$comment_data['comment_parent'] === 0 && self::is_default_comment_type( $comment_data['comment_type'] ) &&
 			( empty( $_POST['rating'] ) || ( is_criteria_enabled() && count( array_filter( $_POST['rating'] ) ) < 1 ) ) ) {
 
-			wp_die( __( '<strong>Error</strong>: Please rate the listing.', 'directorist' ) );
+			wp_die( __( '<strong>Error</strong>: Please share review rating.', 'directorist' ) );
 			exit;
 		}
 

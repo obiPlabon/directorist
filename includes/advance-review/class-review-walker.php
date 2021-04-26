@@ -165,7 +165,7 @@ class Walker extends Walker_Comment {
 						$args,
 						array(
 							/* translators: 1: is the reply icon */
-							'reply_text' => sprintf( esc_html( '%1$s Reply', 'directorist' ), '<img class="far fa-comment-alt"></img>' ),
+							'reply_text' => sprintf( esc_html( '%1$s Reply', 'directorist' ), '<i class="far fa-comment-alt"></i>' ),
 							'depth'      => $depth,
 							'max_depth'  => $args['max_depth'],
 							'add_below'  => 'div-comment',

@@ -29,9 +29,9 @@ class Review_Data {
 		update_post_meta( $listing_id, self::RATING_COUNTS_DB_KEY, (array) $counts );
 	}
 
-	public static function get_rating( $listing_id ) {
+	public static function get_rating( $listing_id, $round_precision = 1 ) {
 		$rating = get_post_meta( $listing_id, self::AVG_RATING_DB_KEY, true );
-		return (float) ( ! empty( $rating ) ? $rating : 0 );
+		return round( ( ! empty( $rating ) ? $rating : 0 ), $round_precision );
 	}
 
 	public static function update_rating( $listing_id, $rating ) {
