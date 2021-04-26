@@ -14,7 +14,7 @@ $author_id  = $listing->author_id;
 $u_pro_pic  = get_user_meta($author_id, 'pro_pic', true);
 $u_pro_pic  = !empty($u_pro_pic) ? wp_get_attachment_image_src($u_pro_pic, 'thumbnail') : '';
 $author_img = !empty($u_pro_pic) ? $u_pro_pic[0] : '';
-$avatar_img = get_avatar($author_id, 32);
+$avatar_img = get_avatar( $author_id, 50 );
 ?>
 
 <div class="directorist-card directorist-card-author-info <?php echo esc_attr( $class );?>" <?php $listing->section_id( $id ); ?>>
@@ -22,7 +22,7 @@ $avatar_img = get_avatar($author_id, 32);
 	<div class="directorist-card__header">
 
 		<h4 class="directorist-card__header--title"><?php directorist_icon( $icon );?><?php echo esc_html( $label );?></h4>
-	
+
 	</div>
 
 	<div class="directorist-card__body">
@@ -102,7 +102,7 @@ $avatar_img = get_avatar($author_id, 32);
 			<?php endif; ?>
 
 			<a class="directorist-btn directorist-btn-primary directorist-btn-sm diretorist-view-profile-btn" href="<?php echo ATBDP_Permalink::get_user_profile_page_link( $author_id ); ?>"><?php esc_html_e( 'View Profile', 'directorist' ); ?></a>
-			
+
 		</div>
 	</div>
 
