@@ -9,6 +9,9 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
+// Hack to set comments per page (pagination)
+// set_query_var( 'comments_per_page', get_directorist_option( 'review_num', 5 ) );
+
 comments_template();
 
 return;
