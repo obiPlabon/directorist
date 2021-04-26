@@ -215,6 +215,33 @@ class Comment {
 	}
 
 	/**
+	 * Check if user already shared a review.
+	 *
+	 * @param int $user_id
+	 * @param int $post_id.
+	 * @return bool
+	 */
+	public static function user_already_reviewed( $user_id, $post_id ) {
+		global $wpdb;
+
+		$has_review = $wpdb->get_var(
+			$wpdb->prepare(
+				"
+			SELECT count(comment_ID) FROM $wpdb->comments
+			WHERE comment_post_ID = %d
+			AND comment_approved = '1'
+			AND comment_type = 'review'
+			AND user_id = %d
+				",
+				$post_id,
+				$user_id
+			)
+		);
+
+		return (bool) $has_review;
+	}
+
+	/**
 	 * Get listing review count for a listing (not replies). Please note this is not cached.
 	 *
 	 * @param int $post_id.
@@ -471,6 +498,11 @@ class Comment {
 
 			if ( ! get_directorist_option( 'enable_owner_review' ) && $post_author_id === $comment_data['user_ID'] ) {
 				wp_die( __( '<strong>Error</strong>: You are not allowed to share review on your own listing.', 'directorist' ) );
+				exit;
+			}
+
+			if ( self::user_already_reviewed( $comment_data['user_ID'], absint( $_POST['comment_post_ID'] ) ) ) {
+				wp_die( __( '<strong>Error</strong>: Sharing multiple reviews is not allowed.', 'directorist' ) );
 				exit;
 			}
 		}
