@@ -28,7 +28,10 @@ class Comment {
 		add_action( 'wp_update_comment_count', array( __CLASS__, 'clear_transients' ) );
 
 		// Set comment type.
-		add_action( 'preprocess_comment', array( __CLASS__, 'update_comment_type' ), 1 );
+		add_filter( 'preprocess_comment', array( __CLASS__, 'update_comment_data' ), 1 );
+
+		// Set comment approval
+		add_filter( 'pre_comment_approved', array( __CLASS__, 'set_comment_status' ), 10, 2 );
 
 		// Count comments.
 		add_filter( 'wp_count_comments', array( __CLASS__, 'wp_count_comments' ), 10, 2 );
@@ -137,17 +140,37 @@ class Comment {
 		return array_merge( $comment_types, array( 'review' ) );
 	}
 
-	public static function update_comment_type( $comment_data ) {
-		if ( ! is_admin() &&
-			isset( $_POST['comment_post_ID'], $_POST['comment_parent'], $_POST['rating'], $comment_data['comment_type'] ) &&
-			ATBDP_POST_TYPE === get_post_type( absint( $_POST['comment_post_ID'] ) ) &&
-			$comment_data['comment_parent'] === 0 &&
-			self::is_default_comment_type( $comment_data['comment_type'] ) &&
+	public static function update_comment_data( $comment_data ) {
+		if ( is_admin() || ATBDP_POST_TYPE !== get_post_type( absint( $_POST['comment_post_ID'] ) ) ) {
+			return $comment_data;
+		}
+
+		if ( isset( $_POST['comment_post_ID'], $_POST['comment_parent'], $_POST['rating'], $comment_data['comment_type'] ) &&
+			$comment_data['comment_parent'] === 0 && self::is_default_comment_type( $comment_data['comment_type'] ) &&
 			( ! empty( $_POST['rating'] ) || ( is_criteria_enabled() && count( array_filter( $_POST['rating'] ) ) > 0 ) ) ) {
 			$comment_data['comment_type'] = 'review';
 		}
 
 		return $comment_data;
+	}
+
+	/**
+	 * Set comment status.
+	 *
+	 * Apporoved pending comment immediately when "Approve Immediately?" is enabled,
+	 * ignore trash and spam status.
+	 *
+	 * @param mixed $approved
+	 * @param array $comment_data
+	 *
+	 * @return mixed
+	 */
+	public static function set_comment_status( $approved, $comment_data ) {
+		if ( ! is_admin() && get_directorist_option( 'approve_immediately', 1 ) && $comment_data['comment_type'] === 'review' && $approved === 0 ) {
+			$approved = 1; // set to approved
+		}
+
+		return $approved;
 	}
 
 	/**
@@ -435,11 +458,21 @@ class Comment {
 		}
 
 		if ( isset( $_POST['comment_parent'], $_POST['rating'], $comment_data['comment_type'] ) &&
-			$comment_data['comment_parent'] === 0 && self::is_default_comment_type( $comment_data['comment_type'] ) &&
-			( empty( $_POST['rating'] ) || ( is_criteria_enabled() && count( array_filter( $_POST['rating'] ) ) < 1 ) ) ) {
+			$comment_data['comment_parent'] === 0 && self::is_default_comment_type( $comment_data['comment_type'] ) ) {
 
-			wp_die( __( '<strong>Error</strong>: Please share review rating.', 'directorist' ) );
-			exit;
+			// Validate review is shared or not
+			if ( empty( $_POST['rating'] ) || ( is_criteria_enabled() && count( array_filter( $_POST['rating'] ) ) < 1 ) ) {
+				wp_die( __( '<strong>Error</strong>: Please share review rating.', 'directorist' ) );
+				exit;
+			}
+
+			// Validate owner is sharing review or not
+			$post_author_id = (int) get_post_field( 'post_author', absint( $_POST['comment_post_ID'] ) );
+
+			if ( ! get_directorist_option( 'enable_owner_review' ) && $post_author_id === $comment_data['user_ID'] ) {
+				wp_die( __( '<strong>Error</strong>: You are not allowed to share review on your own listing.', 'directorist' ) );
+				exit;
+			}
 		}
 
 		return $comment_data;
