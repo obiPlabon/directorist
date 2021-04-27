@@ -166,8 +166,16 @@ class Comment {
 	 * @return mixed
 	 */
 	public static function set_comment_status( $approved, $comment_data ) {
-		if ( ! is_admin() && get_directorist_option( 'approve_immediately', 1 ) && $comment_data['comment_type'] === 'review' && $approved === 0 ) {
+		if ( is_admin() || $comment_data['comment_type'] !== 'review' || ATBDP_POST_TYPE !== get_post_type( $comment_data['comment_post_ID'] ) ) {
+			return $approved;
+		}
+
+		if ( get_directorist_option( 'approve_immediately', 1 ) && $approved === 0 ) {
 			$approved = 1; // set to approved
+		}
+
+		if ( ! get_directorist_option( 'approve_immediately', 1 ) && $approved === 1 ) {
+			$approved = 0; // set to pending
 		}
 
 		return $approved;
@@ -221,7 +229,7 @@ class Comment {
 	 * @param int $post_id.
 	 * @return bool
 	 */
-	public static function user_already_reviewed( $user_id, $post_id ) {
+	public static function review_exists_by( $user_id, $post_id ) {
 		global $wpdb;
 
 		$has_review = $wpdb->get_var(
@@ -229,7 +237,7 @@ class Comment {
 				"
 			SELECT count(comment_ID) FROM $wpdb->comments
 			WHERE comment_post_ID = %d
-			AND comment_approved = '1'
+			AND ( comment_approved = '1' OR comment_approved = '0' )
 			AND comment_type = 'review'
 			AND user_id = %d
 				",
@@ -501,7 +509,8 @@ class Comment {
 				exit;
 			}
 
-			if ( self::user_already_reviewed( $comment_data['user_ID'], absint( $_POST['comment_post_ID'] ) ) ) {
+			// Validate if sharing multiple reviews
+			if ( self::review_exists_by( $comment_data['user_ID'], absint( $_POST['comment_post_ID'] ) ) ) {
 				wp_die( __( '<strong>Error</strong>: Sharing multiple reviews is not allowed.', 'directorist' ) );
 				exit;
 			}
