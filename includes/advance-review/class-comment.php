@@ -441,7 +441,7 @@ class Comment {
 		add_comment_meta( $comment_ID, 'rating', $rating, true );
 	}
 
-	private static function is_request_contains_attachments() {
+	private static function has_attachments() {
 		if ( ! isset( $_FILES['review_attachments'], $_FILES['review_attachments']['name'] ) ||
 			empty( $_FILES['review_attachments']['name'] ) ||
 			count( array_filter( $_FILES['review_attachments']['name'] ) ) < 1 ) {
@@ -457,7 +457,7 @@ class Comment {
 	}
 
 	private static function save_media( $comment_ID, $commentdata ) {
-		if ( ! self::is_request_contains_attachments() ) {
+		if ( ! self::has_attachments() ) {
 			return;
 		}
 
@@ -512,6 +512,23 @@ class Comment {
 			// Validate if sharing multiple reviews
 			if ( self::review_exists_by( $comment_data['user_ID'], absint( $_POST['comment_post_ID'] ) ) ) {
 				wp_die( __( '<strong>Error</strong>: Sharing multiple reviews is not allowed.', 'directorist' ) );
+				exit;
+			}
+		}
+
+		if ( self::has_attachments() ) {
+			$attachments_size = array_sum( $_FILES['review_attachments']['size'] );
+			/**
+			 * Allowed attachments size is min(1MB, WP_MEMORY_LIMIT)
+			 */
+			$allowed_size = apply_filters( 'directorist_allowed_comment_attachment_size', min( wp_convert_hr_to_bytes( WP_MEMORY_LIMIT ), MB_IN_BYTES * 1 ) );
+
+			if ( $attachments_size > $allowed_size ) {
+				wp_die( sprintf(
+					__( '<strong>Error</strong>: Attachments size (%1$s) exceeds the limit (%2$s).', 'directorist' ),
+					size_format( $attachments_size ),
+					size_format( $allowed_size )
+				) );
 				exit;
 			}
 		}
