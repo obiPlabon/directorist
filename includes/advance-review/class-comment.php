@@ -526,7 +526,7 @@ class Comment {
 			if ( $attachments_size > $allowed_size ) {
 				wp_die( sprintf(
 					__( '<strong>Error</strong>: Attachments size (%1$s) exceeds the limit (%2$s).', 'directorist' ),
-					size_format( $attachments_size ),
+					size_format( $attachments_size, 2 ),
 					size_format( $allowed_size )
 				) );
 				exit;
