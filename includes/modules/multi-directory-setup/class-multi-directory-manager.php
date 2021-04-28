@@ -337,19 +337,6 @@ class Multi_Directory_Manager
     // save_post_type_data
     public function save_post_type_data()
     {
-        /* wp_send_json([
-            'single_listings_contents' => self::maybe_json( $_POST['single_listings_contents'] ),
-            'status' => [
-                'success' => false,
-                'status_log' => [
-                    'debugging' => [
-                        'type' => 'error',
-                        'message' => 'Name is missing',
-                    ],
-                ],
-            ],
-        ], 200 ); */
-
         if ( empty( $_POST['name'] ) ) {
             wp_send_json([
                 'status' => [
@@ -415,6 +402,178 @@ class Multi_Directory_Manager
     // prepare_settings
     public function prepare_settings() {
         $this->cetagory_options = $this->get_cetagory_options();
+
+        $file_type_options = [
+            [
+                'label' => __('All Types', 'directorist'),
+                'value' => 'all_types',
+            ],
+            // Image Format
+            [
+                'label' => __('jpg', 'directorist'),
+                'value' => 'jpg',
+            ],
+            [
+                'label' => __('jpeg', 'directorist'),
+                'value' => 'jpeg',
+            ],
+            [
+                'label' => __('gif', 'directorist'),
+                'value' => 'gif',
+            ],
+            [
+                'label' => __('png', 'directorist'),
+                'value' => 'png',
+            ],
+            [
+                'label' => __('bmp', 'directorist'),
+                'value' => 'bmp',
+            ],
+            [
+                'label' => __('ico', 'directorist'),
+                'value' => 'ico',
+            ],
+            
+            // Video Format
+            [
+                'label' => __('asf', 'directorist'),
+                'value' => 'asf',
+            ],
+            [
+                'label' => __('flv', 'directorist'),
+                'value' => 'flv',
+            ],
+            [
+                'label' => __('avi', 'directorist'),
+                'value' => 'avi',
+            ],
+            [
+                'label' => __('mkv', 'directorist'),
+                'value' => 'mkv',
+            ],
+            [
+                'label' => __('mp4', 'directorist'),
+                'value' => 'mp4',
+            ],
+            [
+                'label' => __('mpeg', 'directorist'),
+                'value' => 'mpeg',
+            ],
+            [
+                'label' => __('mpg', 'directorist'),
+                'value' => 'mpg',
+            ],
+            [
+                'label' => __('wmv', 'directorist'),
+                'value' => 'wmv',
+            ],
+            [
+                'label' => __('3gp', 'directorist'),
+                'value' => '3gp',
+            ],
+            
+            // Audio Format
+            [
+                'label' => __('ogg', 'directorist'),
+                'value' => 'ogg',
+            ],
+            [
+                'label' => __('mp3', 'directorist'),
+                'value' => 'mp3',
+            ],
+            [
+                'label' => __('wav', 'directorist'),
+                'value' => 'wav',
+            ],
+            [
+                'label' => __('wma', 'directorist'),
+                'value' => 'wma',
+            ],
+            
+            // Text Format
+            [
+                'label' => __('css', 'directorist'),
+                'value' => 'css',
+            ],
+            [
+                'label' => __('csv', 'directorist'),
+                'value' => 'csv',
+            ],
+            [
+                'label' => __('htm', 'directorist'),
+                'value' => 'htm',
+            ],
+            [
+                'label' => __('html', 'directorist'),
+                'value' => 'html',
+            ],
+            [
+                'label' => __('txt', 'directorist'),
+                'value' => 'txt',
+            ],
+            [
+                'label' => __('rtx', 'directorist'),
+                'value' => 'rtx',
+            ],
+            [
+                'label' => __('vtt', 'directorist'),
+                'value' => 'vtt',
+            ],
+
+            // Application Format
+            [
+                'label' => __('doc', 'directorist'),
+                'value' => 'doc',
+            ],
+            [
+                'label' => __('docx', 'directorist'),
+                'value' => 'docx',
+            ],
+            [
+                'label' => __('odt', 'directorist'),
+                'value' => 'odt',
+            ],
+            [
+                'label' => __('pdf', 'directorist'),
+                'value' => 'pdf',
+            ],
+            [
+                'label' => __('pot', 'directorist'),
+                'value' => 'pot',
+            ],
+            [
+                'label' => __('ppt', 'directorist'),
+                'value' => 'ppt',
+            ],
+            [
+                'label' => __('pptx', 'directorist'),
+                'value' => 'pptx',
+            ],
+            [
+                'label' => __('rar', 'directorist'),
+                'value' => 'rar',
+            ],
+            [
+                'label' => __('rtf', 'directorist'),
+                'value' => 'rtf',
+            ],
+            [
+                'label' => __('swf', 'directorist'),
+                'value' => 'swf',
+            ],
+            [
+                'label' => __('xls', 'directorist'),
+                'value' => 'xls',
+            ],
+            [
+                'label' => __('xlsx', 'directorist'),
+                'value' => 'xlsx',
+            ],
+            [
+                'label' => __('gpx', 'directorist'),
+                'value' => 'gpx',
+            ],
+        ];
 
         $form_field_widgets = [
             'preset' => [
@@ -2064,178 +2223,7 @@ class Multi_Directory_Manager
                                 'type'  => 'select',
                                 'label' => __( 'Chose a file type', 'directorist' ),
                                 'value' => '',
-                                'options' => [
-                                    [
-                                        'label' => __('All Types', 'directorist'),
-                                        'value' => 'all_types',
-                                    ],
-                                    // Image Format
-                                    [
-                                        'label' => __('jpg', 'directorist'),
-                                        'value' => 'jpg',
-                                    ],
-                                    [
-                                        'label' => __('jpeg', 'directorist'),
-                                        'value' => 'jpeg',
-                                    ],
-                                    [
-                                        'label' => __('gif', 'directorist'),
-                                        'value' => 'gif',
-                                    ],
-                                    [
-                                        'label' => __('png', 'directorist'),
-                                        'value' => 'png',
-                                    ],
-                                    [
-                                        'label' => __('bmp', 'directorist'),
-                                        'value' => 'bmp',
-                                    ],
-                                    [
-                                        'label' => __('ico', 'directorist'),
-                                        'value' => 'ico',
-                                    ],
-                                    
-                                    // Video Format
-                                    [
-                                        'label' => __('asf', 'directorist'),
-                                        'value' => 'asf',
-                                    ],
-                                    [
-                                        'label' => __('flv', 'directorist'),
-                                        'value' => 'flv',
-                                    ],
-                                    [
-                                        'label' => __('avi', 'directorist'),
-                                        'value' => 'avi',
-                                    ],
-                                    [
-                                        'label' => __('mkv', 'directorist'),
-                                        'value' => 'mkv',
-                                    ],
-                                    [
-                                        'label' => __('mp4', 'directorist'),
-                                        'value' => 'mp4',
-                                    ],
-                                    [
-                                        'label' => __('mpeg', 'directorist'),
-                                        'value' => 'mpeg',
-                                    ],
-                                    [
-                                        'label' => __('mpg', 'directorist'),
-                                        'value' => 'mpg',
-                                    ],
-                                    [
-                                        'label' => __('wmv', 'directorist'),
-                                        'value' => 'wmv',
-                                    ],
-                                    [
-                                        'label' => __('3gp', 'directorist'),
-                                        'value' => '3gp',
-                                    ],
-                                    
-                                    // Audio Format
-                                    [
-                                        'label' => __('ogg', 'directorist'),
-                                        'value' => 'ogg',
-                                    ],
-                                    [
-                                        'label' => __('mp3', 'directorist'),
-                                        'value' => 'mp3',
-                                    ],
-                                    [
-                                        'label' => __('wav', 'directorist'),
-                                        'value' => 'wav',
-                                    ],
-                                    [
-                                        'label' => __('wma', 'directorist'),
-                                        'value' => 'wma',
-                                    ],
-                                    
-                                    // Text Format
-                                    [
-                                        'label' => __('css', 'directorist'),
-                                        'value' => 'css',
-                                    ],
-                                    [
-                                        'label' => __('csv', 'directorist'),
-                                        'value' => 'csv',
-                                    ],
-                                    [
-                                        'label' => __('htm', 'directorist'),
-                                        'value' => 'htm',
-                                    ],
-                                    [
-                                        'label' => __('html', 'directorist'),
-                                        'value' => 'html',
-                                    ],
-                                    [
-                                        'label' => __('txt', 'directorist'),
-                                        'value' => 'txt',
-                                    ],
-                                    [
-                                        'label' => __('rtx', 'directorist'),
-                                        'value' => 'rtx',
-                                    ],
-                                    [
-                                        'label' => __('vtt', 'directorist'),
-                                        'value' => 'vtt',
-                                    ],
-
-                                    // Application Format
-                                    [
-                                        'label' => __('doc', 'directorist'),
-                                        'value' => 'doc',
-                                    ],
-                                    [
-                                        'label' => __('docx', 'directorist'),
-                                        'value' => 'docx',
-                                    ],
-                                    [
-                                        'label' => __('odt', 'directorist'),
-                                        'value' => 'odt',
-                                    ],
-                                    [
-                                        'label' => __('pdf', 'directorist'),
-                                        'value' => 'pdf',
-                                    ],
-                                    [
-                                        'label' => __('pot', 'directorist'),
-                                        'value' => 'pot',
-                                    ],
-                                    [
-                                        'label' => __('ppt', 'directorist'),
-                                        'value' => 'ppt',
-                                    ],
-                                    [
-                                        'label' => __('pptx', 'directorist'),
-                                        'value' => 'pptx',
-                                    ],
-                                    [
-                                        'label' => __('rar', 'directorist'),
-                                        'value' => 'rar',
-                                    ],
-                                    [
-                                        'label' => __('rtf', 'directorist'),
-                                        'value' => 'rtf',
-                                    ],
-                                    [
-                                        'label' => __('swf', 'directorist'),
-                                        'value' => 'swf',
-                                    ],
-                                    [
-                                        'label' => __('xls', 'directorist'),
-                                        'value' => 'xls',
-                                    ],
-                                    [
-                                        'label' => __('xlsx', 'directorist'),
-                                        'value' => 'xlsx',
-                                    ],
-                                    [
-                                        'label' => __('gpx', 'directorist'),
-                                        'value' => 'gpx',
-                                    ],
-
-                                ],
+                                'options' => $file_type_options
                             ],
                             'file_size' => [
                                 'type'  => 'text',
@@ -3061,7 +3049,97 @@ class Multi_Directory_Manager
                     ],
                 ]
             ]
-        ] );
+        ]);
+
+        $review_form_widgets = apply_filters( 'directorist_review_form_widgets', [
+            'available_widgets' => [
+                'title' => __( 'Available Fields', 'directorist' ),
+                'description' => __( 'Click on a field to use it', 'directorist' ),
+                'allowMultiple' => false,
+                'widgets' => [
+                    'review_criterias' => [
+                        'label' => 'Review Criteria',
+                        'icon' => 'fa fa-star',
+                        'options' => [
+                            'review_criterias_type' => [
+                                'type' => 'select',
+                                'label' => __('Review Criterias Type', 'directorist'),
+                                'options' => [
+                                    [ 'value' => 'single' , 'label' => 'Single'],
+                                    [ 'value' => 'multiple' , 'label' => 'Multiple'],
+                                ],
+                                'value' => 'single'
+                            ],
+                            'review_criterias' => [
+                                'type' => 'textarea',
+                                'label' => __('Review Criterias', 'directorist'),
+                                'show_if' => [
+                                    'where' => "self.review_criterias_type",
+                                    'conditions' => [
+                                        ['key' => 'value', 'compare' => '=', 'value' => 'multiple'],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+
+                    'comment_box' => [
+                        'label' => 'Comment Box',
+                        'icon' => 'uil uil-text-fields',
+                        'options' => [
+                            'placeholder' => [
+                                'type' => 'text',
+                                'label' => __('Placeholder', 'directorist'),
+                            ],
+                        ],
+                    ],
+
+                    'media' => [
+                        'label' => 'Media',
+                        'icon' => 'uil uil-file-upload-alt',
+                        'options' => [
+                            'add_media_label' => [
+                                'type' => 'text',
+                                'label' => __('Add media label', 'directorist'),
+                            ],
+                            'file_type' => [
+                                'type'  => 'select',
+                                'label' => __( 'Chose a file type', 'directorist' ),
+                                'value' => '',
+                                'options' => $file_type_options
+                            ],
+                            'file_size' => [
+                                'type'  => 'text',
+                                'label' => __( 'File Size', 'directorist' ),
+                                'description' => __('Set maximum file size to upload', 'directorist'),
+                                'value' => '2mb',
+                            ],
+                        ],
+                    ],
+
+                    'email' => [
+                        'label' => 'Email',
+                        'icon' => 'uil uil-envelope',
+                        'options' => [
+                            'label' => [
+                                'type' => 'text',
+                                'label' => __('Label', 'directorist'),
+                            ],
+                            'placeholder' => [
+                                'type' => 'text',
+                                'label' => __('Placeholder', 'directorist'),
+                            ],
+                            'required' => [
+                                'type' => 'toggle',
+                                'label' => __('Required', 'directorist'),
+                            ],
+                        ],
+                    ],
+
+                    
+                ],
+            ],
+        ]);
 
         $listing_card_widget = apply_filters( 'directorist_listing_card_widgets', [
             'listing_title' => [
@@ -3730,7 +3808,7 @@ class Multi_Directory_Manager
                     ],
                 ],
             ],
-        ] );
+        ]);
 
 
         $listing_card_list_view_widget = $listing_card_widget;
@@ -4222,6 +4300,62 @@ class Multi_Directory_Manager
                 ],
             ],
 
+            'review_form_fields' => [
+                'type'     => 'form-builder',
+                'generalSettings' => [
+                    'allowAddNewGroup' => false,
+                ],
+                'groupSettings' => [
+                    'defaultGroupLabel' => 'Section',
+                    'canTrash'   => false,
+                    'draggable'  => false
+                ],
+                'groupFields' => [
+                    'label' => [
+                        'type'  => 'text',
+                        'label' => __( 'Label', 'directorist' ),
+                        'value' => 'Leave a review',
+                    ],
+                ],
+                'widgets'  => $review_form_widgets,
+                'value' => [
+                    'groups' => [
+                        [
+                            'label'     => __( 'Leave a review', 'directorist' ),
+                            'lock'      => true,
+                            'draggable' => false,
+                            'fields'    => [
+                                'review_criterias', 'comment_box', 'media', 'email'
+                            ],
+                        ],
+                    ],
+                    'fields' => [
+                        'review_criterias' => [
+                            'widget_group'     => 'available_widgets',
+                            'widget_name'      => 'review_criterias',
+                            'review_criterias' => "Food\nLocation\nPrice",
+                        ],
+                        'comment_box' => [
+                            'widget_group' => 'available_widgets',
+                            'widget_name'  => 'comment_box',
+                            'placeholder'  => 'Leave a review',
+                        ],
+                        'media' => [
+                            'widget_group'    => 'available_widgets',
+                            'widget_name'     => 'comment_box',
+                            'add_media_label' => 'Add a photo',
+                        ],
+                        'email' => [
+                            'widget_group' => 'available_widgets',
+                            'widget_name'  => 'email',
+                            'label'        => 'Your Email',
+                            'placeholder'  => 'Enter Your Email',
+                            'required'     => true,
+                        ],
+                    ]
+                ],
+            ],
+
             'single_listing_header' => apply_filters( 'directorist_listing_header_layout', [
                 'type' => 'card-builder',
                 'template' => 'listing-header',
@@ -4641,6 +4775,7 @@ class Multi_Directory_Manager
                     ],
                 ]
             ],
+
             'listings_card_layout' => [
                 'label' => __( 'Listings Card Layout', 'directorist' ),
                 'icon' => '<span class="uil uil-list-ul"></span>',
@@ -4676,16 +4811,30 @@ class Multi_Directory_Manager
                 ],
 
             ],
+
             'search_forms' => [
-                'label' => __( 'Search Forms', 'directorist' ),
+                'label' => __( 'Search Form', 'directorist' ),
                 'icon' => '<span class="uil uil-search"></span>',
                 'container' => 'wide',
                 'sections' => [
                     'form_fields' => [
                         'title' => __('Customize the search form for this listing type', 'directorist'),
-                        'description' => __( 'need help?', 'directorist' ),
                         'fields' => [
                             'search_form_fields'
+                        ],
+                    ],
+                ],
+            ],
+
+            'review_form' => [
+                'label' => __( 'Review Form', 'directorist' ),
+                'icon' => '<span class="uil uil-pen"></span>',
+                'container' => 'wide',
+                'sections' => [
+                    'form_fields' => [
+                        'title' => __('Customize the review form for this listing type', 'directorist'),
+                        'fields' => [
+                            'review_form_fields'
                         ],
                     ],
                 ],
@@ -4876,14 +5025,13 @@ class Multi_Directory_Manager
             }
         }
 
-        // $test = get_term_meta( $listing_type_id, 'submission_form_fields' )[0];
+        // $test = get_term_meta( $listing_type_id, 'review_form_fields' )[0];
         // $submission_form_fields = maybe_unserialize( maybe_unserialize( $all_term_meta['submission_form_fields'] ) );
         // $submission_form_fields = maybe_unserialize( maybe_unserialize( $all_term_meta['submission_form_fields'][0] ) );
         // e_var_dump( $submission_form_fields['fields']['image_upload'] );
         // e_var_dump( $all_term_meta['fields']['image_upload'] );
         // $test = get_term_meta( $listing_type_id, 'listings_card_grid_view' );
         // e_var_dump( $test['fields']['video'] );
-        // e_var_dump( $test );
         // e_var_dump( self::$fields[ 'single_listings_contents' ] );
         // e_var_dump( json_decode( $test ) );
     }

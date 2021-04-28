@@ -35,12 +35,13 @@ export default {
 
     watch: {
         local_value() {
-            this.$emit( 'update', this.local_value );
+            this.sync();
         }
     },
 
     created() {
         this.local_value = this.value;
+        this.sync();
     },
 
     data() {
@@ -49,4 +50,10 @@ export default {
             validationLog: {},
         }
     },
+
+    methods: {
+        sync() {
+            this.$emit( 'update', this.local_value );
+        },
+    }
 }
