@@ -16,6 +16,10 @@ require_once 'class-comment.php';
 require_once 'class-interaction.php';
 require_once 'class-review-data.php';
 
+if ( is_admin() ) {
+	require_once 'class-metabox.php';
+}
+
 function add_comment_support( $args, $post_type ) {
 	if ( $post_type !== ATBDP_POST_TYPE ) {
 		return $args;
