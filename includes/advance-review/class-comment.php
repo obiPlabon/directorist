@@ -10,11 +10,6 @@ namespace wpWax\Directorist\Review;
 
 defined( 'ABSPATH' ) || die();
 
-// use wpWax\Directorist\Review\Builder;
-
-use function wpWax\Directorist\Review\get_rating_criteria;
-use function wpWax\Directorist\Review\rating_criteria_exists;
-
 class Comment {
 
 	public static function init() {
@@ -55,6 +50,72 @@ class Comment {
 			$open = false;
 		}
 		return $open;
+	}
+
+	/**
+	 * Validate the review ratings.
+	 *
+	 * @param  array $comment_data Comment data.
+	 * @return array
+	 */
+	public static function validate_comment_data( $comment_data ) {
+		if ( is_admin() || ! isset( $_POST['comment_post_ID'] ) || ATBDP_POST_TYPE !== get_post_type( absint( $_POST['comment_post_ID'] ) ) ) {
+			return $comment_data;
+		}
+
+		$builder = Builder::get( absint( $_POST['comment_post_ID'] ) );
+		$errors  = array();
+
+		if ( $builder->is_field_active( 'rating' ) && isset( $_POST['comment_parent'], $_POST['rating'], $comment_data['comment_type'] ) &&
+			$comment_data['comment_parent'] === 0 && self::is_default_comment_type( $comment_data['comment_type'] ) ) {
+
+			$rating_missing = ( empty( $_POST['rating'] ) || ( $builder->rating_criteria_exists() && count( array_filter( $_POST['rating'] ) ) < 1 ) );
+
+			// Validate review is shared or not
+			if ( $builder->get_field_prop( 'rating', 'required', true ) && $rating_missing ) {
+				$errors[] = __( '<strong>Error</strong>: Please share review rating.', 'directorist' );
+			}
+
+			// Validate owner is sharing review or not
+			$post_author_id = (int) get_post_field( 'post_author', absint( $_POST['comment_post_ID'] ) );
+
+			if ( ! $rating_missing && ! get_directorist_option( 'enable_owner_review' ) && $post_author_id === $comment_data['user_ID'] ) {
+				$errors[] = __( '<strong>Error</strong>: You are not allowed to share review on your own listing.', 'directorist' );
+			}
+
+			// Validate if sharing multiple reviews
+			if ( ! $rating_missing && self::review_exists_by( $comment_data['user_ID'], absint( $_POST['comment_post_ID'] ) ) ) {
+				$errors[] = __( '<strong>Error</strong>: Sharing multiple reviews is not allowed.', 'directorist' );
+			}
+
+			if ( count( $errors ) ) {
+				wp_die( implode( "<br>", $errors ) );
+				exit;
+			}
+		}
+
+		if ( $builder->is_field_active( 'media' ) && self::has_attachments() ) {
+			$size            = array_sum( $_FILES['review_attachments']['size'] );
+			$types           = $_FILES['review_attachments']['type'];
+			$allowed_size    = $builder->get_media_max_upload_size();
+			$ignorable_types = array_diff( $types, $builder->get_accepted_media() );
+
+			if ( count( $ignorable_types ) > 0 ) {
+				wp_die( __( '<strong>Error</strong>: Uploaded file(s) has an unsupported file type.', 'directorist' ) );
+				exit;
+			}
+
+			if ( $size > $allowed_size ) {
+				wp_die( sprintf(
+					__( '<strong>Error</strong>: Uploaded image(s) size (%1$s) exceeds the limit (%2$s).', 'directorist' ),
+					size_format( $size, 2 ),
+					size_format( $allowed_size )
+				) );
+				exit;
+			}
+		}
+
+		return $comment_data;
 	}
 
 	/**
@@ -151,8 +212,7 @@ class Comment {
 
 		if ( isset( $_POST['comment_parent'], $_POST['rating'], $comment_data['comment_type'] ) &&
 			$comment_data['comment_parent'] === 0 && self::is_default_comment_type( $comment_data['comment_type'] ) &&
-			( ! empty( $_POST['rating'] ) || ( $builder->rating_criteria_exists() && count( array_filter( $_POST['rating'] ) ) > 0 ) ) ) {
-
+			( ( ! $builder->rating_criteria_exists() && ! empty( $_POST['rating'] ) ) || ( $builder->rating_criteria_exists() && count( array_filter( $_POST['rating'] ) ) > 0 ) ) ) {
 			$comment_data['comment_type'] = 'review';
 		}
 
@@ -199,16 +259,14 @@ class Comment {
 		return ( '' === $comment_type || 'comment' === $comment_type );
 	}
 
-	public static function save_review_data( $comment_ID, $comment_approved, $commentdata ) {
+	public static function save_review_data( $comment_ID, $comment_approved, $comment_data ) {
 		$post_id = isset( $_POST['comment_post_ID'] ) ? absint( $_POST['comment_post_ID'] ) : 0; // WPCS: input var ok, CSRF ok.
 
-		if ( isset( $_POST['comment_post_ID'] ) && ATBDP_POST_TYPE === get_post_type( $post_id ) ) {
-			self::save_rating( $comment_ID, $commentdata );
-			self::save_media( $comment_ID, $commentdata );
+		if ( $post_id && ATBDP_POST_TYPE === get_post_type( $post_id ) ) {
+			self::save_rating( $comment_ID, $comment_data );
+			self::save_media( $comment_ID, $comment_data );
 
-			if ( $post_id ) {
-				self::clear_transients( $post_id );
-			}
+			self::clear_transients( $post_id );
 		}
 	}
 
@@ -357,7 +415,7 @@ class Comment {
 						comment_parent = 0
 						AND comment_post_ID IN ( $listing_id_string_placeholder )
 						AND comment_approved = '1'
-						AND comment_type in ( 'review', '', 'comment' )
+						AND comment_type = 'review'
 					GROUP BY listing_id
 				",
 				$listing_ids
@@ -416,18 +474,19 @@ class Comment {
 		return $rating_map;
 	}
 
-	private static function save_rating( $comment_ID, $commentdata ) {
-		if ( $commentdata['comment_type'] !== 'review' || empty( $_POST['rating'] ) ) {
+	private static function save_rating( $comment_ID, $comment_data ) {
+		if ( $comment_data['comment_type'] !== 'review' || empty( $_POST['rating'] ) ) {
 			return;
 		}
 
-		$post_id = $comment_data['comment_post_ID'];
-		$builder = Builder::get( $post_id );
+		$builder = Builder::get( $comment_data['comment_post_ID'] );
 
 		// Return early incase rating is disabled
-		if ( $builder->is_field_active( 'rating' ) ) {
+		if ( ! $builder->is_field_active( 'rating' ) ) {
 			return;
 		}
+
+		$rating = 0;
 
 		if ( is_array( $_POST['rating'] ) && $builder->rating_criteria_exists() ) {
 			$criteria_meta = array();
@@ -440,11 +499,13 @@ class Comment {
 				$criteria_meta[ $key ] = absint( $_POST['rating'][ $key ] );
 			}
 
-			$total  = array_sum( $criteria_meta );
-			$count  = count( $criteria_meta );
-			$rating = number_format( $total / $count, 2, '.', '' );
+			$total = array_sum( $criteria_meta );
+			$count = count( $criteria_meta );
 
-			add_comment_meta( $comment_ID, 'criteria_rating', $criteria_meta, true );
+			if ( $count ) {
+				$rating = number_format( $total / $count, 2, '.', '' );
+				add_comment_meta( $comment_ID, 'criteria_rating', $criteria_meta, true );
+			}
 		} else if ( is_array( $_POST['rating'] ) && ! $builder->rating_criteria_exists() ) {
 			$rating = current( $_POST['rating'] );
 			$rating = number_format( intval( $rating ), 2, '.', '' );
@@ -452,7 +513,9 @@ class Comment {
 			$rating = number_format( intval( $_POST['rating'] ), 2, '.', '' );
 		}
 
-		add_comment_meta( $comment_ID, 'rating', $rating, true );
+		if ( $rating ) {
+			add_comment_meta( $comment_ID, 'rating', $rating, true );
+		}
 	}
 
 	private static function has_attachments() {
@@ -470,7 +533,7 @@ class Comment {
 		return str_replace( $dir['basedir'] . '/', '', $image_url );
 	}
 
-	private static function save_media( $comment_ID, $commentdata ) {
+	private static function save_media( $comment_ID, $comment_data ) {
 		$post_id = $comment_data['comment_post_ID'];
 		$builder = Builder::get( $post_id );
 
@@ -496,79 +559,6 @@ class Comment {
 		if ( ! empty( $images ) ) {
 			update_comment_meta( $comment_ID, 'attachments', $images );
 		}
-	}
-
-	/**
-	 * Validate the review ratings.
-	 *
-	 * @param  array $comment_data Comment data.
-	 * @return array
-	 */
-	public static function validate_comment_data( $comment_data ) {
-		if ( is_admin() || ! isset( $_POST['comment_post_ID'] ) || ATBDP_POST_TYPE !== get_post_type( absint( $_POST['comment_post_ID'] ) ) ) {
-			return $comment_data;
-		}
-
-		$builder = Builder::get( absint( $_POST['comment_post_ID'] ) );
-		$errors  = array();
-
-		if ( $builder->is_field_active( 'rating' ) && isset( $_POST['comment_parent'], $_POST['rating'], $comment_data['comment_type'] ) &&
-			$comment_data['comment_parent'] === 0 && self::is_default_comment_type( $comment_data['comment_type'] ) ) {
-
-			$has_rating = true;
-
-			// Validate review is shared or not
-			if ( empty( $_POST['rating'] ) || ( $builder->rating_criteria_exists() && count( array_filter( $_POST['rating'] ) ) < 1 ) ) {
-				// wp_die( __( '<strong>Error</strong>: Please share review rating.', 'directorist' ) );
-				// exit;
-				$errors[] = __( '<strong>Error</strong>: Please share review rating.', 'directorist' );
-				$has_rating = false;
-			}
-
-			// Validate owner is sharing review or not
-			$post_author_id = (int) get_post_field( 'post_author', absint( $_POST['comment_post_ID'] ) );
-
-			if ( $has_rating && ! get_directorist_option( 'enable_owner_review' ) && $post_author_id === $comment_data['user_ID'] ) {
-				$errors[] = __( '<strong>Error</strong>: You are not allowed to share review on your own listing.', 'directorist' );
-
-				// wp_die( __( '<strong>Error</strong>: You are not allowed to share review on your own listing.', 'directorist' ) );
-				// exit;
-			}
-
-			// Validate if sharing multiple reviews
-			if ( $has_rating && self::review_exists_by( $comment_data['user_ID'], absint( $_POST['comment_post_ID'] ) ) ) {
-				// wp_die( __( '<strong>Error</strong>: Sharing multiple reviews is not allowed.', 'directorist' ) );
-				// exit;
-
-				$errors[] = __( '<strong>Error</strong>: Sharing multiple reviews is not allowed.', 'directorist' );
-			}
-
-			if ( count( $errors ) ) {
-				wp_die( implode( "<br>", $errors ) );
-				exit;
-			}
-		}
-
-		if (  $builder->is_field_active( 'media' ) && self::has_attachments() ) {
-			$attachments_size = array_sum( $_FILES['review_attachments']['size'] );
-
-			/**
-			 * Allowed attachments size is min(1MB, WP_MEMORY_LIMIT)
-			 */
-
-
-			if ( $attachments_size > $allowed_size ) {
-				wp_die( sprintf(
-					__( '<strong>Error</strong>: Attachments size (%1$s) exceeds the limit (%2$s).', 'directorist' ),
-					size_format( $attachments_size, 2 ),
-					size_format( $allowed_size )
-				) );
-
-				exit;
-			}
-		}
-
-		return $comment_data;
 	}
 
 	public static function get_rating( $comment_id ) {
