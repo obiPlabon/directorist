@@ -63,6 +63,18 @@ class Comment {
 			return $comment_data;
 		}
 
+		// Exit when review is disabled.
+		if ( ! \Directorist\Helper::is_review_enabled() ) {
+			wp_die( __( '<strong>Error</strong>: Review is disabled.', 'directorist' ) );
+			exit;
+		}
+
+		// Exit when guest review is disabled.
+		if ( ! is_user_logged_in() && get_directorist_option( 'guest_review', 0 ) ) {
+			wp_die( __( '<strong>Error</strong>: You must login to share review.', 'directorist' ) );
+			exit;
+		}
+
 		$builder = Builder::get( absint( $_POST['comment_post_ID'] ) );
 		$errors  = array();
 

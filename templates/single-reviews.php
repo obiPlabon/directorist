@@ -27,7 +27,9 @@ $criteria_rating = Review_Data::get_criteria_rating( get_the_ID() );
 	<div class="directorist-review-content">
 		<div class="directorist-review-content__header">
 			<h3><?php printf( '%s <span>%s</span>', strip_tags( get_the_title() ), get_comments_number() ); ?></h3>
-			<a href="#respond" class="directorist-btn directorist-btn-primary"><span class="fa fa-star"></span> <?php esc_html_e( 'Write a review', 'directorist' ); ?></a>
+			<?php if ( get_directorist_option( 'guest_review', 0 ) ) : ?>
+				<a href="#respond" class="directorist-btn directorist-btn-primary"><span class="fa fa-star"></span> <?php esc_html_e( 'Write a review', 'directorist' ); ?></a>
+			<?php endif; ?>
 		</div><!-- ends: .directorist-review-content__header -->
 
 		<?php if ( have_comments() ) : ?>
@@ -79,7 +81,13 @@ $criteria_rating = Review_Data::get_criteria_rating( get_the_ID() );
 		<?php else : ?>
 			<div class="directorist-review-content__reviews">
 				<p class="directorist-review-single directorist-noreviews">
-					<?php printf( esc_html__( 'There are no reviews yet. %1$sBe the first reviewer%2$s.', 'directorist' ), '<a href="#respond">', '</a>' ); ?>
+					<?php
+					if ( ! get_directorist_option( 'guest_review', 0 ) ) {
+						esc_html_e( 'There are no reviews yet.', 'directorist' );
+					} else {
+						printf( esc_html__( 'There are no reviews yet. %1$sBe the first reviewer%2$s.', 'directorist' ), '<a href="#respond">', '</a>' );
+					}
+					?>
 				</p>
 			</div>
 		<?php endif; ?>
