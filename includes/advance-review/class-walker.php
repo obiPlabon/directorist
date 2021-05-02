@@ -11,7 +11,7 @@ namespace wpWax\Directorist\Review;
 defined( 'ABSPATH' ) || die();
 
 use Walker_Comment;
-use function wpWax\Directorist\Review\show_rating_stars;
+use wpWax\Directorist\Review\Markup;
 
 class Walker extends Walker_Comment {
 
@@ -126,9 +126,9 @@ class Walker extends Walker_Comment {
 							<div class="directorist-review-single__author__details">
 								<h2 class="fn"><?php comment_author_link(); ?> <time datetime="<?php echo esc_attr( get_comment_date( 'Y-m-d H:i:s' ) ); ?>"><?php comment_date( apply_filters( 'directorist_review_date_format', 'F Y' ) ); ?></time></h2>
 
-								<?php if ( ! $has_parent ) : ?>
+								<?php if ( ! $has_parent && $rating ) : ?>
 									<span class="directorist-rating-stars">
-										<?php show_rating_stars( $rating ); ?>
+										<?php Markup::show_rating_stars( $rating ); ?>
 									</span>
 								<?php endif; ?>
 							</div>

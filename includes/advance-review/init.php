@@ -15,6 +15,8 @@ use Directorist\Helper;
 require_once 'class-comment.php';
 require_once 'class-interaction.php';
 require_once 'class-review-data.php';
+require_once 'class-builder.php';
+require_once 'class-markup.php';
 
 if ( is_admin() ) {
 	require_once 'class-metabox.php';
@@ -68,84 +70,10 @@ add_filter( 'comments_template', __NAMESPACE__ . '\load_comments_template' );
 // Load comment walker
 function load_review_walker() {
 	if ( is_singular( ATBDP_POST_TYPE ) && comments_open() ) {
-		require_once ATBDP_INC_DIR . 'advance-review/class-review-walker.php';
+		require_once ATBDP_INC_DIR . 'advance-review/class-walker.php';
 	}
 }
 add_action( 'template_redirect', __NAMESPACE__ . '\load_review_walker' );
-
-function get_rating_markup( $label, $subname = '' ) {
-	$name     = 'rating';
-	$selected = isset( $_REQUEST['rating'] ) ? $_REQUEST['rating'] : '';
-
-	if ( is_criteria_enabled() && $subname ) {
-		$name .= "[{$subname}]";
-		$selected = isset( $_REQUEST['rating'], $_REQUEST['rating'][ $subname ] ) ? $_REQUEST['rating'][ $subname ] : '';
-	}
-
-	ob_start();
-	?>
-	<div class="directorist-review-criteria__single">
-		<span class="directorist-review-criteria__single__label"><?php echo esc_html( $label ); ?></span>
-		<select required="required" name="<?php echo esc_attr( $name ); ?>" class="directorist-review-criteria-select">
-			<option value=""><?php esc_html_e( 'Rate...', 'directorist' ); ?></option>
-			<option <?php selected( $selected, '1' ); ?> value="1"><?php esc_html_e( 'Very poor', 'directorist' ); ?></option>
-			<option <?php selected( $selected, '2' ); ?> value="2"><?php esc_html_e( 'Not that bad', 'directorist' ); ?></option>
-			<option <?php selected( $selected, '3' ); ?> value="3"><?php esc_html_e( 'Average', 'directorist' ); ?></option>
-			<option <?php selected( $selected, '4' ); ?> value="4"><?php esc_html_e( 'Good', 'directorist' ); ?></option>
-			<option <?php selected( $selected, '5' ); ?> value="5"><?php esc_html_e( 'Perfect', 'directorist' ); ?></option>
-		</select>
-	</div><!-- ends: .directorist-review-criteria__one -->
-	<?php
-	return ob_get_clean();
-}
-
-function get_media_uploader_markup() {
-	$uid = uniqid( 'directorist-' );
-
-	ob_start();
-	?>
-	<div class="directorist-form-group directorist-review-media-upload">
-		<input class="directorist-review-images" type="file" accept="<?php echo implode( ',', get_accepted_media_types() ); ?>" name="review_attachments[]" id="<?php echo $uid; ?>" multiple="multiple">
-		<label for="<?php echo $uid; ?>">
-			<i class="far fa-image"></i>
-			<span><?php esc_html_e( 'Add a photo', 'diretorist' ); ?></span>
-		</label>
-		<div class="directorist-review-img-gallery"></div>
-	</div>
-	<?php
-	return ob_get_clean();
-}
-
-function is_criteria_enabled() {
-	return count( get_criteria_names() ) > 0;
-}
-
-function get_criteria_names() {
-	// return [];
-	return array(
-		'food'     => 'Food',
-		'location' => 'Location',
-		'service'  => 'Service',
-		'quality'  => 'Quality',
-		'price'    => 'Price',
-	);
-}
-
-function get_accepted_media_types() {
-	return array(
-		'image/jpeg',
-		'image/jpg',
-		'image/png',
-	);
-}
-
-function get_rating_stars( $rating = 0, $base_rating = 5 ) {
-	if ( is_float( $rating ) ) {
-		$rating = floor( $rating );
-	}
-
-	return str_repeat( '<i class="fas fa-star"></i>', $rating ) . str_repeat( '<i class="far fa-star"></i>', ( $base_rating - $rating ) );
-}
 
 function show_rating_stars( $rating = 0, $base_rating = 5 ) {
 	echo get_rating_stars( $rating, $base_rating );
