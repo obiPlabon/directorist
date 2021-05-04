@@ -17,6 +17,7 @@ require_once 'class-interaction.php';
 require_once 'class-review-data.php';
 require_once 'class-builder.php';
 require_once 'class-markup.php';
+require_once 'class-email.php';
 
 if ( is_admin() ) {
 	require_once 'class-metabox.php';
@@ -74,7 +75,3 @@ function load_review_walker() {
 	}
 }
 add_action( 'template_redirect', __NAMESPACE__ . '\load_review_walker' );
-
-function show_rating_stars( $rating = 0, $base_rating = 5 ) {
-	echo get_rating_stars( $rating, $base_rating );
-}

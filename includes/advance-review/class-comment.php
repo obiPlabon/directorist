@@ -16,10 +16,10 @@ class Comment {
 		// Rating posts.
 		add_filter( 'comments_open', array( __CLASS__, 'comments_open' ), 10, 2 );
 		add_filter( 'preprocess_comment', array( __CLASS__, 'validate_comment_data' ), 0 );
-		add_action( 'comment_post', array( __CLASS__, 'save_review_data' ) , 10, 3 );
+		add_action( 'comment_post', array( __CLASS__, 'on_comment_post' ) , 10, 3 );
 
 		// Support avatars for `review` comment type.
-		add_filter( 'get_avatar_comment_types', array( __CLASS__, 'add_avatar_for_review_comment_type' ) );
+		add_filter( 'get_avatar_comment_types', array( __CLASS__, 'set_avater_comment_types' ) );
 
 		// Clear transients.
 		add_action( 'wp_update_comment_count', array( __CLASS__, 'clear_transients' ) );
@@ -211,7 +211,7 @@ class Comment {
 	 * @param  array $comment_types Comment types.
 	 * @return array
 	 */
-	public static function add_avatar_for_review_comment_type( $comment_types ) {
+	public static function set_avater_comment_types( $comment_types ) {
 		return array_merge( $comment_types, array( 'review' ) );
 	}
 
@@ -271,7 +271,7 @@ class Comment {
 		return ( '' === $comment_type || 'comment' === $comment_type );
 	}
 
-	public static function save_review_data( $comment_ID, $comment_approved, $comment_data ) {
+	public static function on_comment_post( $comment_ID, $comment_approved, $comment_data ) {
 		$post_id = isset( $_POST['comment_post_ID'] ) ? absint( $_POST['comment_post_ID'] ) : 0; // WPCS: input var ok, CSRF ok.
 
 		if ( $post_id && ATBDP_POST_TYPE === get_post_type( $post_id ) ) {
