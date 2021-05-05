@@ -1,4 +1,4 @@
-<?php
+<?php 
 
 if ( ! class_exists('ATBDP_Settings_Panel') ) {
     class ATBDP_Settings_Panel
@@ -698,6 +698,10 @@ Please remember that your order may be canceled if you do not make your payment 
                             'label' => __('Solid Success', 'directorist'),
                         ],
                         [
+                            'value' => 'solid_lighter',
+                            'label' => __('Solid Lighter', 'directorist'),
+                        ],
+                        [
                             'value' => 'primary_outline',
                             'label' => __('Primary Outline', 'directorist'),
                         ],
@@ -1024,6 +1028,84 @@ Please remember that your order may be canceled if you do not make your payment 
                         ],
                     ],
                 ],
+                // solid lighter 
+                'lighter_example' => [
+                    'label'       => __('Button Example', 'directorist'),
+                    'type'        => 'wp-media-picker',
+                    'default-img' => 'https://directorist.com/wp-content/uploads/2021/05/roomrent.png',
+                    'show-if' => [
+                        'where' => "button_type",
+                        'conditions' => [
+                            ['key' => 'value', 'compare' => '=', 'value' => 'solid_lighter'],
+                        ],
+                    ],
+                ],
+                'lighter_color' => [
+                    'label' => __('Text Color', 'directorist'),
+                    'type' => 'color',
+                    'value' => '#1A1B29',
+                    'show-if' => [
+                        'where' => "button_type",
+                        'conditions' => [
+                            ['key' => 'value', 'compare' => '=', 'value' => 'solid_lighter'],
+                        ],
+                    ],
+                ],
+                'lighter_hover_color' => [
+                    'label' => __('Text Hover Color', 'directorist'),
+                    'type' => 'color',
+                    'value' => '#1A1B29',
+                    'show-if' => [
+                        'where' => "button_type",
+                        'conditions' => [
+                            ['key' => 'value', 'compare' => '=', 'value' => 'solid_lighter'],
+                        ],
+                    ],
+                ],
+                'back_lighter_color' => [
+                    'label' => __('Background Color', 'directorist'),
+                    'type' => 'color',
+                    'value' => '#F6F7F9',
+                    'show-if' => [
+                        'where' => "button_type",
+                        'conditions' => [
+                            ['key' => 'value', 'compare' => '=', 'value' => 'solid_lighter'],
+                        ],
+                    ],
+                ],
+                'back_lighter_hover_color' => [
+                    'label' => __('Background Hover Color', 'directorist'),
+                    'type' => 'color',
+                    'value' => '#F6F7F9',
+                    'show-if' => [
+                        'where' => "button_type",
+                        'conditions' => [
+                            ['key' => 'value', 'compare' => '=', 'value' => 'solid_lighter'],
+                        ],
+                    ],
+                ],
+                'border_lighter_color' => [
+                    'label' => __('Border Color', 'directorist'),
+                    'type' => 'color',
+                    'value' => '#F6F7F9',
+                    'show-if' => [
+                        'where' => "button_type",
+                        'conditions' => [
+                            ['key' => 'value', 'compare' => '=', 'value' => 'solid_lighter'],
+                        ],
+                    ],
+                ],
+                'border_lighter_hover_color' => [
+                    'label' => __('Border Hover Color', 'directorist'),
+                    'type' => 'color',
+                    'value' => '#F6F7F9',
+                    'show-if' => [
+                        'where' => "button_type",
+                        'conditions' => [
+                            ['key' => 'value', 'compare' => '=', 'value' => 'solid_lighter'],
+                        ],
+                    ],
+                ],
                 // primary outline 
                 'priout_example' => [
                     'label'       => __('Button Example Outline', 'directorist'),
@@ -1316,43 +1398,6 @@ Please remember that your order may be canceled if you do not make your payment 
                     'default' => '#444752',
                 ],
 
-
-
-
-
-
-                'new_listing_status' => [
-                    'label' => __('New Listing Default Status', 'directorist'),
-                    'type'  => 'select',
-                    'value' => 'pending',
-                    'options' => [
-                        [
-                            'label' => __('Pending', 'directorist'),
-                            'value' => 'pending',
-                        ],
-                        [
-                            'label' => __('Publish', 'directorist'),
-                            'value' => 'publish',
-                        ],
-                    ],
-                ],
-
-                'edit_listing_status' => [
-                    'label' => __('Edited Listing Default Status', 'directorist'),
-                    'type'  => 'select',
-                    'value' => 'pending',
-                    'options' => [
-                        [
-                            'label' => __('Pending', 'directorist'),
-                            'value' => 'pending',
-                        ],
-                        [
-                            'label' => __('Publish', 'directorist'),
-                            'value' => 'publish',
-                        ],
-                    ],
-                ],
-               
                 'font_type' => [
                     'label' => __('Icon Library', 'directorist'),
                     'type'  => 'select',
@@ -1367,13 +1412,6 @@ Please remember that your order may be canceled if you do not make your payment 
                             'value' => 'line',
                         ],
                     ],
-                ],
-                'listing_expire_in_days' => [
-                    'label' => __('Default expiration in days', 'directorist'),
-                    'type'  => 'number',
-                    'value' => 365,
-                    'placeholder' => '365',
-                    'description' => __('Here 0 means unlimited days.', 'directorist'),
                 ],
                 'can_renew_listing' => [
                     'label' => __('Can User Renew Listing?', 'directorist'),
@@ -4427,9 +4465,7 @@ Please remember that your order may be canceled if you do not make your payment 
                                 'general_settings' => [
                                     'fields'      => [
                                         'enable_multi_directory',
-                                        'new_listing_status',
-                                        'edit_listing_status', 
-                                        'font_type', 'listing_expire_in_days', 'can_renew_listing', 'email_to_expire_day', 'email_renewal_day', 'delete_expired_listing', 'delete_expired_listings_after', 'deletion_mode', 'paginate_author_listings', 'display_author_email', 'author_cat_filter', 'guest_listings', 
+                                        'font_type', 'can_renew_listing', 'email_to_expire_day', 'email_renewal_day', 'delete_expired_listing', 'delete_expired_listings_after', 'deletion_mode', 'paginate_author_listings', 'display_author_email', 'author_cat_filter', 'guest_listings', 
                                     ],
                                 ],
                                
@@ -4471,7 +4507,7 @@ Please remember that your order may be canceled if you do not make your payment 
                                     'title'       => __('Locations Page Settings', 'directorist'),
                                     'description' => '',
                                     'fields'      => [ 
-                                        'locations_column_number', 'locations_depth_number', 'order_location_by', 'sort_location_by', 'display_location_listing_count', 'hide_empty_locations'
+                                        'display_locations_as', 'locations_column_number', 'locations_depth_number', 'order_location_by', 'sort_location_by', 'display_location_listing_count', 'hide_empty_locations'
                                      ],
                                 ],
                             ] ),
@@ -4996,7 +5032,7 @@ Please remember that your order may be canceled if you do not make your payment 
                                 'button_type' => [
                                     'title' => __('Button Color', 'directorist'),
                                     'fields' => [
-                                        'button_type', 'primary_example', 'primary_color', 'primary_hover_color', 'back_primary_color', 'back_primary_hover_color', 'border_primary_color', 'border_primary_hover_color', 'secondary_example', 'secondary_color', 'secondary_hover_color', 'back_secondary_color', 'back_secondary_hover_color', 'secondary_border_color', 'secondary_border_hover_color', 'danger_example', 'danger_color', 'danger_hover_color', 'back_danger_color', 'back_danger_hover_color', 'danger_border_color', 'danger_border_hover_color', 'success_example', 'success_color', 'success_hover_color', 'back_success_color', 'back_success_hover_color', 'border_success_color', 'border_success_hover_color', 'priout_example', 'priout_color', 'priout_hover_color', 'back_priout_color', 'back_priout_hover_color', 'border_priout_color', 'border_priout_hover_color', 'prioutlight_example', 'prioutlight_color', 'prioutlight_hover_color', 'back_prioutlight_color', 'back_prioutlight_hover_color', 'border_prioutlight_color', 'border_prioutlight_hover_color', 'danout_example', 'danout_color', 'danout_hover_color', 'back_danout_color', 'back_danout_hover_color', 'border_danout_color', 'border_danout_hover_color'
+                                        'button_type', 'primary_example', 'primary_color', 'primary_hover_color', 'back_primary_color', 'back_primary_hover_color', 'border_primary_color', 'border_primary_hover_color', 'secondary_example', 'secondary_color', 'secondary_hover_color', 'back_secondary_color', 'back_secondary_hover_color', 'secondary_border_color', 'secondary_border_hover_color', 'danger_example', 'danger_color', 'danger_hover_color', 'back_danger_color', 'back_danger_hover_color', 'danger_border_color', 'danger_border_hover_color', 'success_example', 'success_color', 'success_hover_color', 'back_success_color', 'back_success_hover_color', 'border_success_color', 'border_success_hover_color', 'lighter_example', 'lighter_color', 'lighter_hover_color', 'back_lighter_color', 'back_lighter_hover_color', 'border_lighter_color', 'border_lighter_hover_color', 'priout_example', 'priout_color', 'priout_hover_color', 'back_priout_color', 'back_priout_hover_color', 'border_priout_color', 'border_priout_hover_color', 'prioutlight_example', 'prioutlight_color', 'prioutlight_hover_color', 'back_prioutlight_color', 'back_prioutlight_hover_color', 'border_prioutlight_color', 'border_prioutlight_hover_color', 'danout_example', 'danout_color', 'danout_hover_color', 'back_danout_color', 'back_danout_hover_color', 'border_danout_color', 'border_danout_hover_color'
                                     ]
                                 ],
 

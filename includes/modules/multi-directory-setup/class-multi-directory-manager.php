@@ -40,8 +40,7 @@ class Multi_Directory_Manager
         add_action( 'wp_ajax_save_imported_post_type_data', [ $this, 'save_imported_post_type_data' ] );
         add_action( 'wp_ajax_directorist_force_migrate', [ $this, 'handle_force_migration' ] );
         add_action( 'wp_ajax_directorist_sanitize_builder_data_structure', [ $this, 'handle_sanitize_builder_data_structure_request' ] );
-
-        // add_filter( 'atbdp_listing_type_settings_layout', [$this, 'conditional_layouts'] );
+        add_filter( 'atbdp_listing_type_settings_layout', [ $this, 'conditional_layouts' ] );
     }
 
     // init_sanitize_builder_data_structure
@@ -86,11 +85,12 @@ class Multi_Directory_Manager
 
     public function conditional_layouts( $layouts ) {
 
+        $updated_layouts = $layouts;
+
         if( ! directorist_multi_directory() ) {
-            unset( $layouts['listings_card_layout']['submenu']['other'] );
-            unset( $layouts['general'] );
+            unset( $updated_layouts['general']['submenu']['general']['sections']['default_preview'] );
         }
-        return $layouts;
+        return $updated_layouts;
     }
 
     // get_cetagory_options
@@ -3625,7 +3625,7 @@ class Multi_Directory_Manager
             'number' => [
                 'type' => "list-item",
                 'label' => __( "Number", "directorist" ),
-                'icon' => 'uil uil-text-fields',
+                'icon' => 'uil uil-0-plus',
                 'hook' => "atbdp_custom_number",
                 'show_if' => [
                     'where' => "submission_form_fields.value.fields",
@@ -3639,7 +3639,7 @@ class Multi_Directory_Manager
                         'icon' => [
                             'type' => "icon",
                             'label' => __( "Icon", "directorist" ),
-                            'value' => "uil uil-text-fields",
+                            'value' => "uil uil-0-plus",
                         ],
                         'show_label' => [
                             'type' => "toggle",
@@ -3653,7 +3653,7 @@ class Multi_Directory_Manager
             'url' => [
                 'type' => "list-item",
                 'label' => __( "URL", "directorist" ),
-                'icon' => 'uil uil-text-fields',
+                'icon' => 'uil uil-link-add',
                 'hook' => "atbdp_custom_url",
                 'show_if' => [
                     'where' => "submission_form_fields.value.fields",
@@ -3667,7 +3667,7 @@ class Multi_Directory_Manager
                         'icon' => [
                             'type' => "icon",
                             'label' => __( "Icon", "directorist" ),
-                            'value' => "uil uil-text-fields",
+                            'value' => "uil uil-link-add",
                         ],
                         'show_label' => [
                             'type' => "toggle",
@@ -3709,7 +3709,7 @@ class Multi_Directory_Manager
             'time' => [
                 'type' => "list-item",
                 'label' => __( "Time", "directorist" ),
-                'icon' => 'uil uil-text-fields',
+                'icon' => 'uil uil-clock',
                 'hook' => "atbdp_custom_time",
                 'show_if' => [
                     'where' => "submission_form_fields.value.fields",
@@ -3723,7 +3723,7 @@ class Multi_Directory_Manager
                         'icon' => [
                             'type' => "icon",
                             'label' => __( "Icon", "directorist" ),
-                            'value' => "uil uil-text-fields",
+                            'value' => "uil uil-clock",
                         ],
                         'show_label' => [
                             'type' => "toggle",
@@ -3737,7 +3737,7 @@ class Multi_Directory_Manager
             'color_picker' => [
                 'type' => "list-item",
                 'label' => __( "Color Picker", "directorist" ),
-                'icon' => 'uil uil-text-fields',
+                'icon' => 'uil uil-palette',
                 'hook' => "atbdp_custom_color",
                 'show_if' => [
                     'where' => "submission_form_fields.value.fields",
@@ -3751,7 +3751,7 @@ class Multi_Directory_Manager
                         'icon' => [
                             'type' => "icon",
                             'label' => __( "Icon", "directorist" ),
-                            'value' => "uil uil-text-fields",
+                            'value' => "uil uil-palette",
                         ],
                     ],
                 ],
@@ -3760,7 +3760,7 @@ class Multi_Directory_Manager
             'select' => [
                 'type' => "list-item",
                 'label' => __( "Select", "directorist" ),
-                'icon' => 'uil uil-text-fields',
+                'icon' => 'uil uil-file-check',
                 'hook' => "atbdp_custom_select",
                 'show_if' => [
                     'where' => "submission_form_fields.value.fields",
@@ -3774,7 +3774,7 @@ class Multi_Directory_Manager
                         'icon' => [
                             'type' => "icon",
                             'label' => __( "Icon", "directorist" ),
-                            'value' => "uil uil-text-fields",
+                            'value' => "uil uil-file-check",
                         ],
                         'show_label' => [
                             'type' => "toggle",
@@ -3788,7 +3788,7 @@ class Multi_Directory_Manager
             'checkbox' => [
                 'type' => "list-item",
                 'label' => __( "Checkbox", "directorist" ),
-                'icon' => 'uil uil-text-fields',
+                'icon' => 'uil uil-check-square',
                 'hook' => "atbdp_custom_checkbox",
                 'show_if' => [
                     'where' => "submission_form_fields.value.fields",
@@ -3802,7 +3802,7 @@ class Multi_Directory_Manager
                         'icon' => [
                             'type' => "icon",
                             'label' => __( "Icon", "directorist" ),
-                            'value' => "uil uil-text-fields",
+                            'value' => "uil uil-check-square",
                         ],
                         'show_label' => [
                             'type' => "toggle",
@@ -3816,7 +3816,7 @@ class Multi_Directory_Manager
             'radio' => [
                 'type' => "list-item",
                 'label' => __( "Radio", "directorist" ),
-                'icon' => 'uil uil-text-fields',
+                'icon' => 'uil uil-circle',
                 'hook' => "atbdp_custom_radio",
                 'show_if' => [
                     'where' => "submission_form_fields.value.fields",
@@ -3830,7 +3830,7 @@ class Multi_Directory_Manager
                         'icon' => [
                             'type' => "icon",
                             'label' => __( "Icon", "directorist" ),
-                            'value' => "uil uil-text-fields",
+                            'value' => "uil uil-circle",
                         ],
                         'show_label' => [
                             'type' => "toggle",
