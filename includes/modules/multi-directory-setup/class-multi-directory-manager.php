@@ -2569,7 +2569,7 @@ class Multi_Directory_Manager
         ];
 
         $search_form_widgets = apply_filters( 'directorist_search_form_widgets', [
-            'available_widgets' => [
+            'availableewidgets' => [
                 'title' => __( 'Preset Fields', 'directorist' ),
                 'description' => __( 'Click on a field to use it', 'directorist' ),
                 'allowMultiple' => false,
@@ -3049,128 +3049,6 @@ class Multi_Directory_Manager
                     ],
                 ]
             ]
-        ]);
-
-        $review_form_widgets = apply_filters( 'directorist_review_form_widgets', [
-            'available_widgets' => [
-                'title' => __( 'Available Fields', 'directorist' ),
-                'description' => __( 'Click on a field to use it', 'directorist' ),
-                'allowMultiple' => false,
-                'widgets' => [
-                    'rating' => [
-                        'label' => 'Rating',
-                        'icon' => 'fa fa-star',
-                        'options' => [
-                            'rating_type' => [
-                                'type' => 'select',
-                                'label' => __('Rating Type', 'directorist'),
-                                'options' => [
-                                    [ 'value' => 'single' , 'label' => 'Single'],
-                                    [ 'value' => 'criteria' , 'label' => 'Criteria'],
-                                ],
-                                'value' => 'single'
-                            ],
-                            'rating_criteria' => [
-                                'type' => 'textarea',
-                                'label' => __('Rating Criteria', 'directorist'),
-                                'show_if' => [
-                                    'where' => "self.rating_type",
-                                    'conditions' => [
-                                        ['key' => 'value', 'compare' => '=', 'value' => 'criteria'],
-                                    ],
-                                ],
-                            ],
-							'required' => [
-                                'type' => 'toggle',
-                                'label' => __('Required', 'directorist'),
-                            ],
-                        ],
-                    ],
-
-                    'comment' => [
-                        'label' => 'Comment',
-                        'icon' => 'uil uil-text-fields',
-                        'options' => [
-							'label' => [
-                                'type' => 'text',
-                                'label' => __('Comment', 'directorist'),
-                            ],
-                            'placeholder' => [
-                                'type' => 'text',
-                                'label' => __('Placeholder', 'directorist'),
-                            ],
-                        ],
-                    ],
-
-                    'media' => [
-                        'label' => 'Media',
-                        'icon' => 'uil uil-file-upload-alt',
-                        'options' => [
-                            'add_media_label' => [
-                                'type' => 'text',
-                                'label' => __('Add media label', 'directorist'),
-                            ],
-                            // 'file_type' => [
-                            //     'type'  => 'select',
-                            //     'label' => __( 'Chose a file type', 'directorist' ),
-                            //     'value' => '',
-                            //     'options' => $file_type_options
-                            // ],
-                            'file_size' => [
-                                'type'  => 'text',
-                                'label' => __( 'File Size', 'directorist' ),
-                                'description' => __('Set maximum file size to upload', 'directorist'),
-                                'value' => '2mb',
-                            ],
-                        ],
-                    ],
-
-                    'email' => [
-                        'label' => 'Email',
-                        'icon' => 'uil uil-envelope',
-                        'options' => [
-                            'label' => [
-                                'type' => 'text',
-                                'label' => __('Label', 'directorist'),
-                            ],
-                            'placeholder' => [
-                                'type' => 'text',
-                                'label' => __('Placeholder', 'directorist'),
-                            ],
-                        ],
-                    ],
-
-					'name' => [
-                        'label' => 'Name',
-                        'icon' => 'far fa-user-circle',
-                        'options' => [
-                            'label' => [
-                                'type' => 'text',
-                                'label' => __('Label', 'directorist'),
-                            ],
-                            'placeholder' => [
-                                'type' => 'text',
-                                'label' => __('Placeholder', 'directorist'),
-                            ],
-                        ],
-                    ],
-
-					'website' => [
-                        'label' => 'Website',
-                        'icon' => 'fas fa-globe',
-                        'options' => [
-                            'label' => [
-                                'type' => 'text',
-                                'label' => __('Label', 'directorist'),
-                            ],
-                            'placeholder' => [
-                                'type' => 'text',
-                                'label' => __('Placeholder', 'directorist'),
-                            ],
-                        ],
-                    ],
-                ],
-            ],
         ]);
 
         $listing_card_widget = apply_filters( 'directorist_listing_card_widgets', [
@@ -4188,6 +4066,96 @@ class Multi_Directory_Manager
 
             ] ),
 
+
+            // review settings
+            'review_enable_attachments' => [
+                'label' => __('Enable', 'directorist'),
+                'type'  => 'toggle',
+                'value' => true,
+            ],
+            'review_max_attachments' => [
+                'label' => __('Number of attachments', 'directorist'),
+                'type'  => 'number',
+                'value' => 3,
+                'show_if' => [
+                    'where' => 'review_enable_attachments',
+                    'conditions' => [
+                        ['key' => 'value', 'compare' => '=', 'value' => true],
+                    ],
+                ],
+            ],
+			'review_attachments_size' => [
+                'label' => __('Size (MB)', 'directorist'),
+                'type'  => 'text',
+                'value' => 2,
+            ],
+            'review_attachments_required' => [
+                'label' => __('Required', 'directorist'),
+                'type'  => 'toggle',
+                'value' => false,
+            ],
+            'review_rating_type' => [
+                'type' => 'select',
+                'label' => __('Rating Type', 'directorist'),
+                'options' => [
+                    [ 'value' => 'single' , 'label' => 'Single'],
+                    [ 'value' => 'multiple' , 'label' => 'Multiple'],
+                ],
+                'value' => 'single'
+            ],
+            'review_rating_criteria' => [
+                'type' => 'textarea',
+                'label' => __('Rating Criteria', 'directorist'),
+                'description' => __('Each criterion in new line', 'directorist'),
+                'show_if' => [
+                    'where' => 'review_rating_type',
+                    'conditions' => [
+                        ['key' => 'value', 'compare' => '=', 'value' => 'multiple'],
+                    ],
+                ],
+                'value' => "Service\nLocation\nPrice",
+            ],
+			'review_comment_label' => [
+                'label' => __('Comment Label', 'directorist'),
+                'type'  => 'text',
+                'value' => __('Comment', 'directorist'),
+            ],
+            'review_comment_placeholder' => [
+                'label' => __('Comment Placeholder', 'directorist'),
+                'type'  => 'text',
+                'value' => __('Leave a review', 'directorist'),
+            ],
+            'review_email_label' => [
+                'label' => __('Email Label', 'directorist'),
+                'type'  => 'text',
+                'value' => __('Email', 'directorist'),
+            ],
+            'review_email_placeholder' => [
+                'label' => __('Email Placeholder', 'directorist'),
+                'type'  => 'text',
+                'value' => __('Your Email', 'directorist'),
+            ],
+			'review_name_label' => [
+                'label' => __('Name Label', 'directorist'),
+                'type'  => 'text',
+                'value' => __('Name', 'directorist'),
+            ],
+            'review_name_placeholder' => [
+                'label' => __('Name Placeholder', 'directorist'),
+                'type'  => 'text',
+                'value' => __('Your Name', 'directorist'),
+            ],
+			'review_website_label' => [
+                'label' => __('Website Label', 'directorist'),
+                'type'  => 'text',
+                'value' => __('Website', 'directorist'),
+            ],
+            'review_website_placeholder' => [
+                'label' => __('Website Placeholder', 'directorist'),
+                'type'  => 'text',
+                'value' => __('Website url', 'directorist'),
+            ],
+
             // Submission Settings
             'preview_mode' => [
                 'label' => __('Enable Preview', 'directorist'),
@@ -4327,80 +4295,6 @@ class Multi_Directory_Manager
                             'lock'      => true,
                             'draggable' => false,
                             'fields'    => [],
-                        ],
-                    ]
-                ],
-            ],
-
-            'review_form_fields' => [
-                'type'     => 'form-builder',
-                'generalSettings' => [
-                    'allowAddNewGroup' => false,
-                ],
-                'groupSettings' => [
-                    'defaultGroupLabel' => 'Section',
-                    'canTrash'   => false,
-                    'draggable'  => false
-                ],
-                'groupFields' => [
-                    'label' => [
-                        'type'  => 'text',
-                        'label' => __( 'Label', 'directorist' ),
-                        'value' => 'Leave a review',
-                    ],
-                ],
-                'widgets'  => $review_form_widgets,
-                'value' => [
-                    'groups' => [
-                        [
-                            'label'     => __( 'Leave a review', 'directorist' ),
-                            'lock'      => true,
-                            'draggable' => false,
-                            'fields'    => [
-                                'rating',
-								'comment',
-								'media',
-								'email',
-								'name',
-								'website',
-                            ],
-                        ],
-                    ],
-                    'fields' => [
-                        'rating' => [
-                            'widget_group' => 'available_widgets',
-                            'widget_name'  => 'rating',
-                            'criteria'     => "Food\nLocation\nPrice",
-                            'required'     => true,
-                        ],
-                        'comment' => [
-                            'widget_group' => 'available_widgets',
-                            'widget_name'  => 'comment',
-							'label'        => 'Comment',
-                            'placeholder'  => 'Leave a review',
-                        ],
-                        'media' => [
-                            'widget_group'    => 'available_widgets',
-                            'widget_name'     => 'media',
-                            'add_media_label' => 'Add a photo',
-                        ],
-                        'email' => [
-                            'widget_group' => 'available_widgets',
-                            'widget_name'  => 'email',
-                            'label'        => 'Your Email',
-                            'placeholder'  => 'Enter your email',
-                        ],
-						'name' => [
-                            'widget_group' => 'available_widgets',
-                            'widget_name'  => 'name',
-                            'label'        => 'Your Name',
-                            'placeholder'  => 'Enter your name',
-                        ],
-						'website' => [
-                            'widget_group' => 'available_widgets',
-                            'widget_name'  => 'website',
-                            'label'        => 'Website',
-                            'placeholder'  => 'Enter website url',
                         ],
                     ]
                 ],
@@ -4878,16 +4772,42 @@ class Multi_Directory_Manager
 
             'review_form' => [
                 'label' => __( 'Review Form', 'directorist' ),
-                'icon' => '<span class="uil uil-pen"></span>',
+                'icon' => '<span class="uil uil-star"></span>',
                 'container' => 'wide',
-                'sections' => [
-                    'form_fields' => [
-                        'title' => __('Customize the review form for this listing type', 'directorist'),
+                'sections' => apply_filters( 'directorist_review_form_settings', [
+					'rating_fields' => [
+                        'title' => __('Rating', 'directorist'),
+                        'container' => 'short-width',
                         'fields' => [
-                            'review_form_fields'
+                            'review_rating_type',
+                            'review_rating_criteria',
                         ],
                     ],
-                ],
+                    'attachment_fields' => [
+                        'title' => __('Attachments', 'directorist'),
+                        'container' => 'short-width',
+                        'fields' => [
+                            'review_enable_attachments',
+                            'review_max_attachments',
+							'review_attachments_size',
+                            'review_attachments_required',
+                        ],
+                    ],
+                    'other_fields' => [
+                        'title' => __('Other fields', 'directorist'),
+                        'container' => 'short-width',
+                        'fields' => [
+							'review_comment_label',
+                            'review_comment_placeholder',
+                            'review_email_label',
+                            'review_email_placeholder',
+							'review_name_label',
+                            'review_name_placeholder',
+							'review_website_label',
+                            'review_website_placeholder',
+                        ],
+                    ],
+                ] ),
             ],
         ]);
 
@@ -4945,6 +4865,22 @@ class Multi_Directory_Manager
                     'plural_name',
                     'permalink',
                     'preview_image',
+                ],
+                'review_config' => [
+                    'review_enable_attachments',
+                    'review_max_attachments',
+					'review_attachments_size',
+                    'review_attachments_required',
+                    'review_rating_type',
+                    'review_rating_criteria',
+					'review_comment_label',
+					'review_comment_placeholder',
+					'review_email_label',
+					'review_email_placeholder',
+					'review_name_label',
+					'review_name_placeholder',
+					'review_website_label',
+					'review_website_placeholder',
                 ]
             ]
         ];
@@ -5075,7 +5011,7 @@ class Multi_Directory_Manager
             }
         }
 
-        // $test = get_term_meta( $listing_type_id, 'review_form_fields' )[0];
+        //$test = get_term_meta( $listing_type_id, 'review_form_fields' )[0];
         // $submission_form_fields = maybe_unserialize( maybe_unserialize( $all_term_meta['submission_form_fields'] ) );
         // $submission_form_fields = maybe_unserialize( maybe_unserialize( $all_term_meta['submission_form_fields'][0] ) );
         // e_var_dump( $submission_form_fields['fields']['image_upload'] );
