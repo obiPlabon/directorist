@@ -75,3 +75,11 @@ function load_review_walker() {
 	}
 }
 add_action( 'template_redirect', __NAMESPACE__ . '\load_review_walker' );
+
+function add_comment_types_in_dropdown( $comment_types ) {
+	if ( ! isset( $comment_types['review'] ) ) {
+		$comment_types['review'] = __( 'Review', 'directorist' );
+	}
+	return $comment_types;
+}
+add_filter( 'admin_comment_types_dropdown', __NAMESPACE__ . '\add_comment_types_in_dropdown' );

@@ -271,12 +271,12 @@ class Comment {
 		return ( '' === $comment_type || 'comment' === $comment_type );
 	}
 
-	public static function on_comment_post( $comment_ID, $comment_approved, $comment_data ) {
+	public static function on_comment_post( $comment_id, $comment_approved, $comment_data ) {
 		$post_id = isset( $_POST['comment_post_ID'] ) ? absint( $_POST['comment_post_ID'] ) : 0; // WPCS: input var ok, CSRF ok.
 
 		if ( $post_id && ATBDP_POST_TYPE === get_post_type( $post_id ) ) {
-			self::save_rating( $comment_ID, $comment_data );
-			self::save_media( $comment_ID, $comment_data );
+			self::post_rating( $comment_id, $comment_data );
+			self::post_attachments( $comment_id, $comment_data );
 
 			self::clear_transients( $post_id );
 		}
@@ -486,7 +486,7 @@ class Comment {
 		return $rating_map;
 	}
 
-	private static function save_rating( $comment_ID, $comment_data ) {
+	public static function post_rating( $comment_id, $comment_data ) {
 		if ( $comment_data['comment_type'] !== 'review' || empty( $_POST['rating'] ) ) {
 			return;
 		}
@@ -508,7 +508,8 @@ class Comment {
 					continue;
 				}
 
-				$criteria_meta[ $key ] = absint( $_POST['rating'][ $key ] );
+				// Base max rating is "5" and min is "0", make sure given rating is not out of the range
+				$criteria_meta[ $key ] = max( 0, min( 5, intval( $_POST['rating'][ $key ] ) ) );
 			}
 
 			$total = array_sum( $criteria_meta );
@@ -516,17 +517,26 @@ class Comment {
 
 			if ( $count ) {
 				$rating = number_format( $total / $count, 2, '.', '' );
-				add_comment_meta( $comment_ID, 'criteria_rating', $criteria_meta, true );
+				update_comment_meta( $comment_id, 'criteria_rating', $criteria_meta );
+			} else {
+				delete_comment_meta( $comment_id, 'criteria_rating' );
 			}
 		} else if ( is_array( $_POST['rating'] ) && ! $builder->rating_criteria_exists() ) {
 			$rating = current( $_POST['rating'] );
-			$rating = number_format( intval( $rating ), 2, '.', '' );
+
+			// Base max rating is "5" and min is "0", make sure given rating is not out of the range
+			$rating = max( 0, min( 5, intval( $rating ) ) );
+			$rating = number_format( $rating, 2, '.', '' );
 		} else {
-			$rating = number_format( intval( $_POST['rating'] ), 2, '.', '' );
+			// Base max rating is "5" and min is "0", make sure given rating is not out of the range
+			$rating = max( 0, min( 5, intval( $_POST['rating'] ) ) );
+			$rating = number_format( $rating, 2, '.', '' );
 		}
 
 		if ( $rating ) {
-			add_comment_meta( $comment_ID, 'rating', $rating, true );
+			update_comment_meta( $comment_id, 'rating', $rating );
+		} else {
+			delete_comment_meta( $comment_id, 'rating' );
 		}
 	}
 
@@ -545,7 +555,7 @@ class Comment {
 		return str_replace( $dir['basedir'] . '/', '', $image_url );
 	}
 
-	private static function save_media( $comment_ID, $comment_data ) {
+	private static function post_attachments( $comment_ID, $comment_data ) {
 		$post_id = $comment_data['comment_post_ID'];
 		$builder = Builder::get( $post_id );
 

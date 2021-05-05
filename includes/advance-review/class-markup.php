@@ -76,6 +76,8 @@ class Markup {
 	}
 
 	public static function get_rating_stars( $rating = 0, $base_rating = 5 ) {
+		$rating = max( 0, min( 5, $rating ) );
+
 		if ( is_float( $rating ) ) {
 			$rating = floor( $rating );
 		}

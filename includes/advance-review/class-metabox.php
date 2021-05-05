@@ -16,8 +16,20 @@ class Metabox {
 		add_action( 'edit_comment', array( __CLASS__, 'on_edit_comment' ), 10, 2 );
 	}
 
-	public static function on_edit_comment( $id, $data ) {
-		file_put_contents( __DIR__ . '/data.txt', print_r( $data, 1 ) );
+	public static function on_edit_comment( $comment_id, $comment_data ) {
+		$comment = get_comment( $comment_id );
+
+		if ( get_post_type( $comment->comment_post_ID ) !== ATBDP_POST_TYPE ) {
+			return;
+		}
+
+		$nonce = ! empty( $_POST['directorist_comment_nonce'] ) ?  $_POST['directorist_comment_nonce'] : '';
+		if ( ! wp_verify_nonce( $nonce, 'directorist_edit_comment' ) ) {
+			return;
+		}
+
+		Comment::post_rating( $comment_id, $comment_data );
+		Comment::clear_transients( $comment->comment_post_ID );
 	}
 
 	public static function register( $comment ) {
@@ -47,6 +59,8 @@ class Metabox {
 		$criteria = $builder->get_rating_criteria();
 
 		$rating_required = $builder->get_field_prop( 'rating', 'required', true ) ? 'required="required"' : '';
+
+		wp_nonce_field( 'directorist_edit_comment', 'directorist_comment_nonce' );
 		?>
 		<style>
 		.comment-attachments {
