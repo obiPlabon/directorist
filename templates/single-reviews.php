@@ -21,13 +21,6 @@ $listing         = Directorist_Listing::instance();
 $review_rating   = Review_Data::get_rating( get_the_ID() );
 $review_count    = Review_Data::get_review_count( get_the_ID() );
 $criteria_rating = Review_Data::get_criteria_rating( get_the_ID() );
-
-// $type = get_post_meta( get_the_ID(), '_directory_type', true );
-// $fields = get_term_meta( $type, 'review_config', true );
-
-// echo '<pre>';
-// print_r( $fields );
-// echo '</pre>';
 ?>
 
 <div class="directorist-review-container">

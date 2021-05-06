@@ -38,6 +38,10 @@ class Builder {
 		return $this->get_field( 'rating_type', 'single' );
 	}
 
+	public function is_rating_type_single() {
+		return $this->get_field( 'rating_type', 'single' ) === 'single';
+	}
+
 	public function is_rating_type_criteria() {
 		return ( $this->get_rating_type() === 'multiple' && count( $this->get_rating_criteria() ) > 0 );
 	}
