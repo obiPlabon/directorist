@@ -15,6 +15,45 @@ class Metabox {
 	public static function init() {
 		add_action( 'add_meta_boxes_comment', array( __CLASS__, 'register' ) );
 		add_action( 'edit_comment', array( __CLASS__, 'on_edit_comment' ), 10, 2 );
+		add_action( 'admin_menu', array( __CLASS__, 'add_menu' ) );
+	}
+
+	public static function add_menu() {
+		$menu_slug    = 'edit.php?post_type='. ATBDP_POST_TYPE;
+		$submenu_slug = 'edit-comments.php?post_type=' . ATBDP_POST_TYPE;
+
+		add_submenu_page(
+			$menu_slug,
+			__( 'Reviews', 'directorist' ),
+			__( 'Reviews', 'directorist' ),
+			'edit_posts',
+			$submenu_slug
+			);
+
+
+		// Make sure "Reviews" menu is active
+		global $submenu, $pagenow;
+
+		if ( $pagenow === 'edit-comments.php' && isset( $_GET['post_type'] ) && $_GET['post_type'] === ATBDP_POST_TYPE ) {
+			if ( isset( $submenu[ $menu_slug ] ) ) {
+				$_index = -1;
+
+				foreach ( $submenu[ $menu_slug ] as $menu_key => $menu_item ) {
+					if ( $menu_item[2] === $submenu_slug ) {
+						$_index = $menu_key;
+						break;
+					}
+				}
+
+				if ( $_index !== -1 && isset( $submenu[ $menu_slug ][ $_index ] ) ) {
+					if ( empty( $submenu[ $menu_slug ][ $_index ][4] ) ) {
+						$submenu[ $menu_slug ][ $_index ][4] = 'current';
+					} else {
+						$submenu[ $menu_slug ][ $_index ][4] .= ' current';
+					}
+				}
+			}
+		}
 	}
 
 	public static function on_edit_comment( $comment_id, $comment_data ) {
@@ -74,6 +113,7 @@ class Metabox {
 			padding: 3px;
 			border: 1px solid #eee;
 			border-radius: 3px;
+			display: block;
 		}
 		</style>
 
