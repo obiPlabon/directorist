@@ -11,6 +11,7 @@ namespace wpWax\Directorist\Review;
 defined( 'ABSPATH' ) || die();
 
 class Metabox {
+
 	public static function init() {
 		add_action( 'add_meta_boxes_comment', array( __CLASS__, 'register' ) );
 		add_action( 'edit_comment', array( __CLASS__, 'on_edit_comment' ), 10, 2 );
@@ -55,12 +56,6 @@ class Metabox {
 		$reported    = (int) get_comment_meta( $comment_id, 'reported', true );
 		$rating      = (float) get_comment_meta( $comment_id, 'rating', true );
 		$attachments = get_comment_meta( $comment_id, 'attachments', true );
-
-		$criteria = $builder->get_rating_criteria();
-
-		$rating_required = $builder->get_field_prop( 'rating', 'required', true ) ? 'required="required"' : '';
-
-		wp_nonce_field( 'directorist_edit_comment', 'directorist_comment_nonce' );
 		?>
 		<style>
 		.comment-attachments {
@@ -81,6 +76,9 @@ class Metabox {
 			border-radius: 3px;
 		}
 		</style>
+
+		<?php wp_nonce_field( 'directorist_edit_comment', 'directorist_comment_nonce' ); ?>
+
 		<table class="form-table">
 			<tbody>
 				<tr>
@@ -95,7 +93,7 @@ class Metabox {
 					<th><?php esc_html_e( 'Reported', 'directorist' ); ?></th>
 					<td><?php echo $reported; ?></td>
 				</tr>
-				<?php if ( $builder->is_field_active( 'media' ) && ! empty( $attachments ) && is_array( $attachments ) ) : ?>
+				<?php if ( $builder->is_attachments_enabled() && ! empty( $attachments ) && is_array( $attachments ) ) : ?>
 					<tr>
 						<th><?php esc_html_e( 'Images', 'directorist' ); ?></th>
 						<td>
@@ -108,38 +106,23 @@ class Metabox {
 					</tr>
 				<?php endif; ?>
 
-				<?php if ( $builder->is_field_active( 'rating' ) ) : ?>
-					<tr><td colspan="2"><hr></td></tr>
-					<?php if ( ! empty( $criteria ) ) : ?>
+				<tr><td colspan="2"><hr></td></tr>
+				<?php if ( $builder->is_rating_type_criteria() && count( $builder->get_rating_criteria() ) > 0 ) : ?>
+					<tr>
+						<th><?php esc_html_e( 'Avg Rating', 'directorist' ); ?></th>
+						<td><?php echo $rating; ?></td>
+					</tr>
+					<?php
+					$criteria_rating = Comment::get_criteria_rating( $comment_id );
+					$criteria        = $builder->get_rating_criteria();
+
+					foreach ( $criteria as $k => $v ) :
+						$r = isset( $criteria_rating[ $k ] ) ? $criteria_rating[ $k ] : 0;
+						?>
 						<tr>
-							<th><?php esc_html_e( 'Avg Rating', 'directorist' ); ?></th>
-							<td><?php echo $rating; ?></td>
-						</tr>
-						<?php
-						$criteria_rating = Comment::get_criteria_rating( $comment_id );
-						foreach ( $criteria as $k => $v ) :
-							$r = isset( $criteria_rating[ $k ] ) ? $criteria_rating[ $k ] : 0;
-							?>
-							<tr>
-								<th><?php echo $v; ?></th>
-								<td>
-									<select name="rating[<?php echo $k; ?>]" <?php echo $rating_required; ?>>
-										<option value="0">No Rating</option>
-										<option value="1" <?php selected( $r, 1 ); ?>>1</option>
-										<option value="2" <?php selected( $r, 2 ); ?>>2</option>
-										<option value="3" <?php selected( $r, 3 ); ?>>3</option>
-										<option value="4" <?php selected( $r, 4 ); ?>>4</option>
-										<option value="5" <?php selected( $r, 5 ); ?>>5</option>
-									</select>
-								</td>
-							</tr>
-						<?php
-						endforeach; ?>
-					<?php else : $r = floor( $rating ); ?>
-						<tr>
-							<th><?php esc_html_e( 'Rating', 'directorist' ); ?></th>
+							<th><?php echo $v; ?></th>
 							<td>
-								<select name="rating" <?php echo $rating_required; ?>>
+								<select name="rating[<?php echo $k; ?>]" <?php echo $rating_required; ?>>
 									<option value="0">No Rating</option>
 									<option value="1" <?php selected( $r, 1 ); ?>>1</option>
 									<option value="2" <?php selected( $r, 2 ); ?>>2</option>
@@ -149,7 +132,24 @@ class Metabox {
 								</select>
 							</td>
 						</tr>
-					<?php endif; ?>
+					<?php
+					endforeach;
+				endif ?>
+
+				<?php if ( $builder->is_rating_type_single() ) : $r = floor( $rating ); ?>
+					<tr>
+						<th><?php esc_html_e( 'Rating', 'directorist' ); ?></th>
+						<td>
+							<select name="rating" <?php echo $rating_required; ?>>
+								<option value="0">No Rating</option>
+								<option value="1" <?php selected( $r, 1 ); ?>>1</option>
+								<option value="2" <?php selected( $r, 2 ); ?>>2</option>
+								<option value="3" <?php selected( $r, 3 ); ?>>3</option>
+								<option value="4" <?php selected( $r, 4 ); ?>>4</option>
+								<option value="5" <?php selected( $r, 5 ); ?>>5</option>
+							</select>
+						</td>
+					</tr>
 				<?php endif; ?>
 			</tbody>
 		</table>
