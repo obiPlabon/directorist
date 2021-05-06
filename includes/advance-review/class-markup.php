@@ -14,8 +14,7 @@ class Markup {
 
 	public static function get_rating( Builder $builder ) {
 		ob_start();
-
-		if ( $builder->rating_criteria_exists() ) :
+		if ( $builder->is_rating_type_criteria() ) :
 
 			foreach ( $builder->get_rating_criteria() as $key => $label ) :
 				$name     = 'rating[' . $key . ']';
@@ -54,20 +53,19 @@ class Markup {
 			<?php
 
 		endif;
-
 		return ob_get_clean();
 	}
 
-	public static function get_media_uploader( Builder $builder ) {
+	public static function get_attachments_uploader( Builder $builder ) {
 		$uid = uniqid( 'directorist-' );
 
 		ob_start();
 		?>
 		<div class="directorist-form-group directorist-review-media-upload">
-			<input class="directorist-review-images" type="file" accept="<?php echo implode( ',', $builder->get_accepted_media() ); ?>" name="review_attachments[]" id="<?php echo $uid; ?>" multiple="multiple">
+			<input class="directorist-review-images" type="file" accept="<?php echo implode( ',', $builder->get_accepted_attachments_types() ); ?>" name="review_attachments[]" id="<?php echo $uid; ?>" multiple="multiple">
 			<label for="<?php echo $uid; ?>">
 				<i class="far fa-image"></i>
-				<span><?php echo $builder->get_field_prop( 'media', 'add_media_label', __( 'Add a photo', 'diretorist' ) ); ?></span>
+				<span><?php esc_html_e( 'Add a photo', 'diretorist' ); ?></span>
 			</label>
 			<div class="directorist-review-img-gallery"></div>
 		</div>

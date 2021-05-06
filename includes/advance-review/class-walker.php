@@ -127,7 +127,7 @@ class Walker extends Walker_Comment {
 							<div class="directorist-review-single__author__details">
 								<h2 class="fn"><?php comment_author_link(); ?> <time datetime="<?php echo esc_attr( get_comment_date( 'Y-m-d H:i:s' ) ); ?>"><?php comment_date( apply_filters( 'directorist_review_date_format', 'F Y' ) ); ?></time></h2>
 
-								<?php if ( $builder->is_field_active( 'rating' ) && ! $has_parent && $rating ) : ?>
+								<?php if ( ! $has_parent && $rating ) : ?>
 									<span class="directorist-rating-stars">
 										<?php Markup::show_rating_stars( $rating ); ?>
 									</span>
@@ -143,7 +143,7 @@ class Walker extends Walker_Comment {
 					<div class="directorist-review-single__content">
 						<?php comment_text(); ?>
 
-						<?php if ( $builder->is_field_active( 'media' ) && ! empty( $attachments ) && is_array( $attachments ) ) : ?>
+						<?php if ( $builder->is_attachments_enabled() && ! empty( $attachments ) && is_array( $attachments ) ) : ?>
 							<div class="directorist-review-single__content__img">
 								<?php
 								$dir = wp_get_upload_dir();

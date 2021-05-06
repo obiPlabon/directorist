@@ -21,6 +21,13 @@ $listing         = Directorist_Listing::instance();
 $review_rating   = Review_Data::get_rating( get_the_ID() );
 $review_count    = Review_Data::get_review_count( get_the_ID() );
 $criteria_rating = Review_Data::get_criteria_rating( get_the_ID() );
+
+// $type = get_post_meta( get_the_ID(), '_directory_type', true );
+// $fields = get_term_meta( $type, 'review_config', true );
+
+// echo '<pre>';
+// print_r( $fields );
+// echo '</pre>';
 ?>
 
 <div class="directorist-review-container">
@@ -43,7 +50,7 @@ $criteria_rating = Review_Data::get_criteria_rating( get_the_ID() );
 				</div>
 				<div class="directorist-review-content__overview__benchmarks">
 					<?php
-					if ( $builder->rating_criteria_exists() ) :
+					if ( $builder->is_rating_type_criteria() ) :
 						foreach ( $builder->get_rating_criteria() as $criterion_key => $criterion_label ) :
 							$_rating = isset( $criteria_rating[ $criterion_key ] ) ? $criteria_rating[ $criterion_key ] : 0;
 							?>
@@ -104,39 +111,39 @@ $criteria_rating = Review_Data::get_criteria_rating( get_the_ID() );
 				'<div class="directorist-form-group form-group-author">%s %s</div>',
 				sprintf(
 					'<label for="author">%s%s</label>',
-					$builder->get_field_prop( 'name', 'label', __( 'Name', 'directorist' ) ),
+					$builder->get_name_label( __( 'Name', 'directorist' ) ),
 					( $req ? ' <span class="required">*</span>' : '' )
 				),
 				sprintf(
 					'<input id="author" class="directorist-form-element" placeholder="%s" name="author" type="text" value="%s" size="30" maxlength="245"%s />',
-					$builder->get_field_prop( 'name', 'placeholder', __( 'Enter your name', 'directorist' ) ),
+					$builder->get_name_placeholder( __( 'Enter your name', 'directorist' ) ),
 					esc_attr( $commenter['comment_author'] ),
 					$html_req
 				)
 			),
-			'email'  => sprintf(
+			'email' => sprintf(
 				'<div class="directorist-form-group form-group-email">%s %s</div>',
 				sprintf(
 					'<label for="email">%s%s</label>',
-					$builder->get_field_prop( 'email', 'label', __( 'Email', 'directorist' ) ),
+					$builder->get_email_label( __( 'Email', 'directorist' ) ),
 					( $req ? ' <span class="required">*</span>' : '' )
 				),
 				sprintf(
 					'<input id="email" class="directorist-form-element" placeholder="%s" name="email" type="email" value="%s" size="30" maxlength="100" aria-describedby="email-notes"%s />',
-					$builder->get_field_prop( 'email', 'placeholder', __( 'Enter your email', 'directorist' ) ),
+					$builder->get_email_placeholder( __( 'Enter your email', 'directorist' ) ),
 					esc_attr( $commenter['comment_author_email'] ),
 					$html_req
 				)
 			),
-			'url'    => sprintf(
+			'url' => sprintf(
 				'<div class="directorist-form-group form-group-url">%s %s</div>',
 				sprintf(
 					'<label for="url">%s</label>',
-					$builder->get_field_prop( 'website', 'label', __( 'Website', 'directorist' ) ),
+					$builder->get_website_label( __( 'Website', 'directorist' ) ),
 				),
 				sprintf(
 					'<input id="url" class="directorist-form-element" placeholder="%s" name="url" type="url" value="%s" size="30" maxlength="200" />',
-					$builder->get_field_prop( 'email', 'placeholder', __( 'Enter your website', 'directorist' ) ),
+					$builder->get_website_placeholder( __( 'Enter your website', 'directorist' ) ),
 					esc_attr( $commenter['comment_author_url'] )
 				)
 			),
@@ -146,26 +153,24 @@ $criteria_rating = Review_Data::get_criteria_rating( get_the_ID() );
 			'<div class="directorist-form-group form-group-comment">%s %s</div>',
 			sprintf(
 				'<label for="comment">%s</label>',
-				$builder->get_field_prop( 'comment', 'label', _x( 'Comment', 'noun', 'directorist' ) )
+				$builder->get_comment_label( _x( 'Comment', 'noun', 'directorist' ) )
 			),
 			sprintf( '<textarea id="comment" class="directorist-form-element" placeholder="%s" name="comment" cols="30" rows="10" maxlength="65525" required="required"></textarea>',
-				$builder->get_field_prop( 'comment', 'placeholder', __( 'Share your experience and help others make better choices', 'directorist' ) )
+				$builder->get_comment_placeholder( __( 'Share your experience and help others make better choices', 'directorist' ) )
 			)
 		);
 
-		if ( $builder->is_field_active( 'rating' ) ) {
-			$comment_field = '<div class="directorist-review-criteria">' . Markup::get_rating( $builder ) . '</div>' . "\n" . $comment_field;
-		}
+		$comment_field = '<div class="directorist-review-criteria">' . Markup::get_rating( $builder ) . '</div>' . "\n" . $comment_field;
 
-		if ( $builder->is_field_active( 'media' ) ) {
-			$comment_field .= "\n" . Markup::get_media_uploader( $builder );
+		if ( $builder->is_attachments_enabled() ) {
+			$comment_field .= "\n" . Markup::get_attachments_uploader( $builder );
 		}
 
 		$args = array(
 			'fields'             => $fields,
 			'comment_field'      => $comment_field,
 			'class_container'    => 'directorist-review-submit',
-			'title_reply'        => $builder->get_form_label(),
+			'title_reply'        => __( 'Review', 'directorist' ),
 			'title_reply_before' => '<div class="directorist-review-submit__header"><h3 id="reply-title">',
 			'title_reply_after'  => '</h3></div>',
 			'class_form'         => 'comment-form directorist-review-submit__form',

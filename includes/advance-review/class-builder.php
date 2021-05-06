@@ -26,51 +26,32 @@ class Builder {
 
 	private function __construct( $post_id ) {
 		$type = get_post_meta( $post_id, '_directory_type', true );
-		$this->fields = get_term_meta( $type, 'review_form_fields', true );
+		$this->fields = get_term_meta( $type, 'review_config', true );
 	}
 
-	public function get_data() {
-		return isset( $this->fields['groups'], $this->fields['groups'][0] ) ? $this->fields['groups'][0] : array();
+	/**
+	 * Get rating type.
+	 *
+	 * @return string
+	 */
+	public function get_rating_type() {
+		return $this->get_field( 'rating_type', 'single' );
 	}
 
-	public function get_form_label() {
-		$data = $this->get_data();
-		return ( ! empty( $data ) ? $data['label'] : '' );
+	public function is_rating_type_criteria() {
+		return ( $this->get_rating_type() === 'multiple' && count( $this->get_rating_criteria() ) > 0 );
 	}
 
-	public function get_active_fields_key() {
-		$data = $this->get_data();
-		return ( ! empty( $data ) ? $data['fields'] : array() );
-	}
-
-	public function get_fields() {
-		return ( ! empty( $this->fields['fields'] ) ? $this->fields['fields'] : array() );
-	}
-
-	public function get_field( $field_id ) {
-		$fields = $this->get_fields();
-		return ( isset( $fields[ $field_id ] ) ? $fields[ $field_id ] : array() );
-	}
-
-	public function is_field_active( $field_id ) {
-		return in_array( $field_id, $this->get_active_fields_key(), true );
-	}
-
-	public function rating_criteria_exists() {
-		if ( ! $this->is_field_active( 'rating' ) ) {
-			return false;
-		}
-
-		$field = $this->get_field( 'rating' );
-
-		return ( isset( $field['rating_type'], $field['rating_criteria'] ) && $field['rating_type'] === 'criteria' && ! empty( $field['rating_criteria'] ) );
-	}
-
+	/**
+	 * Get the list of criteria.
+	 *
+	 * @return array
+	 */
 	public function get_rating_criteria() {
 		$criteria = array();
 
-		if ( $this->rating_criteria_exists() ) {
-			$_criteria = array_filter( explode( PHP_EOL, $this->get_field_prop( 'rating', 'rating_criteria', array() ) ) );
+		if ( ! empty( $this->get_field( 'rating_criteria', '' ) ) ) {
+			$_criteria = array_filter( explode( PHP_EOL, $this->get_field( 'rating_criteria', '' ) ) );
 
 			if ( ! empty( $_criteria ) ) {
 				foreach ( $_criteria as $_criterion ) {
@@ -83,7 +64,24 @@ class Builder {
 		return $criteria;
 	}
 
-	public function get_accepted_media() {
+	public function is_attachments_enabled() {
+		return $this->get_field( 'enable_attachments', false );
+	}
+
+	public function is_attachments_required() {
+		return $this->get_field( 'attachments_required', false );
+	}
+
+	public function get_max_number_attachments() {
+		return absint( $this->get_field( 'max_attachments', 3 ) );
+	}
+
+	/**
+	 * Get the supported media mime types.
+	 *
+	 * @return array
+	 */
+	public function get_accepted_attachments_types() {
 		return array(
 			'image/jpeg',
 			'image/jpg',
@@ -91,12 +89,47 @@ class Builder {
 		);
 	}
 
-	public function get_field_prop( $field_key, $prop_key, $default = false ) {
-		$field = $this->get_field( $field_key );
-		return ( isset( $field[ $prop_key ] ) && $field[ $prop_key ] !== '' ) ? $field[ $prop_key ] : $default;
+	public function get_attachments_upload_size() {
+		$size  = absint( $this->get_field( 'attachments_size', 2 ) );
+		$size .= 'MB';
+
+		return min( wp_convert_hr_to_bytes( WP_MEMORY_LIMIT ), wp_convert_hr_to_bytes( $size ) );
 	}
 
-	public function get_media_max_upload_size() {
-		return min( wp_convert_hr_to_bytes( WP_MEMORY_LIMIT ), wp_convert_hr_to_bytes( $this->get_field_prop( 'media', 'file_size', '2MB' ) ) );
+	public function get_name_label( $default = '' ) {
+		return $this->get_field( 'name_label', $default );
+	}
+
+	public function get_name_placeholder( $default = '' ) {
+		return $this->get_field( 'name_placeholder', $default );
+	}
+
+	public function get_email_label( $default = '' ) {
+		return $this->get_field( 'email_label', $default );
+	}
+
+	public function get_email_placeholder( $default = '' ) {
+		return $this->get_field( 'email_placeholder', $default );
+	}
+
+	public function get_website_label( $default = '' ) {
+		return $this->get_field( 'website_label', $default );
+	}
+
+	public function get_website_placeholder( $default = '' ) {
+		return $this->get_field( 'website_placeholder', $default );
+	}
+
+	public function get_comment_label( $default = '' ) {
+		return $this->get_field( 'comment_label', $default );
+	}
+
+	public function get_comment_placeholder( $default = '' ) {
+		return $this->get_field( 'comment_placeholder', $default );
+	}
+
+	protected function get_field( $field_key, $defult = false ) {
+		$field_key = "review_{$field_key}";
+		return ( ( isset( $this->fields[ $field_key ] ) && $this->fields[ $field_key ] !== '' ) ? $this->fields[ $field_key ] : $default );
 	}
 }
