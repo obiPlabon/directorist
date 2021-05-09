@@ -79,7 +79,7 @@ class Interaction {
 			$reported = 0;
 		}
 
-		update_comment_meta(  $comment_id, 'reported', $reported + 1 );
+		update_comment_meta( $comment_id, 'reported', $reported + 1 );
 
 		return __( 'Thank you for reporting.', 'directorist' );
 	}

@@ -10,7 +10,7 @@ use \ATBDP_Permalink;
 use Directory;
 use WP_Query;
 use wpWax\Directorist\Review\Review_Data;
-use function wpWax\Directorist\Review\get_rating_stars;
+use wpWax\Directorist\Review\Markup as Review_Markup;
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
@@ -415,7 +415,7 @@ class Directorist_Listings {
 		$review_count = Review_Data::get_review_count( get_the_ID() );
 
 		return [
-			'review_stars'    => get_rating_stars( $rating ),
+			'review_stars'    => Review_Markup::get_rating_stars( $rating ),
 			'review_text'     => _n( 'Review', 'Reviews', $review_count, 'directorist' ),
 			'average_reviews' => $rating,
 			'total_reviews'   => $review_count,

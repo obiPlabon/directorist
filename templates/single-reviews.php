@@ -15,6 +15,7 @@ use wpWax\Directorist\Review\Walker as Review_Walker;
 use Directorist\Directorist_Single_Listing as Directorist_Listing;
 use wpWax\Directorist\Review\Builder;
 use wpWax\Directorist\Review\Markup;
+use wpWax\Directorist\Review\Review_Model;
 
 $builder         = Builder::get( get_the_ID() );
 $listing         = Directorist_Listing::instance();
