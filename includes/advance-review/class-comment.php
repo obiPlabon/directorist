@@ -109,12 +109,12 @@ class Comment {
 			}
 		}
 
-		if ( $builder->is_attachments_enabled() && $builder->is_attachments_required() && ! self::has_attachments() ) {
+		if ( $builder->is_attachments_enabled() && $builder->is_attachments_required() && ! self::attachments_exists() ) {
 			wp_die( __( '<strong>Error</strong>: Attachment is missing! Please upload required attachments.', 'directorist' ) );
 			exit;
 		}
 
-		if ( $builder->is_attachments_enabled() && self::has_attachments() ) {
+		if ( $builder->is_attachments_enabled() && self::attachments_exists() ) {
 			$size            = array_sum( $_FILES['review_attachments']['size'] );
 			$types           = $_FILES['review_attachments']['type'];
 			$allowed_size    = $builder->get_attachments_upload_size();
@@ -530,7 +530,7 @@ class Comment {
 
 			if ( $count ) {
 				$rating = number_format( $total / $count, 2, '.', '' );
-				update_comment_meta( $comment_id, 'criteria_rating', $criteria_meta );
+				Comment_Meta::set_criteria_rating( $comment_id, $criteria_meta );
 			} else {
 				delete_comment_meta( $comment_id, 'criteria_rating' );
 			}
@@ -547,13 +547,13 @@ class Comment {
 		}
 
 		if ( $rating ) {
-			update_comment_meta( $comment_id, 'rating', $rating );
+			Comment_Meta::set_rating( $comment_id, $rating );
 		} else {
 			delete_comment_meta( $comment_id, 'rating' );
 		}
 	}
 
-	private static function has_attachments() {
+	private static function attachments_exists() {
 		if ( ! isset( $_FILES['review_attachments'], $_FILES['review_attachments']['name'] ) ||
 			empty( $_FILES['review_attachments']['name'] ) ||
 			count( array_filter( $_FILES['review_attachments']['name'] ) ) < 1 ) {
@@ -568,11 +568,11 @@ class Comment {
 		return str_replace( $dir['basedir'] . '/', '', $image_url );
 	}
 
-	private static function post_attachments( $comment_ID, $comment_data ) {
+	private static function post_attachments( $comment_id, $comment_data ) {
 		$post_id = $comment_data['comment_post_ID'];
 		$builder = Builder::get( $post_id );
 
-		if ( ! $builder->is_attachments_enabled() || ! self::has_attachments() ) {
+		if ( ! $builder->is_attachments_enabled() || ! self::attachments_exists() ) {
 			return;
 		}
 
@@ -592,18 +592,18 @@ class Comment {
 		}
 
 		if ( ! empty( $images ) ) {
-			update_comment_meta( $comment_ID, 'attachments', $images );
+			Comment_Meta::set_attachments( $comment_id, $images );
 		}
 	}
 
 	public static function get_rating( $comment_id ) {
-		return (float) get_comment_meta( $comment_id, 'rating', true );
+		return (float) Comment_Meta::get_rating( $comment_id, 0 );
 	}
 
 	public static function get_criteria_rating( $comment_id ) {
-		$criteria_rating = get_comment_meta( $comment_id, 'criteria_rating', true );
+		$rating = Comment_Meta::get_criteria_rating( $comment_id, array() );
 
-		return ! empty( $criteria_rating ) ? array_map( 'intval', $criteria_rating ) : array();
+		return ( ! empty( $rating ) && is_array( $rating ) ) ? array_map( 'intval', $rating ) : array();
 	}
 }
 

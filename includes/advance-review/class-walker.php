@@ -109,9 +109,9 @@ class Walker extends Walker_Comment {
 			$comment_class .= ' directorist-review-single--comment';
 		}
 
-		$helpful     = absint( get_comment_meta( get_comment_ID(), 'helpful', true ) );
-		$unhelpful   = absint( get_comment_meta( get_comment_ID(), 'unhelpful', true ) );
-		$attachments = get_comment_meta( get_comment_ID(), 'attachments', true );
+		$helpful     = Comment_Meta::get_helpful( get_comment_ID() );
+		$unhelpful   = Comment_Meta::get_unhelpful( get_comment_ID() );
+		$attachments = Comment_Meta::get_attachments( get_comment_ID() );
 		$builder     = Builder::get( $comment->comment_post_ID );
 		?>
 		<li id="comment-<?php comment_ID(); ?>" <?php comment_class( $comment_class ); ?>>
@@ -136,7 +136,7 @@ class Walker extends Walker_Comment {
 						</div>
 						<?php if ( ! $has_parent ) : ?>
 							<div class="directorist-review-single__report">
-								<a <?php self::add_interaction( 'report' ); ?> href="#"><i class="la la-flag"></i> Report</a>
+								<a <?php self::add_activity_prop( 'report' ); ?> href="#"><i class="la la-flag"></i> Report</a>
 							</div>
 						<?php endif; ?>
 					</header>
@@ -160,8 +160,8 @@ class Walker extends Walker_Comment {
 					<p><em class="comment-awaiting-moderation"><?php echo $moderation_note; ?></em></p><?php
 				} ?>
 				<footer class="directorist-review-single__feedback">
-					<a <?php self::add_interaction( 'helpful' ); ?> role="button" data-count="<?php echo $helpful; ?>" href="#" class="directorist-btn directorist-btn-outline-dark"><i class="far fa-thumbs-up"></i> <?php echo esc_html_x( 'Helpful', 'comment feedback button', 'directorist' ); ?> (<span><?php echo $helpful; ?></span>)</a>
-					<a <?php self::add_interaction( 'unhelpful' ); ?> role="button" data-count="<?php echo $unhelpful; ?>" href="#" class="directorist-btn directorist-btn-outline-dark"><i class="far fa-thumbs-down"></i> <?php echo esc_html_x( 'Not Helpful', 'comment feedback button', 'directorist' ); ?> (<span><?php echo $unhelpful; ?></span>)</a>
+					<a <?php self::add_activity_prop( 'helpful' ); ?> role="button" data-count="<?php echo $helpful; ?>" href="#" class="directorist-btn directorist-btn-outline-dark"><i class="far fa-thumbs-up"></i> <?php echo esc_html_x( 'Helpful', 'comment feedback button', 'directorist' ); ?> (<span><?php echo $helpful; ?></span>)</a>
+					<a <?php self::add_activity_prop( 'unhelpful' ); ?> role="button" data-count="<?php echo $unhelpful; ?>" href="#" class="directorist-btn directorist-btn-outline-dark"><i class="far fa-thumbs-down"></i> <?php echo esc_html_x( 'Not Helpful', 'comment feedback button', 'directorist' ); ?> (<span><?php echo $unhelpful; ?></span>)</a>
 				</footer>
 
 				<?php comment_reply_link(
@@ -182,7 +182,7 @@ class Walker extends Walker_Comment {
 		<?php
 	}
 
-	protected static function add_interaction( $interaction = '' ) {
-		printf( 'data-comment-interaction="%s:%s"', get_comment_ID(), $interaction );
+	protected static function add_activity_prop( $activity = '' ) {
+		printf( 'data-directorist-activity="%s:%s"', get_comment_ID(), $activity );
 	}
 }

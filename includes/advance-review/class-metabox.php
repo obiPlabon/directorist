@@ -88,13 +88,13 @@ class Metabox {
 	}
 
 	public static function render( $comment ) {
-		$builder     = Builder::get( $comment->comment_post_ID );
 		$comment_id  = $comment->comment_ID;
-		$helpful     = (int) get_comment_meta( $comment_id, 'helpful', true );
-		$unhelpful   = (int) get_comment_meta( $comment_id, 'unhelpful', true );
-		$reported    = (int) get_comment_meta( $comment_id, 'reported', true );
-		$rating      = (float) get_comment_meta( $comment_id, 'rating', true );
-		$attachments = get_comment_meta( $comment_id, 'attachments', true );
+		$builder     = Builder::get( $comment->comment_post_ID );
+		$helpful     = Comment_Meta::get_helpful( $comment_id );
+		$unhelpful   = Comment_Meta::get_unhelpful( $comment_id );
+		$reported    = Comment_Meta::get_reported( $comment_id );
+		$rating      = Comment_Meta::get_rating( $comment_id );
+		$attachments = Comment_Meta::get_attachments( $comment_id );
 		?>
 		<style>
 		.comment-attachments {
