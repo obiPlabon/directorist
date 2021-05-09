@@ -270,9 +270,9 @@
         }
     }
 
-    class CommentInteraction {
+    class CommentActivity {
         constructor() {
-            this.selector = '[data-comment-interaction]';
+            this.selector = '[data-directorist-activity]';
             this.$wrap    = $('.directorist-review-content__reviews');
 
             this.events();
@@ -280,7 +280,7 @@
 
         events() {
             this.$wrap.on(
-                'click.directoristInteractionClick',
+                'click.onDirectoristActivity',
                 this.selector,
                 this.callback.bind(this)
             );
@@ -290,15 +290,15 @@
             event.preventDefault();
 
             const $target = $(event.currentTarget);
-            const config = $target.data('comment-interaction');
+            const activityProp = $target.data('directorist-activity');
 
-            if (!config) {
+            if (!activityProp) {
                 return;
             }
 
-            const [commentId, interaction] = config.split(':');
+            const [commentId, activity] = activityProp.split(':');
 
-            if (!commentId || !interaction) {
+            if (!commentId || !activity) {
                 return;
             }
 
@@ -307,7 +307,7 @@
             } else {
                 $target.addClass('processing').attr('disabled', true);
 
-                if (interaction === 'helpful' || interaction === 'unhelpful') {
+                if (activity === 'helpful' || activity === 'unhelpful') {
                     $target.find('span').html($target.data('count') + 1);
                     $target.data('count', $target.data('count') + 1);
                 }
@@ -315,7 +315,7 @@
 
             this.timeout && clearTimeout(this.timeout);
 
-            this.send(commentId, interaction)
+            this.send(commentId, activity)
                 .done(response => {
                     const $comment = $('#div-comment-'+commentId);
                     let type = 'warning';
@@ -341,14 +341,14 @@
             });
         }
 
-        send(commentId, interaction) {
+        send(commentId, activity) {
             return $.post(
                 directorist.ajaxUrl,
                 {
                     action: directorist.action,
                     nonce: directorist.nonce,
                     comment_id: commentId,
-                    interaction: interaction
+                    activity: activity
                 }
             );
         }
@@ -357,10 +357,15 @@
     class AdvancedReview {
         constructor() {
             this.form = document.querySelector('#commentform');
+
+            if (!this.form) {
+                return;
+            }
+
             this.setFormEncoding();
 
             new AttachmentPreview(this.form);
-            new CommentInteraction();
+            new CommentActivity();
         }
 
         setFormEncoding() {
