@@ -15,17 +15,135 @@ class Form_Handler {
 	public static function init() {
 		add_action( 'init', array( __CLASS__, 'init_handler' ) );
 		add_action( 'comment_post_redirect', array( __CLASS__, 'comment_post_redirect' ) );
+		add_filter( 'allowed_redirect_hosts' , array( __CLASS__, 'wpac_allowed_redirect_hosts' ) );
 
-		if ( ! is_admin() && ! wpac_is_login_page() ) {
-			if ( $_REQUEST['WPACEnable'] === self::get_secret() ) {
-				add_filter( 'comments_array', 'wpac_comments_query_filter' );
-				add_action( 'wp_head', 'wpac_initialize' );
-				add_action( 'wp_enqueue_scripts', 'wpac_enqueue_scripts' );
-				add_filter( 'gettext', 'wpac_filter_gettext', 20, 3 );
-				add_filter( 'wp_die_handler', 'wpac_wp_die_handler' );
-				add_filter( 'option_page_comments', 'wpac_option_page_comments' );
-				add_filter( 'option_comments_per_page', 'wpac_option_comments_per_page' );
+		if ( ! is_admin() && ! wpac_is_login_page() && $_REQUEST['WPACEnable'] === self::get_secret() ) {
+			add_filter( 'comments_array', array( __CLASS__, 'comments_query_filter' ) );
+			add_action( 'wp_head', array( __CLASS__, 'on_head' ) );
+			add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_scripts' ) );
+			add_filter( 'gettext', array( __CLASS__, 'filter_gettext' ), 20, 3 );
+			add_filter( 'wp_die_handler', array( __CLASS__, 'wpac_wp_die_handler' ) );
+			add_filter( 'option_page_comments', array( __CLASS__, 'wpac_option_page_comments' ) );
+			add_filter( 'option_comments_per_page', array( __CLASS__, 'wpac_option_comments_per_page' ) );
+		}
+	}
+
+	public static function wpac_option_comments_per_page($comments_per_page) {
+		return(wpac_is_ajax_request() && isset($_REQUEST['WPACAll']) && $_REQUEST['WPACAll']) ?
+			0 : $comments_per_page;
+	}
+
+	public static function wpac_option_page_comments( $page_comments ) {
+		return ( wpac_is_ajax_request() && isset( $_REQUEST['WPACAll'] ) && $_REQUEST['WPACAll'] ) ? false : $page_comments;
+	}
+
+	public static function wpac_wp_die_handler($handler) {
+		if ($handler != "_default_wp_die_handler") return $handler;
+		return "wpac_default_wp_die_handler";
+	}
+
+	public static function wpac_default_wp_die_handler( $message, $title = '', $args = array() ) {
+		// Set X-WPAC-ERROR if script "dies" when posting comment
+		if ( wpac_is_ajax_request() ) {
+			header( 'X-WPAC-ERROR: 1' );
+		}
+		return _default_wp_die_handler( $message, $title, $args );
+	}
+
+	public static function enqueue_scripts() {
+		// Skip if scripts should not be injected
+		if ( ! self::inject_scripts() ) {
+			return;
+		}
+
+		$version = wpac_get_version();
+		$jsPath = plugins_url('js/', __FILE__);
+		$inFooter = wpac_get_option("placeScriptsInFooter");
+		// wpac_get_option('debug') || wpac_get_option('useUncompressedScripts')
+		if (true) {
+			wp_enqueue_script('jsuri', $jsPath.'jsuri.js', array(), $version, $inFooter);
+			wp_enqueue_script('jQueryBlockUi', $jsPath.'jquery.blockUI.js', array('jquery'), $version, $inFooter);
+			wp_enqueue_script('jQueryIdleTimer', $jsPath.'idle-timer.js', array('jquery'), $version, $inFooter);
+			wp_enqueue_script('waypoints', $jsPath.'jquery.waypoints.js', array('jquery'), $version, $inFooter);
+			wp_enqueue_script('wpAjaxifyComments', $jsPath.'wp-ajaxify-comments.js', array('jquery', 'jQueryBlockUi', 'jsuri', 'jQueryIdleTimer', 'waypoints'), $version, $inFooter);
+		} else {
+			wp_enqueue_script('wpAjaxifyComments', $jsPath.'wp-ajaxify-comments.min.js', array('jquery'), $version, $inFooter);
+		}
+	}
+
+	public static function inject_scripts() {
+		if ( self::is_ajax_request() ) {
+			return false;
+		}
+
+		if ( wpac_get_option( 'alwaysIncludeScripts' ) ) {
+			return true;
+		}
+
+		if ( wpac_get_option( 'debug' ) ) {
+			return true;
+		}
+
+		if ( wpac_comments_enabled() ) {
+			return true;
+		}
+
+		if ( is_page() || is_single() ) {
+			global $post;
+			if ( get_comments_number( $post->ID ) > 0 || self::load_comments_async() ) {
+				return true;
 			}
+		}
+
+		return false;
+	}
+
+	public static function on_head() {
+		// Skip if scripts should not be injected
+		if (!wpac_inject_scripts()) return;
+
+		echo '<script type="text/javascript">/* <![CDATA[ */';
+
+		echo 'if (!window["WPAC"]) var WPAC = {};';
+
+		// Options
+		echo 'WPAC._Options = {';
+		$wpac_config = wpac_get_config();
+		foreach($wpac_config as $config) {
+			foreach($config['options'] as $optionName => $option) {
+				if (isset($option['specialOption']) && $option['specialOption']) continue;
+				$value = trim(wpac_get_option($optionName));
+				if (strlen($value) == 0) $value = $option['default'];
+				echo $optionName.':';
+				switch ($option['type']) {
+					case 'int': echo $value.','; break;
+					case 'boolean': echo $value ? 'true,' : 'false,'; break;
+					default: echo '"'.wpac_js_escape($value).'",';
+				}
+			}
+		}
+		echo 'commentsEnabled:'.(wpac_comments_enabled() ? 'true' : 'false').',';
+		echo 'version:"'.wpac_get_version().'"};';
+
+		// Callbacks
+		echo 'WPAC._Callbacks = {';
+		echo '"beforeSelectElements": function(dom) {'.wpac_get_option('callbackOnBeforeSelectElements').'},';
+		echo '"beforeUpdateComments": function(newDom, commentUrl) {'.wpac_get_option('callbackOnBeforeUpdateComments').'},';
+		echo '"afterUpdateComments": function(newDom, commentUrl) {'.wpac_get_option('callbackOnAfterUpdateComments').'},';
+		echo '"beforeSubmitComment": function() {'.wpac_get_option('callbackOnBeforeSubmitComment').'},';
+		echo '"afterPostComment": function(commentUrl, unapproved) {'.wpac_get_option('callbackOnAfterPostComment').'}';
+		echo '};';
+
+		echo '/* ]]> */</script>';
+	}
+
+	function wpac_comments_enabled() {
+		$commentPagesUrlRegex = wpac_get_option('commentPagesUrlRegex');
+		if ($commentPagesUrlRegex) {
+			return preg_match($commentPagesUrlRegex, wpac_get_page_url()) > 0;
+		} else {
+			global $post;
+			return (is_page() || is_single()) && comments_open($post->ID) && (!get_option('comment_registration') || is_user_logged_in());
 		}
 	}
 
@@ -89,6 +207,15 @@ class Form_Handler {
 		), 0 , 10 );
 	}
 
+	public static function wpac_allowed_redirect_hosts($content){
+		$baseUrl = wpac_get_option('baseUrl');
+		if ($baseUrl) {
+			$baseUrlHost = parse_url($baseUrl, PHP_URL_HOST);
+			if ($baseUrlHost !== false) $content[] = $baseUrlHost;
+		}
+		return $content;
+	}
+
 	public static function is_ajax_request() {
 		return isset( $_SERVER['HTTP_X_WPAC_REQUEST'] ) && $_SERVER['HTTP_X_WPAC_REQUEST'];
 	}
@@ -148,7 +275,7 @@ class Form_Handler {
 		return $translation;
 	}
 
-	function load_comments_async() {
+	public static function load_comments_async() {
 		$asyncCommentsThreshold = wpac_get_option('asyncCommentsThreshold');
 		if (strlen($asyncCommentsThreshold) == 0) return false;
 
