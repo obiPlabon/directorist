@@ -999,62 +999,68 @@ class Directorist_Listings {
 
 		if (isset($_GET['search_by_rating'])) {
 			$q_rating = sanitize_text_field( $_GET['search_by_rating'] );
-			$listings_ids = ATBDP_Listings_Data_Store::get_listings_ids();
-			$rated = array();
-			if ( ! empty( $listings_ids ) ) {
-				foreach ( $listings_ids as $listings_id ) {
-					$average = ATBDP()->review->get_average( $listings_id );
-					if ($q_rating === '5') {
-						if (($average == '5')) {
-							$rated[] = $listings_id;
-						}
-						else {
-							$rated[] = array();
-						}
-					}
-					elseif ($q_rating === '4') {
-						if ($average >= '4') {
-							$rated[] = $listings_id;
-						}
-						else {
-							$rated[] = array();
-						}
-					}
-					elseif ($q_rating === '3') {
-						if ($average >= '3') {
-							$rated[] = $listings_id;
-						}
-						else {
-							$rated[] = array();
-						}
-					}
-					elseif ($q_rating === '2') {
-						if ($average >= '2') {
-							$rated[] = $listings_id;
-						}
-						else {
-							$rated[] = array();
-						}
-					}
-					elseif ($q_rating === '1') {
-						if ($average >= '1') {
-							$rated[] = $listings_id;
-						}
-						else {
-							$rated[] = array();
-						}
-					}
-					elseif ('' === $q_rating) {
-						if ($average === '') {
-							$rated[] = $listings_id;
-						}
-					}
-				}
-				$rating_id = array(
-					'post__in' => !empty($rated) ? $rated : array()
-				);
-				$args = array_merge($args, $rating_id);
-			}
+			$meta_queries[] = array(
+				'key' => Review_Data::AVG_RATING_DB_KEY,
+				'value' => $q_rating,
+				'compare' => '>='
+			);
+
+			// $listings_ids = ATBDP_Listings_Data_Store::get_listings_ids();
+			// $rated = array();
+			// if ( ! empty( $listings_ids ) ) {
+			// 	foreach ( $listings_ids as $listings_id ) {
+			// 		$average = ATBDP()->review->get_average( $listings_id );
+			// 		if ($q_rating === '5') {
+			// 			if (($average == '5')) {
+			// 				$rated[] = $listings_id;
+			// 			}
+			// 			else {
+			// 				$rated[] = array();
+			// 			}
+			// 		}
+			// 		elseif ($q_rating === '4') {
+			// 			if ($average >= '4') {
+			// 				$rated[] = $listings_id;
+			// 			}
+			// 			else {
+			// 				$rated[] = array();
+			// 			}
+			// 		}
+			// 		elseif ($q_rating === '3') {
+			// 			if ($average >= '3') {
+			// 				$rated[] = $listings_id;
+			// 			}
+			// 			else {
+			// 				$rated[] = array();
+			// 			}
+			// 		}
+			// 		elseif ($q_rating === '2') {
+			// 			if ($average >= '2') {
+			// 				$rated[] = $listings_id;
+			// 			}
+			// 			else {
+			// 				$rated[] = array();
+			// 			}
+			// 		}
+			// 		elseif ($q_rating === '1') {
+			// 			if ($average >= '1') {
+			// 				$rated[] = $listings_id;
+			// 			}
+			// 			else {
+			// 				$rated[] = array();
+			// 			}
+			// 		}
+			// 		elseif ('' === $q_rating) {
+			// 			if ($average === '') {
+			// 				$rated[] = $listings_id;
+			// 			}
+			// 		}
+			// 	}
+			// 	$rating_id = array(
+			// 		'post__in' => !empty($rated) ? $rated : array()
+			// 	);
+			// 	$args = array_merge($args, $rating_id);
+			// }
 		}
 
 		$meta_queries = apply_filters('atbdp_search_listings_meta_queries', $meta_queries);
