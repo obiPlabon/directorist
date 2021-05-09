@@ -9,7 +9,7 @@ use \ATBDP_Permalink;
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-use wpWax\Directorist\Review\Review_Data;
+use wpWax\Directorist\Review\Review_Meta;
 
 class Directorist_Single_Listing {
 
@@ -580,12 +580,12 @@ class Directorist_Single_Listing {
 
 	public function get_review_count() {
 		// return ATBDP()->review->db->count(array('post_id' => $this->id));
-		return Review_Data::get_review_count( $this->id );
+		return Review_Meta::get_review_count( $this->id );
 	}
 
 	public function get_rating_count() {
 		// return ATBDP()->review->get_average( $this->id );
-		return Review_Data::get_rating( $this->id );
+		return Review_Meta::get_rating( $this->id );
 	}
 
 	public function submit_link() {

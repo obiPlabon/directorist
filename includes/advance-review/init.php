@@ -12,12 +12,12 @@ defined( 'ABSPATH' ) || die();
 
 use Directorist\Helper;
 
+require_once 'class-email.php';
+require_once 'class-markup.php';
+require_once 'class-builder.php';
 require_once 'class-comment.php';
 require_once 'class-activity.php';
-require_once 'class-review-data.php';
-require_once 'class-builder.php';
-require_once 'class-markup.php';
-require_once 'class-email.php';
+require_once 'class-review-meta.php';
 require_once 'class-comment-meta.php';
 
 if ( is_admin() ) {

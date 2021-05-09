@@ -9,7 +9,7 @@ use \ATBDP_Listings_Data_Store;
 use \ATBDP_Permalink;
 use Directory;
 use WP_Query;
-use wpWax\Directorist\Review\Review_Data;
+use wpWax\Directorist\Review\Review_Meta;
 use wpWax\Directorist\Review\Markup as Review_Markup;
 
 if ( ! defined( 'ABSPATH' ) ) exit;
@@ -376,11 +376,11 @@ class Directorist_Listings {
 			'author_link_class'       => ! empty( $author_first_name && $author_last_name ) ? 'atbd_tooltip' : '',
 			'u_pro_pic'               => $u_pro_pic,
 			'avatar_img'              => get_avatar( $author_id, apply_filters( 'atbdp_avatar_size', 32 ) ),
-			'review'                  => $this->get_review_data(),
+			'review'                  => $this->get_Review_Meta(),
 		);
 	}
 
-	public function get_review_data() {
+	public function get_Review_Meta() {
 		// Review
 		// $average           = ATBDP()->review->get_average(get_the_ID());
 		// $average           = (int) $average;
@@ -411,8 +411,8 @@ class Directorist_Listings {
 
 		// $review_stars = "{$star_1}{$star_2}{$star_3}{$star_4}{$star_5}";
 
-		$rating       = Review_Data::get_rating( get_the_ID() );
-		$review_count = Review_Data::get_review_count( get_the_ID() );
+		$rating       = Review_Meta::get_rating( get_the_ID() );
+		$review_count = Review_Meta::get_review_count( get_the_ID() );
 
 		return [
 			'review_stars'    => Review_Markup::get_rating_stars( $rating ),
@@ -995,7 +995,7 @@ class Directorist_Listings {
 		if (isset($_GET['search_by_rating'])) {
 			$q_rating = sanitize_text_field( $_GET['search_by_rating'] );
 			$meta_queries[] = array(
-				'key' => Review_Data::AVG_RATING_DB_KEY,
+				'key' => Review_Meta::FIELD_AVG_RATING,
 				'value' => $q_rating,
 				'compare' => '>='
 			);

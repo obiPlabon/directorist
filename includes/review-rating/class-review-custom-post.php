@@ -20,7 +20,7 @@ class ATBDP_Review_Custom_Post
         //create meta boxes
         add_action('add_meta_boxes', array($this, 'create_meta_box_for_review'));
         //save meta box
-        add_action('save_post', array($this, 'save_review_data'));
+        add_action('save_post', array($this, 'save_Review_Meta'));
         //manage columns for review custom post
         add_filter('manage_atbdp_listing_review_posts_columns', array($this, 'atbdp_add_new_plan_columns'));
         add_action('manage_atbdp_listing_review_posts_custom_column', array($this, 'atbdp_custom_field_column_content'), 10, 2);
@@ -211,7 +211,7 @@ class ATBDP_Review_Custom_Post
      * @access   public
      * @return int
      */
-    public function save_review_data($post_id) {
+    public function save_Review_Meta($post_id) {
         if (!isset($_POST['post_type'])) {
             return $post_id;
         }

@@ -308,10 +308,10 @@ class Comment {
 	public static function clear_transients( $post_id ) {
 		if ( ATBDP_POST_TYPE === get_post_type( $post_id ) ) {
 			// Make sure to maintain the sequence. Update review count before updating the rating
-			Review_Data::update_rating_counts( $post_id, self::get_rating_counts_for_listing( $post_id ) );
-			Review_Data::update_review_count( $post_id, self::get_review_count_for_listing( $post_id ) );
-			Review_Data::update_rating( $post_id, self::get_average_rating_for_listing( $post_id ) );
-			Review_Data::update_criteria_rating( $post_id, self::get_criteria_rating_for_listing( $post_id ) );
+			Review_Meta::update_rating_counts( $post_id, self::get_rating_counts_for_listing( $post_id ) );
+			Review_Meta::update_review_count( $post_id, self::get_review_count_for_listing( $post_id ) );
+			Review_Meta::update_rating( $post_id, self::get_average_rating_for_listing( $post_id ) );
+			Review_Meta::update_criteria_rating( $post_id, self::get_criteria_rating_for_listing( $post_id ) );
 		}
 	}
 
@@ -395,7 +395,7 @@ class Comment {
 	public static function get_average_rating_for_listing( $post_id ) {
 		global $wpdb;
 
-		$count = Review_Data::get_review_count( $post_id );
+		$count = Review_Meta::get_review_count( $post_id );
 
 		if ( $count ) {
 			$ratings = $wpdb->get_var(

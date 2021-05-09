@@ -7,7 +7,7 @@ namespace Directorist;
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-use wpWax\Directorist\Review\Review_Data;
+use wpWax\Directorist\Review\Review_Meta;
 
 class Directorist_Listing_Author {
 
@@ -167,7 +167,7 @@ class Directorist_Listing_Author {
 					// 	$review_in_post++;
 					// }
 
-					$rating = Review_Data::get_rating( $listing_id, 2 );
+					$rating = Review_Meta::get_rating( $listing_id, 2 );
 					if ( $rating > 0 ) {
 						$review_total_rating += $rating;
 						$number_of_review += 1;

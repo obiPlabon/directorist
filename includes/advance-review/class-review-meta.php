@@ -10,48 +10,48 @@ namespace wpWax\Directorist\Review;
 
 defined( 'ABSPATH' ) || die();
 
-class Review_Data {
+class Review_Meta {
 
-	const RATING_COUNTS_DB_KEY = '_directorist_listing_rating_counts';
+	const FIELD_RATING_COUNTS = '_directorist_listing_rating_counts';
 
-	const AVG_RATING_DB_KEY = '_directorist_listing_rating';
+	const FIELD_AVG_RATING = '_directorist_listing_rating';
 
-	const AVG_CRITERIA_RATING_DB_KEY = '_directorist_listing_criteria_rating';
+	const FIELD_AVG_CRITERIA_RATING = '_directorist_listing_criteria_rating';
 
-	const REVIEW_COUNT_DB_KEY = '_directorist_listing_review_count';
+	const FIELD_REVIEW_COUNT = '_directorist_listing_review_count';
 
 	public static function get_rating_counts( $listing_id ) {
-		$counts = get_post_meta( $listing_id, self::RATING_COUNTS_DB_KEY, true );
+		$counts = get_post_meta( $listing_id, self::FIELD_RATING_COUNTS, true );
 		return ( ! empty( $counts ) && is_array( $counts ) ) ? $counts : array();
 	}
 
 	public static function update_rating_counts( $listing_id, $counts ) {
-		update_post_meta( $listing_id, self::RATING_COUNTS_DB_KEY, (array) $counts );
+		update_post_meta( $listing_id, self::FIELD_RATING_COUNTS, (array) $counts );
 	}
 
 	public static function get_rating( $listing_id, $round_precision = 1 ) {
-		$rating = get_post_meta( $listing_id, self::AVG_RATING_DB_KEY, true );
+		$rating = get_post_meta( $listing_id, self::FIELD_AVG_RATING, true );
 		return round( ( ! empty( $rating ) ? $rating : 0 ), $round_precision );
 	}
 
 	public static function update_rating( $listing_id, $rating ) {
-		update_post_meta( $listing_id, self::AVG_RATING_DB_KEY, (float) $rating );
+		update_post_meta( $listing_id, self::FIELD_AVG_RATING, (float) $rating );
 	}
 
 	public static function get_criteria_rating( $listing_id ) {
-		return get_post_meta( $listing_id, self::AVG_CRITERIA_RATING_DB_KEY, true );
+		return get_post_meta( $listing_id, self::FIELD_AVG_CRITERIA_RATING, true );
 	}
 
 	public static function update_criteria_rating( $listing_id, $criteria_rating ) {
-		update_post_meta( $listing_id, self::AVG_CRITERIA_RATING_DB_KEY, $criteria_rating );
+		update_post_meta( $listing_id, self::FIELD_AVG_CRITERIA_RATING, $criteria_rating );
 	}
 
 	public static function get_review_count( $listing_id ) {
-		$counts = get_post_meta( $listing_id, self::REVIEW_COUNT_DB_KEY, true );
+		$counts = get_post_meta( $listing_id, self::FIELD_REVIEW_COUNT, true );
 		return ( ! empty( $counts ) ) ? absint( $counts ) : 0;
 	}
 
 	public static function update_review_count( $listing_id, $counts ) {
-		update_post_meta( $listing_id, self::REVIEW_COUNT_DB_KEY, absint( $counts ) );
+		update_post_meta( $listing_id, self::FIELD_REVIEW_COUNT, absint( $counts ) );
 	}
 }

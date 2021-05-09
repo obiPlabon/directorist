@@ -10,7 +10,7 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 use Directorist\Helper;
-use wpWax\Directorist\Review\Review_Data;
+use wpWax\Directorist\Review\Review_Meta;
 use wpWax\Directorist\Review\Walker as Review_Walker;
 use Directorist\Directorist_Single_Listing as Directorist_Listing;
 use wpWax\Directorist\Review\Builder;
@@ -18,9 +18,9 @@ use wpWax\Directorist\Review\Markup;
 
 $builder         = Builder::get( get_the_ID() );
 $listing         = Directorist_Listing::instance();
-$review_rating   = Review_Data::get_rating( get_the_ID() );
-$review_count    = Review_Data::get_review_count( get_the_ID() );
-$criteria_rating = Review_Data::get_criteria_rating( get_the_ID() );
+$review_rating   = Review_Meta::get_rating( get_the_ID() );
+$review_count    = Review_Meta::get_review_count( get_the_ID() );
+$criteria_rating = Review_Meta::get_criteria_rating( get_the_ID() );
 ?>
 
 <div class="directorist-review-container">
