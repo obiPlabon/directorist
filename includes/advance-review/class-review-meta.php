@@ -35,7 +35,7 @@ class Review_Meta {
 	}
 
 	public static function update_rating( $listing_id, $rating ) {
-		update_post_meta( $listing_id, self::FIELD_AVG_RATING, (float) $rating );
+		update_post_meta( $listing_id, self::FIELD_AVG_RATING, $rating );
 	}
 
 	public static function get_criteria_rating( $listing_id ) {

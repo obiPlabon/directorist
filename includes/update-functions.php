@@ -6,7 +6,7 @@
 defined( 'ABSPATH' ) || die();
 
 // Migrate old reviews data from review table to comments table
-function directorist_7100_migrate_reviews_table_to_comments_table() {
+function directorist_704_migrate_reviews_table_to_comments_table() {
 	global $wpdb;
 
 	$review_table = $wpdb->prefix . 'atbdp_review';
@@ -45,12 +45,13 @@ function directorist_7100_migrate_reviews_table_to_comments_table() {
 // pending -> pending:0
 // declined -> trash
 // approved -> approved:1
-function directorist_7100_migrate_posts_table_to_comments_table() {
+function directorist_704_migrate_posts_table_to_comments_table() {
 	global $wpdb;
 
 	$reviews = $wpdb->get_results(
-		"SELECT posts_meta_join.post_id,
+		"SELECT posts_meta_join.post_id as meta_post_id,
 			posts_meta_join.post_date AS comment_date,
+			MAX(CASE WHEN posts_meta_join.meta_key = '_review_listing' THEN posts_meta_join.meta_value END) AS `post_id`,
 			MAX(CASE WHEN posts_meta_join.meta_key = '_listing_reviewer' THEN posts_meta_join.meta_value END) AS `author`,
 			MAX(CASE WHEN posts_meta_join.meta_key = '_email' THEN posts_meta_join.meta_value END) AS `author_email`,
 			MAX(CASE WHEN posts_meta_join.meta_key = '_by_user_id' THEN posts_meta_join.meta_value END) AS `user_id`,
@@ -58,7 +59,7 @@ function directorist_7100_migrate_posts_table_to_comments_table() {
 			MAX(CASE WHEN posts_meta_join.meta_key = '_reviewer_details' THEN posts_meta_join.meta_value END) AS `comment`,
 			MAX(CASE WHEN posts_meta_join.meta_key = '_reviewer_rating' THEN posts_meta_join.meta_value END) AS `rating`,
 			MAX(CASE WHEN posts_meta_join.meta_key = '_review_status' THEN posts_meta_join.meta_value END) AS `status`
-		FROM (SELECT posts_meta.post_id, posts_meta.meta_key, posts_meta.meta_value, posts.post_date FROM {$wpdb->posts} AS posts LEFT JOIN {$wpdb->postmeta} AS posts_meta ON posts.ID=posts_meta.post_id WHERE posts.post_type='atbdp_listing_review') AS posts_meta_join GROUP BY post_id"
+		FROM (SELECT posts_meta.post_id, posts_meta.meta_key, posts_meta.meta_value, posts.post_date FROM {$wpdb->posts} AS posts LEFT JOIN {$wpdb->postmeta} AS posts_meta ON posts.ID=posts_meta.post_id WHERE posts.post_type='atbdp_listing_review') AS posts_meta_join GROUP BY meta_post_id"
 	);
 
 	if ( ! empty( $reviews ) ) {
@@ -83,6 +84,18 @@ function directorist_7100_migrate_posts_table_to_comments_table() {
 	//TODO: delete review post type posts
 }
 
+function directorist_704_review_rating_clear_transients() {
+	global $wpdb;
+
+	$listings = $wpdb->get_results( "SELECT listings.ID as id FROM {$wpdb->posts} AS listings WHERE listings.post_type='at_biz_dir' AND listings.comment_count >= 1" );
+
+	if ( ! empty( $listings ) ) {
+		foreach ( $listings as $listing ) {
+			\wpWax\Directorist\Review\Comment::maybe_clear_transients( $listing->id );
+		}
+	}
+}
+
 /**
  * Get wp comment status by review post type review status.
  *
@@ -99,6 +112,6 @@ function _directorist_get_comment_status_by_review_status( $status = 'approved' 
 	return isset( $statuses[ $status ] ) ? $statuses[ $status ] : $statuses['pending'];
 }
 
-function directorist_7100_update_db_version() {
-	ATBDP_Installation::update_db_version( '7.1.0.0' );
+function directorist_704_update_db_version() {
+	ATBDP_Installation::update_db_version( '7.0.4' );
 }

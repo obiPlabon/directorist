@@ -308,11 +308,15 @@ class Comment {
 	public static function clear_transients( $post_id ) {
 		if ( ATBDP_POST_TYPE === get_post_type( $post_id ) ) {
 			// Make sure to maintain the sequence. Update review count before updating the rating
-			Review_Meta::update_rating_counts( $post_id, self::get_rating_counts_for_listing( $post_id ) );
-			Review_Meta::update_review_count( $post_id, self::get_review_count_for_listing( $post_id ) );
-			Review_Meta::update_rating( $post_id, self::get_average_rating_for_listing( $post_id ) );
-			Review_Meta::update_criteria_rating( $post_id, self::get_criteria_rating_for_listing( $post_id ) );
+			self::maybe_clear_transients( $post_id );
 		}
+	}
+
+	public static function maybe_clear_transients( $listing_id ) {
+		Review_Meta::update_rating_counts( $listing_id, self::get_rating_counts_for_listing( $listing_id ) );
+		Review_Meta::update_review_count( $listing_id, self::get_review_count_for_listing( $listing_id ) );
+		Review_Meta::update_rating( $listing_id, self::get_average_rating_for_listing( $listing_id ) );
+		Review_Meta::update_criteria_rating( $listing_id, self::get_criteria_rating_for_listing( $listing_id ) );
 	}
 
 	/**
