@@ -90,9 +90,9 @@ class Metabox {
 	public static function render( $comment ) {
 		$comment_id  = $comment->comment_ID;
 		$builder     = Builder::get( $comment->comment_post_ID );
-		$helpful     = Comment_Meta::get_helpful( $comment_id );
-		$unhelpful   = Comment_Meta::get_unhelpful( $comment_id );
-		$reported    = Comment_Meta::get_reported( $comment_id );
+		$helpful     = Comment_Meta::get_helpful( $comment_id, 0 );
+		$unhelpful   = Comment_Meta::get_unhelpful( $comment_id, 0 );
+		$reported    = Comment_Meta::get_reported( $comment_id, 0 );
 		$rating      = Comment_Meta::get_rating( $comment_id );
 		$attachments = Comment_Meta::get_attachments( $comment_id );
 		?>

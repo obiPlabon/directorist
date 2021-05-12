@@ -109,8 +109,8 @@ class Walker extends Walker_Comment {
 			$comment_class .= ' directorist-review-single--comment';
 		}
 
-		$helpful     = Comment_Meta::get_helpful( get_comment_ID() );
-		$unhelpful   = Comment_Meta::get_unhelpful( get_comment_ID() );
+		$helpful     = Comment_Meta::get_helpful( get_comment_ID(), 0 );
+		$unhelpful   = Comment_Meta::get_unhelpful( get_comment_ID(), 0 );
 		$attachments = Comment_Meta::get_attachments( get_comment_ID() );
 		$builder     = Builder::get( $comment->comment_post_ID );
 		?>

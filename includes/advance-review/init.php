@@ -71,7 +71,7 @@ add_filter( 'comments_template', __NAMESPACE__ . '\load_comments_template' );
 
 // Load comment walker
 function load_review_walker() {
-	if ( is_singular( ATBDP_POST_TYPE ) && comments_open() ) {
+	if ( is_singular( ATBDP_POST_TYPE ) ) {
 		require_once ATBDP_INC_DIR . 'advance-review/class-walker.php';
 	}
 }
