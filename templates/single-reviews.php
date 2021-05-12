@@ -10,17 +10,19 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 use Directorist\Helper;
+use wpWax\Directorist\Review\Markup;
+use wpWax\Directorist\Review\Builder;
+use wpWax\Directorist\Review\Bootstrap;
 use wpWax\Directorist\Review\Review_Meta;
 use wpWax\Directorist\Review\Walker as Review_Walker;
 use Directorist\Directorist_Single_Listing as Directorist_Listing;
-use wpWax\Directorist\Review\Builder;
-use wpWax\Directorist\Review\Markup;
 
 $builder         = Builder::get( get_the_ID() );
 $listing         = Directorist_Listing::instance();
 $review_rating   = Review_Meta::get_rating( get_the_ID() );
 $review_count    = Review_Meta::get_review_count( get_the_ID() );
-$criteria_rating = Review_Meta::get_criteria_rating( get_the_ID() );
+
+Bootstrap::load_walker();
 ?>
 
 <div class="directorist-review-container">
@@ -44,6 +46,8 @@ $criteria_rating = Review_Meta::get_criteria_rating( get_the_ID() );
 				<div class="directorist-review-content__overview__benchmarks">
 					<?php
 					if ( $builder->is_rating_type_criteria() ) :
+						$criteria_rating = Review_Meta::get_criteria_rating( get_the_ID() );
+
 						foreach ( $builder->get_rating_criteria() as $criterion_key => $criterion_label ) :
 							$_rating = isset( $criteria_rating[ $criterion_key ] ) ? $criteria_rating[ $criterion_key ] : 0;
 							?>
