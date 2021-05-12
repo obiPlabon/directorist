@@ -46,8 +46,12 @@ class Comment {
 	 * @return bool
 	 */
 	public static function comments_open( $open, $post_id ) {
-		if ( ATBDP_POST_TYPE === get_post_type( $post_id ) && ! post_type_supports( ATBDP_POST_TYPE, 'comments' ) ) {
-			$open = false;
+		if ( ATBDP_POST_TYPE === get_post_type( $post_id ) ) {
+			$open = true;
+
+			if ( ! post_type_supports( ATBDP_POST_TYPE, 'comments' ) ) {
+				$open = false;
+			}
 		}
 		return $open;
 	}
