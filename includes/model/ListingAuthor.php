@@ -143,8 +143,9 @@ class Directorist_Listing_Author {
 
 		if ( false === $review_total_rating || false === $number_of_review ) {
 			$user_listings       = $this->all_listings;
-			$review_total_rating = 0;
-			$number_of_review    = 0;
+			$review_count = 0;
+			$rating_count = 0;
+			$rating_total = 0;
 
 			if ( ! empty( $user_listings->ids ) ) {
 				// Prime caches to reduce future queries.
@@ -168,9 +169,11 @@ class Directorist_Listing_Author {
 					// }
 
 					$rating = Review_Meta::get_rating( $listing_id, 2 );
+
 					if ( $rating > 0 ) {
-						$review_total_rating += $rating;
-						$number_of_review += 1;
+						$rating_total += $rating;
+						$rating_count += 1;
+						$review_count += Review_Meta::get_review_count( $listing_id );
 					}
 				}
 
@@ -185,9 +188,9 @@ class Directorist_Listing_Author {
 			wp_cache_set( 'directorist_author_review_count_' . $this->id, $number_of_review, 'directorist_author_review' );
 		}
 
-		if ( $number_of_review > 0 ) {
-			$this->rating       = round( $review_total_rating / $number_of_review, 1 );
-			$this->total_review = $number_of_review;
+		if ( $review_count > 0 ) {
+			$this->rating       = round( $rating_total / $rating_count, 1 );
+			$this->total_review = $review_count;
 		}
 
 		return $this->rating;
