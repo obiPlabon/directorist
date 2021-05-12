@@ -1,5 +1,5 @@
 ;(function($) {
-    if (!window["WPAC"]) var WPAC = {};
+    if (!window["ARF"]) var ARF = {};
     ARF._Options = ARF._Options || {};
 
     ARF._BodyRegex = new RegExp("<body[^>]*>((.|\n|\r)*)</body>", "i");
