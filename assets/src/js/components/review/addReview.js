@@ -350,8 +350,6 @@
         }
     }
 
-    window.as = new ActivityStorage();
-
     class CommentActivity {
         constructor(activityStorage) {
             this.selector = '[data-directorist-activity]';
