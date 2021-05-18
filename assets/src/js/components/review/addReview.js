@@ -270,11 +270,93 @@
         }
     }
 
+    class ActivityStorage {
+
+        add(commentId, activity) {
+            if (this.has(commentId, activity)) {
+                return false;
+            }
+            const activities = this.getActivities();
+
+            if (typeof activities[commentId] === 'undefined') {
+                activities[commentId] = {};
+            }
+
+            if (typeof activities[commentId][activity] === 'undefined' || !activities[commentId][activity]) {
+                activities[commentId][activity] = 1;
+            }
+
+            this.saveActivities(activities);
+
+            return true;
+        }
+
+        has(commentId, activity) {
+            const activities = this.getActivities();
+
+            if (typeof activities[commentId] === 'undefined') {
+                return false;
+            }
+
+            if (typeof activities[commentId][activity] === 'undefined' || !activities[commentId][activity]) {
+                return false;
+            }
+
+            return true;
+        }
+
+        saveActivities(activities) {
+            this.getStorage().setItem('directorist', JSON.stringify({ activities }));
+        }
+
+        getActivities() {
+            const storage = this.getStorage();
+            let data = {
+                activities: {}
+            };
+
+            if (storage.getItem('directorist')) {
+                data = JSON.parse(storage.getItem('directorist'));
+                if (typeof data['activities'] === 'undefined') {
+                    data.activities = {}
+                }
+            } else {
+                storage.setItem('directorist', JSON.stringify(data));
+            }
+
+            return data.activities;
+        }
+
+        hasStorage(name) {
+            try {
+              const storage = window[name]
+              storage.setItem('hello___test__key', '1')
+              storage.removeItem('hello___test__key')
+              return true
+            } catch (e) {
+              return false
+            }
+        }
+
+        getStorage() {
+            let storage = null;
+
+            if (this.hasStorage('localStorage')) {
+                storage = window.localStorage
+            } else if (this.hasStorage('sessionStorage')) {
+                storage = window.sessionStorage
+            }
+            return storage;
+        }
+    }
+
+    window.as = new ActivityStorage();
+
     class CommentActivity {
-        constructor() {
+        constructor(activityStorage) {
             this.selector = '[data-directorist-activity]';
             this.$wrap    = $('.directorist-review-content__reviews');
-
+            this.storage = activityStorage;
             this.events();
         }
 
@@ -299,6 +381,11 @@
             const [commentId, activity] = activityProp.split(':');
 
             if (!commentId || !activity) {
+                return;
+            }
+
+            if (this.storage.has(commentId, activity)) {
+                $target.addClass('processing').attr('disabled', true);
                 return;
             }
 
@@ -332,6 +419,8 @@
                         $comment.find('.directorist-alert').slideUp('medium');
                         clearTimeout(this.timeout);
                     }, 3000);
+
+                    this.storage.add(commentId, activity);
                 });
         }
 
@@ -365,7 +454,7 @@
             this.setFormEncoding();
 
             new AttachmentPreview(this.form);
-            new CommentActivity();
+            new CommentActivity(new ActivityStorage());
         }
 
         setFormEncoding() {
