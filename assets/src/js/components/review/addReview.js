@@ -449,13 +449,12 @@
         }
 
         observe(node) {
+            const config = {
+                childList: true,
+                subtree: true
+            };
             const observer = new MutationObserver(this.callback);
-            observer.observe(
-                node,
-                {
-                    childList: true,
-                    subtree: true
-                } );
+            observer.observe(node, config);
         }
 
         callback(mutationsList, observer) {
