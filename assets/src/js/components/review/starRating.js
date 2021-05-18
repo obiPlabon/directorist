@@ -2,7 +2,7 @@
 
     //Star rating
     if ($('.directorist-stars').length) {
-        $(".directorist-stars").barrating({
+        $('.directorist-stars').barrating({
             theme: 'fontawesome-stars'
         });
     }

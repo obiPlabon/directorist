@@ -441,6 +441,57 @@
         }
     }
 
+    class ReplyFormObserver {
+        constructor() {
+            const node = document.querySelector('.commentlist');
+
+            this.observe(node);
+        }
+
+        observe(node) {
+            const observer = new MutationObserver(this.callback);
+            observer.observe(
+                node,
+                {
+                    childList: true,
+                    subtree: true
+                } );
+        }
+
+        callback(mutationsList, observer) {
+            for (const mutation of mutationsList) {
+                if (mutation.removedNodes) {
+                    mutation.target.classList.remove('directorist-form-added');
+
+                    for(const node of mutation.removedNodes) {
+                        if (node.id && node.id !== 'respond') {
+                            continue;
+                        }
+
+                        node.querySelector('.directorist-review-criteria').style.display = '';
+
+                        const ratings = node.querySelectorAll('.directorist-review-criteria-select');
+                        for (const rating of ratings) {
+                            rating.removeAttribute('disabled');
+                        }
+                    }
+                }
+
+                const form = mutation.target.querySelector('#commentform');
+                if (form) {
+                    mutation.target.classList.add('directorist-form-added');
+
+                    form.querySelector('.directorist-review-criteria').style.display = 'none';
+
+                    const ratings = form.querySelectorAll('.directorist-review-criteria-select');
+                    for (const rating of ratings) {
+                        rating.setAttribute('disabled', 'disabled');
+                    }
+                }
+            }
+        };
+    }
+
     class AdvancedReview {
         constructor() {
             this.form = document.querySelector('#commentform');
@@ -453,6 +504,7 @@
 
             new AttachmentPreview(this.form);
             new CommentActivity(new ActivityStorage());
+            new ReplyFormObserver();
         }
 
         setFormEncoding() {
