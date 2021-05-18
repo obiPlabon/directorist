@@ -18,10 +18,11 @@ use wpWax\Directorist\Review\Walker as Review_Walker;
 use Directorist\Directorist_Single_Listing as Directorist_Listing;
 
 $builder         = Builder::get( get_the_ID() );
-$listing         = Directorist_Listing::instance();
+// $listing         = Directorist_Listing::instance();
 $review_rating   = Review_Meta::get_rating( get_the_ID() );
 $review_count    = Review_Meta::get_review_count( get_the_ID() );
 
+// Load walker class
 Bootstrap::load_walker();
 ?>
 
@@ -29,7 +30,7 @@ Bootstrap::load_walker();
 	<div class="directorist-review-content">
 		<div class="directorist-review-content__header">
 			<h3><?php printf( '%s <span>%s</span>', strip_tags( get_the_title() ), get_comments_number() ); ?></h3>
-			<?php if ( get_directorist_option( 'guest_review', 0 ) ) : ?>
+			<?php if ( is_user_logged_in() || get_directorist_option( 'guest_review', 0 ) ) : ?>
 				<a href="#respond" class="directorist-btn directorist-btn-primary"><span class="fa fa-star"></span> <?php esc_html_e( 'Write a review', 'directorist' ); ?></a>
 			<?php endif; ?>
 		</div><!-- ends: .directorist-review-content__header -->
@@ -146,7 +147,10 @@ Bootstrap::load_walker();
 			),
 		);
 
-		$comment_field = sprintf(
+		$comment_field = array();
+		$comment_field[] = '<div class="directorist-review-criteria">' . Markup::get_rating( $builder ) . '</div>';
+
+		$comment_field[] = sprintf(
 			'<div class="directorist-form-group form-group-comment">%s %s</div>',
 			sprintf(
 				'<label for="comment">%s</label>',
@@ -157,15 +161,13 @@ Bootstrap::load_walker();
 			)
 		);
 
-		$comment_field = '<div class="directorist-review-criteria">' . Markup::get_rating( $builder ) . '</div>' . "\n" . $comment_field;
-
 		if ( $builder->is_attachments_enabled() ) {
-			$comment_field .= "\n" . Markup::get_attachments_uploader( $builder );
+			$comment_field[] = Markup::get_attachments_uploader( $builder );
 		}
 
 		$args = array(
 			'fields'             => $fields,
-			'comment_field'      => $comment_field,
+			'comment_field'      => implode( "\n", $comment_field ),
 			'class_container'    => 'directorist-review-submit',
 			'title_reply'        => __( 'Review', 'directorist' ),
 			'title_reply_before' => '<div class="directorist-review-submit__header"><h3 id="reply-title">',
