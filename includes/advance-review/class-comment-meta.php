@@ -33,8 +33,12 @@ class Comment_Meta {
 		self::FIELD_ATTACHMENTS,
 	);
 
+	protected static function is_valid_field( $field_key ) {
+		return in_array( $field_key, self::$valid_fields, true );
+	}
+
 	protected static function get_data( $comment_id, $field_key, $default_value ) {
-		if ( ! in_array( $field_key, self::$valid_fields, true ) ) {
+		if ( ! self::is_valid_field( $field_key ) ) {
 			return '';
 		}
 
@@ -44,7 +48,7 @@ class Comment_Meta {
 	}
 
 	protected static function set_data( $comment_id, $field_key, $new_value ) {
-		if ( ! in_array( $field_key, self::$valid_fields, true ) ) {
+		if ( ! self::is_valid_field( $field_key ) ) {
 			return '';
 		}
 

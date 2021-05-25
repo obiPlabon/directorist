@@ -10,6 +10,8 @@ namespace wpWax\Directorist\Review;
 
 defined( 'ABSPATH' ) || die();
 
+use Exception;
+
 class Comment {
 
 	public static function init() {
@@ -67,86 +69,86 @@ class Comment {
 			return $comment_data;
 		}
 
-		// Exit when review is disabled.
-		if ( ! \Directorist\Helper::is_review_enabled() ) {
-			wp_die( __( '<strong>Error</strong>: Review is disabled.', 'directorist' ) );
-			exit;
-		}
-
-		// Exit when guest review is disabled.
-		if ( ! is_user_logged_in() && get_directorist_option( 'guest_review', 0 ) ) {
-			wp_die( __( '<strong>Error</strong>: You must login to share review.', 'directorist' ) );
-			exit;
-		}
-
-		$builder = Builder::get( absint( $_POST['comment_post_ID'] ) );
-		$errors  = array();
-
-		if ( isset( $_POST['comment_parent'], $_POST['rating'], $comment_data['comment_type'] ) &&
-			$comment_data['comment_parent'] === 0 && self::is_default_comment_type( $comment_data['comment_type'] ) ) {
-
-			$rating_is_missing = (
-				( $builder->is_rating_type_single() && empty( $_POST['rating'] ) ) ||
-				( $builder->is_rating_type_criteria() && count( array_filter( $_POST['rating'] ) ) < 1 )
-			);
-
-			// Validate review is shared or not
-			if ( $rating_is_missing ) {
-				$errors[] = __( '<strong>Error</strong>: Please share review rating.', 'directorist' );
+		try {
+			// Exit when review is disabled.
+			if ( ! \Directorist\Helper::is_review_enabled() ) {
+				throw new Exception( __( '<strong>Error</strong>: Review is disabled.', 'directorist' ), 400 );
 			}
 
-			// Validate owner is sharing review or not
-			$post_author_id = (int) get_post_field( 'post_author', absint( $_POST['comment_post_ID'] ) );
-
-			if ( ! $rating_is_missing && ! get_directorist_option( 'enable_owner_review' ) && $post_author_id === $comment_data['user_ID'] ) {
-				$errors[] = __( '<strong>Error</strong>: You are not allowed to share review on your own listing.', 'directorist' );
+			// Exit when guest review is disabled.
+			if ( ! is_user_logged_in() && get_directorist_option( 'guest_review', 0 ) ) {
+				throw new Exception( __( '<strong>Error</strong>: You must login to share review.', 'directorist' ), 401 );
 			}
 
-			// Validate if sharing multiple reviews
-			if ( ! $rating_is_missing && self::review_exists_by( $comment_data['user_ID'], absint( $_POST['comment_post_ID'] ) ) ) {
-				$errors[] = __( '<strong>Error</strong>: Sharing multiple reviews is not allowed.', 'directorist' );
-			}
+			$builder = Builder::get( absint( $_POST['comment_post_ID'] ) );
+			$errors  = array();
 
-			if ( count( $errors ) > 0 ) {
-				wp_die( implode( '<br>', $errors ) );
-				exit;
-			}
-		}
+			if ( isset( $_POST['comment_parent'], $_POST['rating'], $comment_data['comment_type'] ) &&
+				$comment_data['comment_parent'] === 0 && self::is_default_comment_type( $comment_data['comment_type'] ) ) {
 
-		if ( $builder->is_attachments_enabled() && $builder->is_attachments_required() && ! self::attachments_exists() ) {
-			wp_die( __( '<strong>Error</strong>: Attachment is missing! Please upload required attachments.', 'directorist' ) );
-			exit;
-		}
-
-		if ( $builder->is_attachments_enabled() && self::attachments_exists() ) {
-			$size            = array_sum( $_FILES['review_attachments']['size'] );
-			$types           = $_FILES['review_attachments']['type'];
-			$allowed_size    = $builder->get_attachments_upload_size();
-			$max_number      = $builder->get_max_number_attachments();
-			$ignorable_types = array_diff( $types, $builder->get_accepted_attachments_types() );
-
-			$errors = array();
-
-			if ( count( $_FILES['review_attachments']['name'] ) > $max_number ) {
-				$errors[] = sprintf( __( '<strong>Error</strong>: Attachments limit exceeded, only %1$s is allowed.', 'directorist' ), $max_number );
-			}
-
-			if ( count( $ignorable_types ) > 0 ) {
-				$errors[] = __( '<strong>Error</strong>: Uploaded attachments contain unsupported file type.', 'directorist' );
-			}
-
-			if ( $size > $allowed_size ) {
-				$errors[] = sprintf(
-					__( '<strong>Error</strong>: Uploaded attachments size (%1$s) exceeds the limit (%2$s).', 'directorist' ),
-					size_format( $size, 2 ),
-					size_format( $allowed_size )
+				$rating_is_missing = (
+					( $builder->is_rating_type_single() && empty( $_POST['rating'] ) ) ||
+					( $builder->is_rating_type_criteria() && count( array_filter( $_POST['rating'] ) ) < 1 )
 				);
+
+				// Validate review is shared or not
+				if ( $rating_is_missing ) {
+					$errors[] = __( '<strong>Error</strong>: Please share review rating.', 'directorist' );
+				}
+
+				// Validate owner is sharing review or not
+				$post_author_id = (int) get_post_field( 'post_author', absint( $_POST['comment_post_ID'] ) );
+
+				if ( ! $rating_is_missing && ! get_directorist_option( 'enable_owner_review' ) && $post_author_id === $comment_data['user_ID'] ) {
+					$errors[] = __( '<strong>Error</strong>: You are not allowed to share review on your own listing.', 'directorist' );
+				}
+
+				// Validate if sharing multiple reviews
+				if ( ! $rating_is_missing && self::review_exists_by( $comment_data['user_ID'], absint( $_POST['comment_post_ID'] ) ) ) {
+					$errors[] = __( '<strong>Error</strong>: Sharing multiple reviews is not allowed.', 'directorist' );
+				}
+
+				if ( count( $errors ) > 0 ) {
+					throw new Exception( implode( '<br>', $errors ), 400 );
+				}
 			}
 
-			if ( count( $errors ) > 0 ) {
-				wp_die( implode( '<br>', $errors ) );
-				exit;
+			if ( $builder->is_attachments_enabled() && $builder->is_attachments_required() && ! self::attachments_exists() ) {
+				throw new Exception( __( '<strong>Error</strong>: Attachment is missing! Please upload required attachments.', 'directorist' ), 400 );
 			}
+
+			if ( $builder->is_attachments_enabled() && self::attachments_exists() ) {
+				$size            = array_sum( $_FILES['review_attachments']['size'] );
+				$types           = $_FILES['review_attachments']['type'];
+				$allowed_size    = $builder->get_attachments_upload_size();
+				$max_number      = $builder->get_max_number_attachments();
+				$ignorable_types = array_diff( $types, $builder->get_accepted_attachments_types() );
+
+				$errors = array();
+
+				if ( count( $_FILES['review_attachments']['name'] ) > $max_number ) {
+					$errors[] = sprintf( __( '<strong>Error</strong>: Attachments limit exceeded, only %1$s is allowed.', 'directorist' ), $max_number );
+				}
+
+				if ( count( $ignorable_types ) > 0 ) {
+					$errors[] = __( '<strong>Error</strong>: Uploaded attachments contain unsupported file type.', 'directorist' );
+				}
+
+				if ( $size > $allowed_size ) {
+					$errors[] = sprintf(
+						__( '<strong>Error</strong>: Uploaded attachments size (%1$s) exceeds the limit (%2$s).', 'directorist' ),
+						size_format( $size, 2 ),
+						size_format( $allowed_size )
+					);
+				}
+
+				if ( count( $errors ) > 0 ) {
+					throw new Exception( implode( '<br>', $errors ), 400 );
+				}
+			}
+		} catch( Exception $e ) {
+			wp_die( $e->getMessage(), $e->getCode() );
+			exit;
 		}
 
 		return $comment_data;
