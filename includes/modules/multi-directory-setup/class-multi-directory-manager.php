@@ -403,177 +403,15 @@ class Multi_Directory_Manager
     public function prepare_settings() {
         $this->cetagory_options = $this->get_cetagory_options();
 
-        $file_type_options = [
-            [
-                'label' => __('All Types', 'directorist'),
-                'value' => 'all_types',
-            ],
-            // Image Format
-            [
-                'label' => __('jpg', 'directorist'),
-                'value' => 'jpg',
-            ],
-            [
-                'label' => __('jpeg', 'directorist'),
-                'value' => 'jpeg',
-            ],
-            [
-                'label' => __('gif', 'directorist'),
-                'value' => 'gif',
-            ],
-            [
-                'label' => __('png', 'directorist'),
-                'value' => 'png',
-            ],
-            [
-                'label' => __('bmp', 'directorist'),
-                'value' => 'bmp',
-            ],
-            [
-                'label' => __('ico', 'directorist'),
-                'value' => 'ico',
-            ],
-
-            // Video Format
-            [
-                'label' => __('asf', 'directorist'),
-                'value' => 'asf',
-            ],
-            [
-                'label' => __('flv', 'directorist'),
-                'value' => 'flv',
-            ],
-            [
-                'label' => __('avi', 'directorist'),
-                'value' => 'avi',
-            ],
-            [
-                'label' => __('mkv', 'directorist'),
-                'value' => 'mkv',
-            ],
-            [
-                'label' => __('mp4', 'directorist'),
-                'value' => 'mp4',
-            ],
-            [
-                'label' => __('mpeg', 'directorist'),
-                'value' => 'mpeg',
-            ],
-            [
-                'label' => __('mpg', 'directorist'),
-                'value' => 'mpg',
-            ],
-            [
-                'label' => __('wmv', 'directorist'),
-                'value' => 'wmv',
-            ],
-            [
-                'label' => __('3gp', 'directorist'),
-                'value' => '3gp',
-            ],
-
-            // Audio Format
-            [
-                'label' => __('ogg', 'directorist'),
-                'value' => 'ogg',
-            ],
-            [
-                'label' => __('mp3', 'directorist'),
-                'value' => 'mp3',
-            ],
-            [
-                'label' => __('wav', 'directorist'),
-                'value' => 'wav',
-            ],
-            [
-                'label' => __('wma', 'directorist'),
-                'value' => 'wma',
-            ],
-
-            // Text Format
-            [
-                'label' => __('css', 'directorist'),
-                'value' => 'css',
-            ],
-            [
-                'label' => __('csv', 'directorist'),
-                'value' => 'csv',
-            ],
-            [
-                'label' => __('htm', 'directorist'),
-                'value' => 'htm',
-            ],
-            [
-                'label' => __('html', 'directorist'),
-                'value' => 'html',
-            ],
-            [
-                'label' => __('txt', 'directorist'),
-                'value' => 'txt',
-            ],
-            [
-                'label' => __('rtx', 'directorist'),
-                'value' => 'rtx',
-            ],
-            [
-                'label' => __('vtt', 'directorist'),
-                'value' => 'vtt',
-            ],
-
-            // Application Format
-            [
-                'label' => __('doc', 'directorist'),
-                'value' => 'doc',
-            ],
-            [
-                'label' => __('docx', 'directorist'),
-                'value' => 'docx',
-            ],
-            [
-                'label' => __('odt', 'directorist'),
-                'value' => 'odt',
-            ],
-            [
-                'label' => __('pdf', 'directorist'),
-                'value' => 'pdf',
-            ],
-            [
-                'label' => __('pot', 'directorist'),
-                'value' => 'pot',
-            ],
-            [
-                'label' => __('ppt', 'directorist'),
-                'value' => 'ppt',
-            ],
-            [
-                'label' => __('pptx', 'directorist'),
-                'value' => 'pptx',
-            ],
-            [
-                'label' => __('rar', 'directorist'),
-                'value' => 'rar',
-            ],
-            [
-                'label' => __('rtf', 'directorist'),
-                'value' => 'rtf',
-            ],
-            [
-                'label' => __('swf', 'directorist'),
-                'value' => 'swf',
-            ],
-            [
-                'label' => __('xls', 'directorist'),
-                'value' => 'xls',
-            ],
-            [
-                'label' => __('xlsx', 'directorist'),
-                'value' => 'xlsx',
-            ],
-            [
-                'label' => __('gpx', 'directorist'),
-                'value' => 'gpx',
-            ],
-        ];
+        $custom_field_meta_key_field = apply_filters( 'directorist_custom_field_meta_key_field_args', [
+            'type'  => 'hidden',
+            'label' => __( 'Key', 'directorist' ),
+            'value' => 'custom-text',
+            'rules' => [
+                'unique' => true,
+                'required' => true,
+            ]
+        ]);
 
         $form_field_widgets = [
             'preset' => [
@@ -700,7 +538,7 @@ class Multi_Directory_Manager
                             ],
                             'placeholder' => [
                                 'type'  => 'text',
-                                'label' => __( 'Label', 'directorist' ),
+                                'label' => __( 'Placeholder', 'directorist' ),
                                 'value' => '',
                             ],
                             'required' => [
@@ -1602,15 +1440,9 @@ class Multi_Directory_Manager
                                 'label' => __( 'Label', 'directorist' ),
                                 'value' => 'Text',
                             ],
-                            'field_key' => [
-                                'type'  => 'text',
-                                'label' => __( 'Key', 'directorist' ),
+                            'field_key' => array_merge( $custom_field_meta_key_field, [
                                 'value' => 'custom-text',
-                                'rules' => [
-                                    'unique' => true,
-                                    'required' => true,
-                                ]
-                            ],
+                            ]),
                             'placeholder' => [
                                 'type'  => 'text',
                                 'label' => __( 'Placeholder', 'directorist' ),
@@ -1659,15 +1491,9 @@ class Multi_Directory_Manager
                                 'label' => __( 'Label', 'directorist' ),
                                 'value' => 'Textarea',
                             ],
-                            'field_key' => [
-                                'type'  => 'text',
-                                'label' => __( 'Key', 'directorist' ),
+                            'field_key' => array_merge( $custom_field_meta_key_field, [
                                 'value' => 'custom-textarea',
-                                'rules' => [
-                                    'unique' => true,
-                                    'required' => true,
-                                ]
-                            ],
+                            ]),
                             'rows' => [
                                 'type'  => 'number',
                                 'label' => __( 'Rows', 'directorist' ),
@@ -1721,15 +1547,9 @@ class Multi_Directory_Manager
                                 'label' => __( 'Label', 'directorist' ),
                                 'value' => 'Number',
                             ],
-                            'field_key' => [
-                                'type'  => 'text',
-                                'label' => __( 'Key', 'directorist' ),
+                            'field_key' => array_merge( $custom_field_meta_key_field, [
                                 'value' => 'custom-number',
-                                'rules' => [
-                                    'unique' => true,
-                                    'required' => true,
-                                ]
-                            ],
+                            ]),
                             'placeholder' => [
                                 'type'  => 'text',
                                 'label' => __( 'Placeholder', 'directorist' ),
@@ -1778,15 +1598,9 @@ class Multi_Directory_Manager
                                 'label' => __( 'Label', 'directorist' ),
                                 'value' => 'URL',
                             ],
-                            'field_key' => [
-                                'type'  => 'text',
-                                'label' => __( 'Key', 'directorist' ),
+                            'field_key' => array_merge( $custom_field_meta_key_field, [
                                 'value' => 'custom-url',
-                                'rules' => [
-                                    'unique' => true,
-                                    'required' => true,
-                                ]
-                            ],
+                            ]),
                             'placeholder' => [
                                 'type'  => 'text',
                                 'label' => __( 'Placeholder', 'directorist' ),
@@ -1840,15 +1654,9 @@ class Multi_Directory_Manager
                                 'label' => __( 'Label', 'directorist' ),
                                 'value' => 'Date',
                             ],
-                            'field_key' => [
-                                'type'  => 'text',
-                                'label' => __( 'Key', 'directorist' ),
+                            'field_key' => array_merge( $custom_field_meta_key_field, [
                                 'value' => 'custom-date',
-                                'rules' => [
-                                    'unique' => true,
-                                    'required' => true,
-                                ]
-                            ],
+                            ]),
                             'placeholder' => [
                                 'type'  => 'text',
                                 'label' => __( 'Placeholder', 'directorist' ),
@@ -1897,15 +1705,9 @@ class Multi_Directory_Manager
                                 'label' => __( 'Label', 'directorist' ),
                                 'value' => 'Time',
                             ],
-                            'field_key' => [
-                                'type'  => 'text',
-                                'label' => __( 'Key', 'directorist' ),
+                            'field_key' => array_merge( $custom_field_meta_key_field, [
                                 'value' => 'custom-time',
-                                'rules' => [
-                                    'unique' => true,
-                                    'required' => true,
-                                ]
-                            ],
+                            ]),
                             'placeholder' => [
                                 'type'  => 'text',
                                 'label' => __( 'Placeholder', 'directorist' ),
@@ -1954,15 +1756,9 @@ class Multi_Directory_Manager
                                 'label' => __( 'Label', 'directorist' ),
                                 'value' => 'Color',
                             ],
-                            'field_key' => [
-                                'type'  => 'text',
-                                'label' => __( 'Key', 'directorist' ),
+                            'field_key' => array_merge( $custom_field_meta_key_field, [
                                 'value' => 'custom-color-picker',
-                                'rules' => [
-                                    'unique' => true,
-                                    'required' => true,
-                                ]
-                            ],
+                            ]),
                             'description' => [
                                 'type'  => 'text',
                                 'label' => __( 'Description', 'directorist' ),
@@ -2006,15 +1802,9 @@ class Multi_Directory_Manager
                                 'label' => __( 'Label', 'directorist' ),
                                 'value' => 'Select',
                             ],
-                            'field_key' => [
-                                'type'  => 'text',
-                                'label' => __( 'Key', 'directorist' ),
+                            'field_key' => array_merge( $custom_field_meta_key_field, [
                                 'value' => 'custom-select',
-                                'rules' => [
-                                    'unique' => true,
-                                    'required' => true,
-                                ]
-                            ],
+                            ]),
                             'options' => [
                                 'type' => 'multi-fields',
                                 'label' => __('Options', 'directorist'),
@@ -2075,15 +1865,9 @@ class Multi_Directory_Manager
                                 'label' => __( 'Label', 'directorist' ),
                                 'value' => 'Checkbox',
                             ],
-                            'field_key' => [
-                                'type'  => 'text',
-                                'label' => __( 'Key', 'directorist' ),
+                            'field_key' => array_merge( $custom_field_meta_key_field, [
                                 'value' => 'custom-checkbox',
-                                'rules' => [
-                                    'unique' => true,
-                                    'required' => true,
-                                ]
-                            ],
+                            ]),
                             'options' => [
                                 'type' => 'multi-fields',
                                 'label' => __('Options', 'directorist'),
@@ -2143,15 +1927,9 @@ class Multi_Directory_Manager
                                 'label' => __( 'Label', 'directorist' ),
                                 'value' => 'Radio',
                             ],
-                            'field_key' => [
-                                'type'  => 'text',
-                                'label' => __( 'Key', 'directorist' ),
+                            'field_key' => array_merge( $custom_field_meta_key_field, [
                                 'value' => 'custom-radio',
-                                'rules' => [
-                                    'unique' => true,
-                                    'required' => true,
-                                ]
-                            ],
+                            ]),
                             'options' => [
                                 'type' => 'multi-fields',
                                 'label' => __('Options', 'directorist'),
@@ -2210,15 +1988,9 @@ class Multi_Directory_Manager
                                 'label' => __( 'Label', 'directorist' ),
                                 'value' => 'File Upload',
                             ],
-                            'field_key' => [
-                                'type'  => 'text',
-                                'label' => __( 'Key', 'directorist' ),
+                            'field_key' => array_merge( $custom_field_meta_key_field, [
                                 'value' => 'custom-file',
-                                'rules' => [
-                                    'unique' => true,
-                                    'required' => true,
-                                ]
-                            ],
+                            ]),
                             'file_type' => [
                                 'type'  => 'select',
                                 'label' => __( 'Chose a file type', 'directorist' ),
@@ -4246,8 +4018,8 @@ class Multi_Directory_Manager
                 'name'    => 'similar_listings_logics',
                 'label' => __( 'Similar listings logics', 'directorist' ),
                 'options' => [
-                    ['id' => 'match_category_nd_location', 'label' => __( 'Must match category and location', 'directorist' ), 'value' => 'AND'],
-                    ['id' => 'match_category_or_location', 'label' => __( 'Must match category or location', 'directorist' ), 'value' => 'OR'],
+                    ['id' => 'match_category_nd_location', 'label' => __( 'Must match category and tag', 'directorist' ), 'value' => 'AND'],
+                    ['id' => 'match_category_or_location', 'label' => __( 'Must match category or tag', 'directorist' ), 'value' => 'OR'],
                 ],
                 'value'   => 'OR',
             ],

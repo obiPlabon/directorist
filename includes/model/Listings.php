@@ -44,7 +44,6 @@ class Directorist_Listings {
 	public $featured_only;
 	public $popular_only;
 	public $advanced_filter;
-	public $display_preview_image;
 	public $action_before_after_loop;
 	public $logged_in_user_only;
 	public $redirect_page_url;
@@ -153,7 +152,6 @@ class Directorist_Listings {
 		$this->options['listing_header_title']            = get_directorist_option( 'all_listing_title', __( 'Items Found', 'directorist' ) );
 		$this->options['listing_columns']                 = get_directorist_option( 'all_listing_columns', 3 );
 		$this->options['listing_filters_button']          = ! empty( get_directorist_option( 'listing_filters_button', 1 ) ) ? 'yes' : '';
-		$this->options['display_preview_image']           = ! empty( get_directorist_option( 'display_preview_image', 1 ) ) ? 'yes' : '';
 		$this->options['listings_map_height']             = get_directorist_option( 'listings_map_height', 350 );
 		$this->options['enable_featured_listing']         = get_directorist_option( 'enable_featured_listing' );
 		$this->options['listing_popular_by']              = get_directorist_option( 'listing_popular_by' );
@@ -247,7 +245,6 @@ class Directorist_Listings {
 			'featured_only'            => '',
 			'popular_only'             => '',
 			'advanced_filter'          => $this->options['listing_filters_button'],
-			'display_preview_image'    => $this->options['display_preview_image'],
 			'action_before_after_loop' => 'yes',
 			'logged_in_user_only'      => '',
 			'redirect_page_url'        => '',
@@ -277,7 +274,6 @@ class Directorist_Listings {
 		$this->featured_only            = $this->params['featured_only'];
 		$this->popular_only             = $this->params['popular_only'];
 		$this->advanced_filter          = $this->params['advanced_filter'] == 'yes' ? true : false;
-		$this->display_preview_image    = $this->params['display_preview_image'] == 'yes' ? true : false;
 		$this->action_before_after_loop = $this->params['action_before_after_loop'] == 'yes' ? true : false;
 		$this->logged_in_user_only      = $this->params['logged_in_user_only'] == 'yes' ? true : false;
 		$this->redirect_page_url        = $this->params['redirect_page_url'];
@@ -769,8 +765,6 @@ class Directorist_Listings {
 			$args['meta_query'] = array_merge( array( 'relation' => 'AND' ), $meta_queries );
 		}
 
-		// e_var_dump($args);
-		// die;
 		return apply_filters( 'atbdp_all_listings_query_arguments', $args );
 	}
 
@@ -1436,7 +1430,7 @@ class Directorist_Listings {
 
 				ob_start();
 
-				if (!empty($opt['display_map_info']) && (!empty($opt['display_image_map']) || !empty($opt['display_title_map']) || $opt['display_address_map']) || !empty($opt['display_direction_map'])) {
+				if ( ! empty( $opt['display_map_info'] ) && ( ! empty( $opt['display_image_map'] ) || ! empty( $opt['display_title_map'] ) || ! empty( $opt['display_address_map'] ) || ! empty( $opt['display_direction_map'] ) ) ) {
 					Helper::get_template( 'archive/fields/openstreet-map', $opt );
 				}
 

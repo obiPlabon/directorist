@@ -5,7 +5,7 @@ namespace Directorist;
 trait Multi_Directory_Helper {
     // add_directory
     public static function add_directory( array $args = [] ) {
-        $default = [ 
+        $default = [
             'term_id'        => 0,
             'directory_name' => '',
             'fields_value'   => [],
@@ -25,11 +25,11 @@ trait Multi_Directory_Helper {
         if ( $has_term_id && $args['term_id'] < 1 ) {
             $has_term_id = false;
         }
-        
+
         $create_directory = [ 'term_id' => 0 ];
 
         if ( ! $has_term_id ) {
-            $create_directory = self::create_directory([ 
+            $create_directory = self::create_directory([
                 'directory_name' => $args['directory_name']
             ]);
 
@@ -37,7 +37,7 @@ trait Multi_Directory_Helper {
                 return $create_directory;
             }
         }
-        
+
         $update_directory = self::update_directory([
             'term_id'        => ( ! $has_term_id ) ? ( int ) $create_directory['term_id'] : ( int ) $args['term_id'],
             'directory_name' => $args['directory_name'],
@@ -45,7 +45,7 @@ trait Multi_Directory_Helper {
             'is_json'        => $args['is_json'],
         ]);
 
-        
+
         if ( ! empty( $update_directory['status']['status_log']['term_updated'] ) && ! empty( $create_directory['status']['status_log']['term_created'] ) ) {
             $update_directory['status']['status_log']['term_created'] = $create_directory['status']['status_log']['term_created'];
 
@@ -96,7 +96,7 @@ trait Multi_Directory_Helper {
 
         // Create the directory
         $term = wp_insert_term( $args['directory_name'], 'atbdp_listing_types');
-        
+
         if ( is_wp_error( $term ) ) {
             $response['status']['status_log']['term_exists'] = [
                 'type'    => 'error',
@@ -106,7 +106,7 @@ trait Multi_Directory_Helper {
             $response['status']['error_count']++;
         }
 
-        
+
         if ( $response['status']['error_count'] ) {
             $response['status']['success'] = false;
             return $response;
@@ -124,7 +124,7 @@ trait Multi_Directory_Helper {
 
     // update_directory
     public static function update_directory( array $args = [] ) {
-        $default = [ 
+        $default = [
             'directory_name' => '',
             'term_id'        => 0,
             'fields_value'   => [],
@@ -141,7 +141,7 @@ trait Multi_Directory_Helper {
         ];
 
         $response['term_id'] = $args['term_id'];
-        
+
         // Validation
         if ( $args['is_json'] ) {
             $args['fields_value'] = json_decode( $args['fields_value'], true );
@@ -196,10 +196,10 @@ trait Multi_Directory_Helper {
 
             $response['status']['error_count']++;
             $response['status']['success'] = false;
-     
+
             return $response;
         }
-        
+
         $fields = $args['fields_value'];
 
         if ( is_array( $fields ) ) {
@@ -212,7 +212,7 @@ trait Multi_Directory_Helper {
 
         $directory_name = ( ! empty( $fields['name'] ) ) ? $fields['name'] : '';
         $directory_name = ( ! empty( $args['directory_name'] ) ) ? $args['directory_name'] : $directory_name;
-        
+
         $response['fields_value']   = $fields;
         $response['directory_name'] = $args['directory_name'];
 
@@ -235,12 +235,12 @@ trait Multi_Directory_Helper {
             $response['status']['success'] = false;
             return $response;
         }
-        
+
         // Update name if exist
         if ( ! empty( $directory_name ) ) {
             wp_update_term( $args['term_id'], 'atbdp_listing_types', ['name' => $directory_name] );
         }
-        
+
         // Update the value
         foreach ( $fields as $key => $value ) {
             self::update_validated_term_meta( $args['term_id'], $key, $value );
@@ -254,31 +254,27 @@ trait Multi_Directory_Helper {
         return $response;
     }
 
-    // maybe_json
-    public static function maybe_json( $string )
-    {
-        $string_alt = $string;
+    public static function maybe_json( $input_data ) {
+        if ( 'string' !== gettype( $input_data )  ) { return $input_data; }
 
-        if ( 'string' !== gettype( $string )  ) { return $string; }
+        // Sanitize input data
+        $sanitized_data = $input_data;
 
-        if ( preg_match( '/\\\\n/', $string_alt ) ) {
-            $string_alt = preg_replace('/\\\\n/', '<br>', $string_alt);
+        if ( preg_match( '/\\\\+/', $sanitized_data ) ) {
+            $sanitized_data = preg_replace('/\\\\+/', '', $sanitized_data);
         }
 
-        if ( preg_match( '/\\\\+/', $string_alt ) ) {
-            $string_alt = preg_replace('/\\\\+/', '', $string_alt);
+        $output_data = json_decode( $sanitized_data, true);
+        $output_data = ( ! is_null( $output_data ) ) ? $output_data : $input_data;
+
+        // Sanitize output data
+        if ( 'string' === gettype( $output_data ) ) {
+            $output_data = preg_replace( '/\\\\"/', '"', $output_data );
+            $output_data = preg_replace( "/\\\\'/", "'", $output_data );
+            $output_data = _sanitize_text_fields( $output_data, true );
         }
 
-        $string_alt = json_decode($string_alt, true);
-        $string     = ( ! is_null( $string_alt ) ) ? $string_alt : $string;
-
-        if ( ! is_null( $string ) ) {
-            $string = json_encode( $string );
-            $string =  preg_replace('/(<br>)/', "\\n", $string);
-            $string = json_decode($string, true);
-        }
-
-        return $string;
+        return $output_data;
     }
 
     // maybe_serialize

@@ -13,8 +13,7 @@ class Helper {
 	use Markup_Helper;
 
 	public static function is_legacy_mode() {
-		$legacy = get_directorist_option( 'atbdp_legacy_template', false );
-		return $legacy;
+		return false;
 	}
 
 	public static function get_directory_type_term_data( $post_id = '', string $term_key = '' ) {
