@@ -2,6 +2,32 @@
 // Prohibit direct script loading.
 defined('ABSPATH') || die('No direct script access allowed!');
 
+if ( ! function_exists( 'directorist_get_listings_directory_type' ) ) {
+    function directorist_get_listings_directory_type( $listing_id = '' ) {
+        $directory_type = wp_get_post_terms( $listing_id, ATBDP_DIRECTORY_TYPE );
+        if ( empty( $directory_type ) || ! is_array( $directory_type ) ) return '';
+
+        return $directory_type[0]->term_id;
+    }
+}
+
+if ( ! function_exists( 'directorist_get_all_page_list' ) ) {
+    function directorist_get_all_page_list( $listing_id = '' ) {
+        $pages = get_pages();
+        $pages_options = [
+           ['value' => '', 'label' => 'Select...']
+        ];
+
+        if ( empty( $pages ) || ! is_array( $pages ) ) return $pages_options;
+
+        foreach ($pages as $page) {
+            $pages_options[] = array('value' => $page->ID, 'label' => $page->post_title);
+        }
+
+        return $pages_options;
+    }
+}
+
 if ( ! function_exists( 'atbdp_is_truthy' ) ) {
     function atbdp_is_truthy( $data ) {
 
@@ -6047,6 +6073,7 @@ if (!function_exists('calc_listing_expiry_date')) {
     function calc_listing_expiry_date($start_date = NULL, $expire = NULL)
     {
         $exp_days = get_term_meta( default_directory_type(), 'default_expiration', true );
+        $exp_days = !empty( $exp_days ) ? $exp_days : 0;
         $expired_date = !empty($expire) ? $expire : $exp_days;
         // Current time
         $start_date = !empty($start_date) ? $start_date : current_time('mysql');
@@ -7508,6 +7535,13 @@ function atbdp_can_overwrite_yoast()
 
 function atbdp_disable_overwrite_yoast() {
     atbdp_can_overwrite_yoast();
+}
+
+if ( ! function_exists( 'directorist_is_active_rankmath' ) ) {
+    function directorist_is_active_rankmath() {
+        
+        return class_exists( 'RankMath' );
+    }
 }
 
 

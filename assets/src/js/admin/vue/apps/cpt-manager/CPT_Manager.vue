@@ -3,9 +3,9 @@
 
         <!-- atbdp-cptm-header -->
         <div class="atbdp-cptm-header">
-            <component 
-                v-if="options.name && options.name.type" 
-                :is="options.name.type + '-field'" 
+            <component
+                v-if="options.name && options.name.type"
+                :is="options.name.type + '-field'"
                 v-bind="options.name"
                 @update="updateOptionsField( { field: 'name', value: $event } )"
             />
@@ -93,7 +93,7 @@ export default {
             listing_type_id: null,
             status_messages: [],
             footer_actions: {
-                save: { 
+                save: {
                     show: true,
                     label: 'Create',
                     showLoading: false,
@@ -113,7 +113,7 @@ export default {
             if ( typeof payload.value === 'undefined' ) { return; }
 
             this.$store.commit( 'updateOptionsField', payload );
-        },      
+        },
 
         updateData() {
             let fields = this.getFieldsValue();
@@ -128,7 +128,7 @@ export default {
                     form_data.append( data_key, submission_with[ data_key ] );
                 }
             }
-            
+
             if ( this.listing_type_id ) {
                 form_data.append( 'listing_type_id', this.listing_type_id );
                 this.footer_actions.save.label = 'Update';
@@ -148,7 +148,7 @@ export default {
 
             let form_data = new FormData();
             form_data.append( 'action', 'save_post_type_data' );
-            
+
             if ( this.listing_type_id ) {
                 form_data.append( 'listing_type_id', this.listing_type_id );
                 this.footer_actions.save.label = 'Update';
@@ -168,13 +168,13 @@ export default {
             // Get Form Fields Data
             let field_list = [];
             for ( let field in fields ) {
-                let value = this.maybeJSON( fields[ field ].value );
+                let value = this.maybeJSON( [fields[ field ].value] );
 
                 form_data.append( field, value );
                 field_list.push( field );
             }
 
-            form_data.append( 'field_list', JSON.stringify( field_list ) );
+            form_data.append( 'field_list', this.maybeJSON( field_list ) );
 
             this.status_messages = [];
             this.footer_actions.save.showLoading = true;
@@ -188,7 +188,7 @@ export default {
 
                     console.log( response );
                     // return;
-                    
+
                     if ( response.data.term_id && ! isNaN( response.data.term_id ) ) {
                         self.listing_type_id = response.data.term_id;
                         self.footer_actions.save.label = 'Update';
@@ -201,8 +201,8 @@ export default {
 
                     if ( response.data.status && response.data.status.status_log ) {
                         for ( let status_key in response.data.status.status_log  ) {
-                            self.status_messages.push({ 
-                                type: response.data.status.status_log[ status_key ].type, 
+                            self.status_messages.push({
+                                type: response.data.status.status_log[ status_key ].type,
                                 message: response.data.status.status_log[ status_key ].message
                             });
                         }
@@ -224,16 +224,24 @@ export default {
         maybeJSON( data ) {
             let value = ( typeof data === 'undefined' ) ? '' : data;
 
-            if ( 'object' === typeof value && Object.keys( value ) ) {
-                value = JSON.stringify( value );
-            }
-            
-            if ( 'object' === typeof value && ! Object.keys( value ) ) {
-                value = '';
+            if ( 'object' === typeof value && Object.keys( value ) || Array.isArray( value ) ) {
+                let json_encoded_value = JSON.stringify( value );
+                let base64_encoded_value = this.encodeUnicodedToBase64( json_encoded_value );
+                value = base64_encoded_value;
             }
 
             return value;
         },
+
+        encodeUnicodedToBase64(str) {
+            // first we use encodeURIComponent to get percent-encoded UTF-8,
+            // then we convert the percent encodings into raw bytes which
+            // can be fed into btoa.
+            return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g,
+                function toSolidBytes(match, p1) {
+                    return String.fromCharCode('0x' + p1);
+            }));
+        }
     }
 }
 </script>

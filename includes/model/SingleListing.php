@@ -187,6 +187,10 @@ class Directorist_Single_Listing {
 			return '';
 		}
 
+		if ( isset( $data['widget_name'] ) && $data['widget_name'] == 'custom_content' ) {
+			return $data['content'];
+		}
+
 		if ( isset( $data['field_key'] ) ) {
 			$value = get_post_meta( $post_id, '_'.$data['field_key'], true );
 
@@ -328,7 +332,26 @@ class Directorist_Single_Listing {
 		return $tags;
 	}
 
+	public function single_page_enabled() {
+		return get_directorist_type_option( $this->type, 'enable_single_listing_page', false );
+	}
 
+	public function single_page_content() {
+		$page_id = get_directorist_type_option( $this->type, 'single_listing_page' );
+
+		if ( !$page_id ) {
+			return '';
+		}
+
+		if ( did_action( 'elementor/loaded' ) && \Elementor\Plugin::$instance->documents->get( $page_id )->is_built_with_elementor() ) {
+			$content = \Elementor\Plugin::$instance->frontend->get_builder_content_for_display( $page_id );
+		} else {
+			$content = get_post_field( 'post_content', $page_id );
+			$content = do_shortcode( $content );
+		}
+
+		return $content;
+	}
 
 	public function social_share_data() {
 		$title = get_the_title();
@@ -352,7 +375,7 @@ class Directorist_Single_Listing {
 			),
 		);
 
-		return $result;
+		return apply_filters( 'directorist_single_listing_social_sharing_items', $result );
 	}
 
 	public function quick_actions_template() {
@@ -422,7 +445,7 @@ class Directorist_Single_Listing {
 			'height'             => get_directorist_option('gallery_crop_height', 750),
 			'background-color'   => get_directorist_option('single_slider_background_color', 'gainsboro'),
 			'thumbnail-bg-color' => '#fff',
-			'show-thumbnails'    => get_directorist_option('dsiplay_thumbnail_img', true) ? '1' : '0',
+			'show-thumbnails'    => !empty( $this->header_data['listings_header']['thumbnail'][0]['footer_thumbail'] ) ? '1' : '0',
 			'gallery'            => true,
 			'rtl'                => is_rtl() ? '1' : '0',
 		);
@@ -523,6 +546,10 @@ class Directorist_Single_Listing {
 		$result = sprintf('<div class="atbd_meta atbd_listing_average_pricing atbd_tooltip" aria-label="%s">%s</div>', ucfirst( $this->price_range ), $output);
 
 		return $result;
+	}
+
+	public function contact_owner_form_disabled() {
+		return get_post_meta( $this->id, '_hide_contact_owner', true );
 	}
 
 	public function has_price() {
@@ -783,7 +810,7 @@ class Directorist_Single_Listing {
 	}
 
 	public function owner_review_enabled() {
-		return get_directorist_option('enable_owner_review');
+		return get_directorist_option('enable_owner_review', 1);
 	}
 
 	public function current_review() {
@@ -1062,7 +1089,7 @@ class Directorist_Single_Listing {
 			'listing'                  => $this,
 			'author_id'                => get_post_field('post_author', $id),
 			'enable_review'            => get_directorist_option('enable_review', 1),
-			'enable_owner_review'      => get_directorist_option('enable_owner_review'),
+			'enable_owner_review'      => get_directorist_option('enable_owner_review', 1),
 			'allow_review'             => apply_filters('atbdp_single_listing_before_review_block', true),
 			'review_count'             => $review_count,
 			'review_count_text'        => _nx('Review', 'Reviews', $review_count, 'Number of reviews', 'directorist'),

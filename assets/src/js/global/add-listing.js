@@ -1,5 +1,3 @@
-import './../../scss/component/add-listing.scss';
-
 /* eslint-disable */
 const $ = jQuery;
 const localized_data = atbdp_public_data.add_listing_data;
@@ -247,6 +245,7 @@ $(function () {
         .empty();
 });
 
+$('.directorist-form-categories-field').after('<div class="atbdp_category_custom_fields"></div>');
 // Load custom fields of the selected category in the custom post type "atbdp_listings"
 $('#at_biz_dir-categories').on('change', function () {
     var directory_type = qs.directory_type ? qs.directory_type : $('input[name="directory_type"]').val();

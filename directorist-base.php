@@ -3,7 +3,7 @@
  * Plugin Name: Directorist - Business Directory Plugin
  * Plugin URI: https://wpwax.com
  * Description: A comprehensive solution to create professional looking directory site of any kind. Like Yelp, Foursquare, etc.
- * Version: 7.0.4.1
+ * Version: 7.0.5.1
  * Author: wpWax
  * Author URI: https://wpwax.com
  * Text Domain: directorist
@@ -472,6 +472,7 @@ final class Directorist_Base
 			ATBDP_INC_DIR . 'custom-filters',
 			ATBDP_INC_DIR . 'elementor/init',
 			ATBDP_INC_DIR . 'system-status/class-system-status',
+			ATBDP_INC_DIR . 'gutenberg/init',
 			ATBDP_INC_DIR . 'advance-review/init',
 		]);
 
@@ -1290,7 +1291,7 @@ final class Directorist_Base
 		$approve_immediately = get_directorist_option('approve_immediately', 1);
 		$review_duplicate = tract_duplicate_review(wp_get_current_user()->display_name, $post->ID);
 		if (!$enable_review) return; // vail if review is not enabled
-		$enable_owner_review = get_directorist_option('enable_owner_review');
+		$enable_owner_review = get_directorist_option('enable_owner_review', 1);
 		$reviews_count = ATBDP()->review->db->count(array('post_id' => $post->ID)); // get total review count for this post
 		$plan_review = true;
 		$review = true;
