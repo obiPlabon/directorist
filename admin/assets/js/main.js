@@ -1181,6 +1181,7 @@ templateResult: selecWithIcon,
                                         .closest('#poststuff')
                                         .find('#publishing-action')
                                         .removeClass('directorist_disable');
+                                        console.log('sdf sdf sdf sdf sdf');
                         },
                 });
         }

@@ -7,7 +7,7 @@ function get_dom_data( key, parent ) {
     if ( ! dataElm ) {
         return '';
     }
-    
+
     var is_script_debugging = ( directorist_options && directorist_options.script_debugging && directorist_options.script_debugging == '1' ) ? true : false;
 
     try {
@@ -19,7 +19,7 @@ function get_dom_data( key, parent ) {
         if ( is_script_debugging ) {
             console.log({key,dataElm,error});
         }
-        
+
         return '';
     }
 }
