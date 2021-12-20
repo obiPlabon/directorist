@@ -5857,7 +5857,7 @@ if (!function_exists('atbdp_only_logged_in_user')) {
      */
     function atbdp_is_user_logged_in($message = '')
     {
-        if (!atbdp_logged_in_user()) {
+        if (!is_user_logged_in()) {
             // user not logged in;
             $error_message = (empty($message))
                 ? sprintf(__('You need to be logged in to view the content of this page. You can login %s. Don\'t have an account? %s', 'directorist'), apply_filters("atbdp_login_page_link", "<a href='" . ATBDP_Permalink::get_login_page_link() . "'> " . __('Here', 'directorist') . "</a>"), apply_filters("atbdp_signup_page_link", "<a href='" . ATBDP_Permalink::get_registration_page_link() . "'> " . __('Sign up', 'directorist') . "</a>"))
@@ -6666,7 +6666,7 @@ function directorist_clean($var)
  */
 function the_atbdp_favourites_link($post_id = 0)
 {
-    if (atbdp_logged_in_user()) {
+    if (is_user_logged_in()) {
         if ($post_id == 0) {
             global $post;
             $post_id = $post->ID;
@@ -6722,7 +6722,7 @@ function atbdp_get_remove_favourites_page_link($listing_id)
 /*function the_atbdp_favourites_all_listing($post_id = 0)
 {
 
-    if (atbdp_logged_in_user()) {
+    if (is_user_logged_in()) {
 
         if ($post_id == 0) {
             global $post;
@@ -6964,28 +6964,22 @@ function atbdp_is_page($atbdppages = '')
  * @since 4.7.8
  */
 if (!function_exists('atbdp_popular_listings')) {
-    function atbdp_popular_listings($listing_id)
-    {
-        $listing_popular_by = get_directorist_option('listing_popular_by');
-		// TODO: remove the following line
-		// $average = ATBDP()->review->get_average($listing_id);
-		$average = directorist_get_listing_rating($listing_id);
-        $average_review_for_popular = get_directorist_option('average_review_for_popular', 4);
-        $view_count = get_post_meta($listing_id, '_atbdp_post_views_count', true);
-        $view_to_popular = get_directorist_option('views_for_popular');
-        if ('average_rating' === $listing_popular_by) {
-            if ($average_review_for_popular <= $average) {
-                return $pop_listing_id = $listing_id;
-            }
-        } elseif ('view_count' === $listing_popular_by) {
-            if ((int)$view_count >= (int)$view_to_popular) {
-                return $pop_listing_id = $listing_id;
-            }
-        } else {
-            if (($average_review_for_popular <= $average) && ((int)$view_count >= (int)$view_to_popular)) {
-                return $pop_listing_id = $listing_id;
-            }
+    function atbdp_popular_listings( $listing_id ) {
+        $listing_popular_by         = get_directorist_option( 'listing_popular_by' );
+        $average                    = directorist_get_listing_rating( $listing_id );
+        $average_review_for_popular = (int) get_directorist_option( 'average_review_for_popular', 4 );
+        $view_count                 = (int) get_post_meta( $listing_id, '_atbdp_post_views_count', true );
+        $view_to_popular            = (int) get_directorist_option( 'views_for_popular' );
+
+        if ( 'average_rating' === $listing_popular_by && $average_review_for_popular <= $average ) {
+            return $listing_id;
+        } elseif ( 'view_count' === $listing_popular_by && $view_count >= $view_to_popular ) {
+			return $listing_id;
+        } elseif ( $average_review_for_popular <= $average && $view_count >= $view_to_popular ) {
+			return $listing_id;
         }
+
+		return 0;
     }
 }
 
@@ -7439,6 +7433,12 @@ if (!function_exists('tract_duplicate_review')) {
 
 function search_category_location_filter($settings, $taxonomy_id, $prefix = '')
 {
+	$lazy_load_taxonomy_fields = get_directorist_option( 'lazy_load_taxonomy_fields', false, true );
+
+	if ( ! empty( $lazy_load_taxonomy_fields ) ) {
+		return '';
+	}
+
     if ($settings['immediate_category']) {
 
         if ($settings['term_id'] > $settings['parent'] && !in_array($settings['term_id'], $settings['ancestors'])) {
@@ -7862,8 +7862,15 @@ function atbdp_create_required_pages(){
     }
 }
 
+/**
+ * Check if user is logged in.
+ *
+ * @deprecated 7.0.6.3 Use the built-in is_user_logged_in() instead.
+ *
+ * @return bool
+ */
 function atbdp_logged_in_user(){
-    return _wp_get_current_user()->exists();
+    return is_user_logged_in();
 }
 
 function atbdp_thumbnail_card($img_src = '', $_args = array())
@@ -8473,4 +8480,113 @@ if ( ! function_exists( 'directorist_is_plugin_active_for_network' ) ) {
 
         return false;
     }
+}
+
+/**
+ * Get error message based on error type.
+ *
+ * @since 7.0.6.2
+ *
+ * @param string $get_error_code
+ *
+ * @return string Error message.
+ */
+function directorist_get_registration_error_message( $error_code ) {
+	$message = [
+		'0' => __( 'Something went wrong!', 'directorist' ),
+		'1' => __( 'Registration failed. Please make sure you filed up all the necessary fields marked with <span style="color: red">*</span>', 'directorist' ),
+		'2' => __( 'Sorry, that email already exists!', 'directorist' ),
+		'3' => __( 'Username too short. At least 4 characters is required', 'directorist' ),
+		'4' => __( 'Sorry, that username already exists!', 'directorist' ),
+		'5' => __( 'Password length must be greater than 5', 'directorist' ),
+		'6' => __( 'Email is not valid', 'directorist' ),
+		'7' => __( 'Space is not allowed in username', 'directorist' ),
+		'8' => __( 'Please make sure you filed up the user type', 'directorist' ),
+	];
+
+	return isset( $message[ $error_code ] ) ? $message[ $error_code ] : '';
+}
+
+/**
+ * Generate an unique nonce key using version constant.
+ *
+ * @since 7.0.6.2
+ *
+ * @return string nonce key with current version
+ */
+function directorist_get_nonce_key() {
+    return 'directorist_nonce_' . ATBDP_VERSION;
+}
+
+/**
+ * Check if the given nonce field contains a verified nonce.
+ *
+ * @since 7.0.6.2
+ *
+ * @return boolen
+ */
+function directorist_verify_nonce( $nonce_field = 'directorist_nonce' ) {
+    $nonce = ! empty( $_REQUEST[ $nonce_field ] ) ? $_REQUEST[ $nonce_field ] : '';
+    return wp_verify_nonce( $nonce, directorist_get_nonce_key() );
+}
+
+/**
+ * Get supported file types groups.
+ *
+ * @since 7.0.6.3
+ *
+ * @return array
+ */
+function directorist_get_supported_file_types_groups( $group = null ) {
+	$groups = [
+		'image' => [
+			'jpg', 'jpeg', 'gif', 'png', 'bmp', 'ico'
+		],
+		'audio' => [
+			'ogg', 'mp3', 'wav', 'wma',
+		],
+		'video' => [
+			'asf', 'avi', 'mkv', 'mp4', 'mpg', 'mpeg', 'wmv', '3gp',
+		],
+		'document' => [
+			'doc', 'docx', 'odt', 'pdf', 'ppt', 'pptx', 'xls', 'xlsx'
+		]
+	];
+
+	if ( is_null( $group ) ) {
+		return $groups;
+	}
+
+	return ( isset( $groups[ $group ] ) ? $groups[ $group ] : [] );
+}
+
+/**
+ * Get supported file types.
+ *
+ * This function is used to for upload field options and to check uploaded file type validity.
+ *
+ * @since 7.0.6.3
+ *
+ * @return array
+ */
+function directorist_get_supported_file_types() {
+	$groups = directorist_get_supported_file_types_groups();
+
+	return array_reduce( $groups, function( $carry, $group ) {
+		return array_merge( $carry, $group );
+	}, [] );
+}
+
+
+function directorist_has_no_listing() {
+	$listings = new WP_Query([
+		'post_type'      => ATBDP_POST_TYPE,
+		'posts_per_page' => 1,
+		'no_found_rows'  => true,
+		'cache_results'  => false
+	]);
+
+	$has_no_listing = empty( $listings->posts );
+
+	return $has_no_listing;
 }

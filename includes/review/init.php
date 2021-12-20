@@ -3,7 +3,7 @@
  * Review bootstrap class.
  *
  * @package Directorist\Review
- * @since 7.0.6
+ * @since 7.1.0
  */
 namespace Directorist\Review;
 
@@ -31,6 +31,10 @@ class Bootstrap {
 		require_once 'class-comment-meta.php';
 		require_once 'class-listing-review-meta.php';
 
+		// Ensure review rating backward complatible methods.
+		require_once 'class-bc-review-rating.php';
+		ATBDP()->review = new BC_Review_Rating();
+
 		if ( is_admin() ) {
 			require_once 'class-admin.php';
 			require_once 'class-settings-screen.php';
@@ -39,21 +43,10 @@ class Bootstrap {
 	}
 
 	public static function hooks() {
-		add_filter( 'comments_template', array( __CLASS__, 'load_comments_template' ) );
+		add_filter( 'comments_template', array( __CLASS__, 'load_comments_template' ), 9999 );
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_comment_scripts' ) );
 		add_filter( 'register_post_type_args', array( __CLASS__, 'add_comment_support' ), 10, 2 );
 		add_filter( 'map_meta_cap', array( __CLASS__, 'map_meta_cap_for_review_author' ), 10, 4 );
-
-		// Set comments per page.
-		add_filter( 'option_comments_per_page', array( __CLASS__, 'comments_per_page' ) );
-	}
-
-	public static function comments_per_page( $per_page ) {
-		if ( get_query_var( 'post_type' ) === ATBDP_POST_TYPE ) {
-			$per_page = directorist_get_review_per_page();
-		}
-
-		return $per_page;
 	}
 
 	/**

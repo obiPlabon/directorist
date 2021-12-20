@@ -197,15 +197,7 @@ if (atbdSelect !== null) {
       $(this).toggleClass("atbd_drop--active");
       e.stopPropagation();
     }
-  }); // $(".atbd_dropdown").on("click", function (e) {
-  //     if ($(this).attr("class") === "atbd_dropdown") {
-  //         e.preventDefault();
-  //         $(this).siblings(".atbd_dropdown").removeClass("atbd_drop--active");
-  //         $(this).toggleClass("atbd_drop--active");
-  //         e.stopPropagation();
-  //     }
-  // });
-
+  });
   $(document).on("click", function (e) {
     if ($(e.target).is(".atbd_dropdown, .atbd_drop--active") === false) {
       $(".atbd_dropdown").removeClass("atbd_drop--active");
@@ -213,26 +205,21 @@ if (atbdSelect !== null) {
   });
   $('body').on('click', '.atbd_dropdown-toggle', function (e) {
     e.preventDefault();
-  }); // Restructred Dropdown
-  // Directorist Dropdown
+  }); // Directorist Dropdown
 
   $('body').on('click', '.directorist-dropdown-js .directorist-dropdown__toggle-js', function (e) {
     e.preventDefault();
-    $('.directorist-dropdown__links').hide();
-    $(this).siblings('.directorist-dropdown__links-js').toggle();
-  }); // Select Option after click
-  // $('body').on('click','.directorist-dropdown .directorist-dropdown__links .directorist-dropdown__links--single', function(e){
-  //     e.preventDefault();
-  //     if($(this).parents().hasClass('.directorist-dropdown-update-js')){
-  //         console.log("yes");
-  //     }
-  //     $('.directorist-dropdown__links').hide();
-  // });
-  // Hide Clicked Anywhere
 
-  $(document).bind('click', function (e) {
-    var clickedDom = $(e.target);
-    if (!clickedDom.parents().hasClass('directorist-dropdown-js')) $('.directorist-dropdown__links-js').hide();
+    if (!$(this).siblings('.directorist-dropdown__links-js').is(':visible')) {
+      $('.directorist-dropdown__links').hide();
+    }
+
+    $(this).siblings('.directorist-dropdown__links-js').toggle();
+  });
+  $('body').on('click', function (e) {
+    if (!e.target.closest('.directorist-dropdown-js')) {
+      $('.directorist-dropdown__links-js').hide();
+    }
   });
 })(jQuery);
 
@@ -352,10 +339,37 @@ atbdSelectData.forEach(function (el) {
 
 // author sorting
 (function ($) {
+  /* Masonry layout */
+  function authorsMasonry() {
+    var authorsCard = $('.directorist-authors__cards');
+    $(authorsCard).each(function (id, elm) {
+      var authorsCardRow = $(elm).find('.directorist-row');
+      var authorMasonryInit = $(authorsCardRow).imagesLoaded(function () {
+        $(authorMasonryInit).masonry({
+          percentPosition: true,
+          horizontalOrder: true
+        });
+      });
+    });
+  }
+
+  authorsMasonry();
+  /* alphabet data value */
+
+  var alphabetValue;
+  /* authors nav default active item */
+
+  if ($('.directorist-authors__nav').length) {
+    $('.directorist-authors__nav ul li:first-child').addClass('active');
+  }
+  /* authors nav item */
+
+
   $('body').on('click', '.directorist-alphabet', function (e) {
     e.preventDefault();
+    _this = $(this);
     var alphabet = $(this).attr("data-alphabet");
-    $('#directorist-all-authors').addClass('atbdp-form-fade');
+    $('body').addClass('atbdp-form-fade');
     $.ajax({
       method: 'POST',
       url: atbdp_public_data.ajaxurl,
@@ -366,11 +380,40 @@ atbdSelectData.forEach(function (el) {
       },
       success: function success(response) {
         $('#directorist-all-authors').empty().append(response);
-        $('#directorist-all-authors').removeClass('atbdp-form-fade');
+        $('body').removeClass('atbdp-form-fade');
         $('.' + alphabet).parent().addClass('active');
+        alphabetValue = $(_this).attr('data-alphabet');
+        authorsMasonry();
       },
       error: function error(_error) {
         console.log(_error);
+      }
+    });
+  });
+  /* authors pagination */
+
+  $('body').on('click', '.directorist-authors-pagination a', function (e) {
+    e.preventDefault();
+    var paged = $(this).attr('href');
+    paged = paged.split('/page/')[1];
+    paged = parseInt(paged);
+    paged = paged !== undefined ? paged : 1;
+    $('body').addClass('atbdp-form-fade');
+    var getAlphabetValue = alphabetValue;
+    $.ajax({
+      method: 'POST',
+      url: atbdp_public_data.ajaxurl,
+      data: {
+        action: 'directorist_author_pagination',
+        paged: paged
+      },
+      success: function success(response) {
+        $('body').removeClass('atbdp-form-fade');
+        $('#directorist-all-authors').empty().append(response);
+        authorsMasonry();
+      },
+      error: function error(_error2) {
+        console.log(_error2);
       }
     });
   });
@@ -831,6 +874,7 @@ atbdSelectData.forEach(function (el) {
 
       var data = {
         'action': 'atbdp_public_report_abuse',
+        'directorist_nonce': atbdp_public_data.directorist_nonce,
         'post_id': $('#atbdp-post-id').val(),
         'message': $('#directorist-report-message').val()
       };
@@ -867,7 +911,8 @@ atbdSelectData.forEach(function (el) {
       'name': name.val(),
       'email': contact_email.val(),
       'listing_email': listing_email.val(),
-      'message': message.val()
+      'message': message.val(),
+      'directorist_nonce': atbdp_public_data.directorist_nonce
     };
     submit_button.prop('disabled', true);
     $.post(atbdp_public_data.ajaxurl, data, function (response) {
@@ -1299,6 +1344,7 @@ document.body.addEventListener('click', function (e) {
     var error_count; // ajax action
 
     form_data.append('action', 'update_user_profile');
+    form_data.append('directorist_nonce', atbdp_public_data.directorist_nonce);
 
     if (profileMediaUploader) {
       var hasValidFiles = profileMediaUploader.hasValidFiles();
@@ -1504,237 +1550,14 @@ pureScriptTabChild2('.atbdp-bookings-tab-inner'); */
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _review_starRating__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./review/starRating */ "./assets/src/js/public/components/review/starRating.js");
 /* harmony import */ var _review_starRating__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_review_starRating__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _review_addReview__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./review/addReview */ "./assets/src/js/public/components/review/addReview.js");
-/* harmony import */ var _review_reviewAttatchment__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./review/reviewAttatchment */ "./assets/src/js/public/components/review/reviewAttatchment.js");
-/* harmony import */ var _review_reviewAttatchment__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_review_reviewAttatchment__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var _review_deleteReview__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./review/deleteReview */ "./assets/src/js/public/components/review/deleteReview.js");
-/* harmony import */ var _review_deleteReview__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_review_deleteReview__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var _review_reviewPagination__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./review/reviewPagination */ "./assets/src/js/public/components/review/reviewPagination.js");
-/* harmony import */ var _review_reviewPagination__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(_review_reviewPagination__WEBPACK_IMPORTED_MODULE_4__);
-/* harmony import */ var _review_advanced_review__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./review/advanced-review */ "./assets/src/js/public/components/review/advanced-review.js");
+/* harmony import */ var _review_advanced_review__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./review/advanced-review */ "./assets/src/js/public/components/review/advanced-review.js");
 // Helper Components
+ // import './review/addReview'
+// import './review/reviewAttatchment'
+// import './review/deleteReview'
+// import './review/reviewPagination'
 
 
-
-
-
-
-
-/***/ }),
-
-/***/ "./assets/src/js/public/components/review/addReview.js":
-/*!*************************************************************!*\
-  !*** ./assets/src/js/public/components/review/addReview.js ***!
-  \*************************************************************/
-/*! no exports provided */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/typeof */ "./node_modules/@babel/runtime/helpers/typeof.js");
-/* harmony import */ var _babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_0__);
-
-;
-
-(function ($) {
-  // 	prepear_form_data
-  function prepear_form_data(form, field_map, data) {
-    if (!data || _babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_0___default()(data) !== 'object') {
-      var data = {};
-    }
-
-    for (var key in field_map) {
-      var field_item = field_map[key];
-      var field_key = field_item.field_key;
-      var field_type = field_item.type;
-
-      if ('name' === field_type) {
-        var field = form.find('[name="' + field_key + '"]');
-      } else {
-        var field = form.find(field_key);
-      }
-
-      if (field.length) {
-        var data_key = 'name' === field_type ? field_key : field.attr('name');
-        var data_value = field.val() ? field.val() : '';
-        data[data_key] = data_value;
-      }
-    }
-
-    return data;
-  }
-  /*HELPERS*/
-
-
-  function print_static_rating($star_number) {
-    var v;
-
-    if ($star_number) {
-      v = '<ul>';
-
-      for (var i = 1; i <= 5; i++) {
-        v += i <= $star_number ? "<li><span class='directorist-rate-active'></span></li>" : "<li><span class='directoristrate-disable'></span></li>";
-      }
-
-      v += '</ul>';
-    }
-
-    return v;
-  }
-  /* Add review to the database using ajax*/
-
-
-  var submit_count = 1;
-  $("#directorist-review-form").on("submit", function (e) {
-    e.preventDefault();
-
-    if (submit_count > 1) {
-      // show error message
-      swal({
-        title: atbdp_public_data.warning,
-        text: atbdp_public_data.not_add_more_than_one,
-        type: "warning",
-        timer: 2000,
-        showConfirmButton: false
-      });
-      return false; // if user try to submit the form more than once on a page load then return false and get out
-    }
-
-    var $form = $(this);
-    var $data = $form.serialize();
-    var field_field_map = [{
-      type: 'name',
-      field_key: 'post_id'
-    }, {
-      type: 'id',
-      field_key: '#atbdp_review_nonce_form'
-    }, {
-      type: 'id',
-      field_key: '#guest_user_email'
-    }, {
-      type: 'id',
-      field_key: '#reviewer_name'
-    }, {
-      type: 'id',
-      field_key: '#review_content'
-    }, {
-      type: 'id',
-      field_key: '#directorist-review-rating'
-    }, {
-      type: 'id',
-      field_key: '#review_duplicate'
-    }];
-    var _data = {
-      action: 'save_listing_review'
-    };
-    _data = prepear_form_data($form, field_field_map, _data); // atbdp_do_ajax($form, 'save_listing_review', _data, function (response) {
-
-    jQuery.post(atbdp_public_data.ajaxurl, _data, function (response) {
-      var output = '';
-      var deleteBtn = '';
-      var d;
-      var name = $form.find("#reviewer_name").val();
-      var content = $form.find("#review_content").val();
-      var rating = $form.find("#directorist-review-rating").val();
-      var ava_img = $form.find("#reviewer_img").val();
-      var approve_immediately = $form.find("#approve_immediately").val();
-      var review_duplicate = $form.find("#review_duplicate").val();
-
-      if (approve_immediately === 'no') {
-        if (content === '') {
-          // show error message
-          swal({
-            title: "ERROR!!",
-            text: atbdp_public_data.review_error,
-            type: "error",
-            timer: 2000,
-            showConfirmButton: false
-          });
-        } else {
-          if (submit_count === 1) {
-            $('#directorist-client-review-list').prepend(output); // add the review if it's the first review of the user
-
-            $('.atbdp_static').remove();
-          }
-
-          submit_count++;
-
-          if (review_duplicate === 'yes') {
-            swal({
-              title: atbdp_public_data.warning,
-              text: atbdp_public_data.duplicate_review_error,
-              type: "warning",
-              timer: 3000,
-              showConfirmButton: false
-            });
-          } else {
-            swal({
-              title: atbdp_public_data.success,
-              text: atbdp_public_data.review_approval_text,
-              type: "success",
-              timer: 4000,
-              showConfirmButton: false
-            });
-          }
-        }
-      } else if (response.success) {
-        output += '<div class="directorist-signle-review" id="directorist-single-review-' + response.data.id + '">' + '<input type="hidden" value="1" id="has_ajax">' + '<div class="directorist-signle-review__top"> ' + '<div class="directorist-signle-review-avatar-wrap"> ' + '<div class="directorist-signle-review-avatar">' + ava_img + '</div> ' + '<div class="directorist-signle-review-avatar__info"> ' + '<p>' + name + '</p>' + '<span class="directorist-signle-review-time">' + response.data.date + '</span> ' + '</div> ' + '</div> ' + '<div class="directorist-rated-stars">' + print_static_rating(rating) + '</div> ' + '</div> ';
-
-        if (atbdp_public_data.enable_reviewer_content) {
-          output += '<div class="directorist-signle-review__content"> ' + '<p>' + content + '</p> ' + //'<a href="#"><span class="fa fa-mail-reply-all"></span>Reply</a> ' +
-          '</div> ';
-        }
-
-        output += '</div>'; // as we have saved a review lets add a delete button so that user cann delete the review he has just added.
-
-        deleteBtn += '<button class="directory_btn btn btn-danger" type="button" id="atbdp_review_remove" data-review_id="' + response.data.id + '">Remove</button>';
-        $form.append(deleteBtn);
-
-        if (submit_count === 1) {
-          $('#directorist-client-review-list').prepend(output); // add the review if it's the first review of the user
-
-          $('.atbdp_static').remove();
-        }
-
-        var sectionToShow = $("#has_ajax").val();
-        var sectionToHide = $(".atbdp_static");
-        var sectionToHide2 = $(".directory_btn");
-
-        if (sectionToShow) {
-          // $(sectionToHide).hide();
-          $(sectionToHide2).hide();
-        }
-
-        submit_count++; // show success message
-
-        swal({
-          title: atbdp_public_data.review_success,
-          type: "success",
-          timer: 800,
-          showConfirmButton: false
-        }); //reset the form
-
-        $form[0].reset(); // remove the notice if there was any
-
-        var $r_notice = $('#review_notice');
-
-        if ($r_notice) {
-          $r_notice.remove();
-        }
-      } else {
-        // show error message
-        swal({
-          title: "ERROR!!",
-          text: atbdp_public_data.review_error,
-          type: "error",
-          timer: 2000,
-          showConfirmButton: false
-        });
-      }
-    });
-    return false;
-  });
-})(jQuery);
 
 /***/ }),
 
@@ -1767,81 +1590,6 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
 
 (function ($) {
   'use strict';
-
-  var Attachments_Preview = /*#__PURE__*/function () {
-    function Attachments_Preview(form) {
-      _babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_1___default()(this, Attachments_Preview);
-
-      this.$form = $(form);
-      this.$input = this.$form.find('.directorist-review-images');
-      this.$preview = this.$form.find('.directorist-review-img-gallery');
-      this.init();
-    }
-
-    _babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_2___default()(Attachments_Preview, [{
-      key: "init",
-      value: function init() {
-        var self = this;
-        this.$input.on('change', function () {
-          self.showPreview(this);
-        });
-        this.$form.on('click', '.directorist-btn-delete', function (e) {
-          e.preventDefault();
-          $(this).parent().remove();
-        });
-      } // deleteFromFileList(fileField, index) {
-      //     let fileBuffer = Array.from(fileField.files);
-      //     fileBuffer.splice(index, 1);
-      //     /** Code from: https://stackoverflow.com/a/47172409/8145428 */
-      //     // Firefox < 62 workaround exploiting https://bugzilla.mozilla.org/show_bug.cgi?id=1422655
-      //     // specs compliant (as of March 2018 only Chrome)
-      //     const dataTransfer = new ClipboardEvent('').clipboardData || new DataTransfer();
-      //     for (let file of fileBuffer) {
-      //         dataTransfer.items.add(file);
-      //     }
-      //     fileField.files = dataTransfer.files;
-      // }
-      // addToFileList(fileField, index) {
-      //     let fileBuffer = Array.from(fileField.files);
-      //     fileBuffer.splice(index, 1);
-      //     /** Code from: https://stackoverflow.com/a/47172409/8145428 */
-      //     // Firefox < 62 workaround exploiting https://bugzilla.mozilla.org/show_bug.cgi?id=1422655
-      //     // specs compliant (as of March 2018 only Chrome)
-      //     const dataTransfer = new ClipboardEvent('').clipboardData || new DataTransfer();
-      //     for (let file of fileBuffer) {
-      //         dataTransfer.items.add(file);
-      //     }
-      //     fileField.files = dataTransfer.files;
-      // }
-
-    }, {
-      key: "showPreview",
-      value: function showPreview(input) {
-        var _this2 = this;
-
-        this.$preview.html('');
-
-        for (var i = 0, len = input.files.length; i < len; i++) {
-          var fileReader = new FileReader();
-          var file = input.files[i];
-
-          if (!file.type.startsWith('image/')) {
-            continue;
-          }
-
-          fileReader.onload = function (event) {
-            var html = "\n                    <div class=\"directorist-review-gallery-preview preview-image\">\n                        <img src=\"".concat(event.target.result, "\" alt=\"Directorist Review Preview\">\n                        <a href=\"#\" class=\"directorist-btn-delete\"><i class=\"la la-trash\"></i></a>\n                    </div>\n                    ");
-
-            _this2.$preview.append(html);
-          };
-
-          fileReader.readAsDataURL(file);
-        }
-      }
-    }]);
-
-    return Attachments_Preview;
-  }();
 
   var ActivityStorage = /*#__PURE__*/function () {
     function ActivityStorage() {
@@ -1958,7 +1706,7 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
     }, {
       key: "callback",
       value: function callback(event) {
-        var _this3 = this;
+        var _this2 = this;
 
         event.preventDefault();
         var $target = $(event.currentTarget);
@@ -1977,40 +1725,40 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
           return;
         }
 
+        var $comment = $('#div-comment-' + commentId);
+
         if (this.storage.has(commentId, activity)) {
+          $comment.prepend(this.getAlert('info').html('Already reported!'));
           $target.addClass('processing').attr('disabled', true);
+          this.timeout = setTimeout(function () {
+            $comment.find('.directorist-alert').slideUp('medium');
+            clearTimeout(_this2.timeout);
+          }, 3000);
           return;
         }
 
         if ($target.hasClass('processing')) {
           return;
-        } else {
-          $target.addClass('processing').attr('disabled', true);
-
-          if (activity === 'helpful' || activity === 'unhelpful') {
-            $target.find('span').html($target.data('count') + 1);
-            $target.data('count', $target.data('count') + 1);
-          }
         }
 
+        $target.addClass('processing').attr('disabled', true);
         this.timeout && clearTimeout(this.timeout);
         this.send(commentId, activity).done(function (response) {
-          var $comment = $('#div-comment-' + commentId);
           var type = 'warning';
 
           if (response.success) {
             $target.removeClass('processing').removeAttr('disabled', true);
             type = 'success';
+
+            _this2.storage.add(commentId, activity);
           }
 
           $comment.find('.directorist-alert').remove();
-          $comment.prepend(_this3.getAlert(type).html(response.data));
-          _this3.timeout = setTimeout(function () {
+          $comment.prepend(_this2.getAlert(type).html(response.data));
+          _this2.timeout = setTimeout(function () {
             $comment.find('.directorist-alert').slideUp('medium');
-            clearTimeout(_this3.timeout);
+            clearTimeout(_this2.timeout);
           }, 3000);
-
-          _this3.storage.add(commentId, activity);
         });
       }
     }, {
@@ -2037,13 +1785,13 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
 
   var ReplyFormObserver = /*#__PURE__*/function () {
     function ReplyFormObserver() {
-      var _this4 = this;
+      var _this3 = this;
 
       _babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_1___default()(this, ReplyFormObserver);
 
       this.init();
       $(document).on('directorist_reviews_updated', function () {
-        return _this4.init();
+        return _this3.init();
       });
     }
 
@@ -2108,6 +1856,9 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
                     } finally {
                       _iterator3.f();
                     }
+
+                    node.querySelector('#submit').innerHTML = 'Submit review';
+                    node.querySelector('#comment').setAttribute('placeholder', 'Leave a review');
                   }
                 }
               } catch (err) {
@@ -2150,6 +1901,9 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
               if (alert) {
                 alert.style.display = 'none';
               }
+
+              form.querySelector('#submit').innerHTML = 'Submit comment';
+              form.querySelector('#comment').setAttribute('placeholder', 'Leave your comment');
             }
           }
         } catch (err) {
@@ -2203,11 +1957,7 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
             Ajax_Comment.showError(form, errorMsg);
             $(document).trigger('directorist_reviews_update_failed');
             return;
-          } // if ( comments.length < 1 ) {
-          //     comment_section = '.commentlist';
-          //     comments = body.find( comment_section );
-          // }
-
+          }
 
           var commentslists = comments.find(".commentlist li");
           var new_comment_id = false; // catch the new comment id by comparing to old dom.
@@ -2221,9 +1971,7 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
           });
           $(comment_section).replaceWith(comments);
           $(document).trigger('directorist_reviews_updated', data);
-          var commentTop = $("#" + new_comment_id).offset().top; // if ( $( 'body' ).hasClass( 'sticky-header' ) ) {
-          //     commentTop = $( "#" + new_comment_id ).offset().top - $( '#masthead' ).height();
-          // }
+          var commentTop = $("#" + new_comment_id).offset().top;
 
           if ($('body').hasClass('admin-bar')) {
             commentTop = commentTop - $('#wpadminbar').height();
@@ -2240,15 +1988,7 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
           var body = $("<div></div>");
           body.append(data.responseText);
           body.find("style,meta,title,a").remove();
-          Ajax_Comment.showError(form, body.find('.wp-die-message')); // console.log(body.find( '.wp-die-message' ).);
-          // if ( typeof bb_vue_loader == 'object' &&
-          //     typeof bb_vue_loader.common == 'object' &&
-          //     typeof bb_vue_loader.common.showSnackbar != 'undefined' ) {
-          //     bb_vue_loader.common.showSnackbar( body )
-          // } else {
-          //     alert( body );
-          // }
-
+          Ajax_Comment.showError(form, body.find('.wp-die-message'));
           $(document).trigger('directorist_reviews_update_failed');
         });
         do_comment.always(function () {
@@ -2287,29 +2027,25 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
     function Advanced_Review() {
       _babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_1___default()(this, Advanced_Review);
 
-      this.form = document.querySelector('#commentform');
-
-      if (!this.form) {
-        return;
-      }
-
-      this.setFormEncoding();
-      this.init();
+      this.$doc = $(document);
+      this.setupComponents();
+      this.addEventListeners();
+      this.setFormEncodingAttribute();
     }
 
     _babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_2___default()(Advanced_Review, [{
-      key: "init",
-      value: function init() {
-        this.setupComponents();
-        $(document).on('directorist_reviews_updated', function () {
-          $(".directorist-stars").barrating({
+      key: "addEventListeners",
+      value: function addEventListeners() {
+        var _this4 = this;
+
+        this.$doc.on('directorist_reviews_updated', function () {
+          $('.directorist-stars, .directorist-review-criteria-select').barrating({
             theme: 'fontawesome-stars'
           });
-          $('.directorist-review-criteria-select').barrating({
-            theme: 'fontawesome-stars'
-          });
+
+          _this4.setFormEncodingAttribute();
         });
-        $(document).on('click', 'a[href="#respond"]', this.onWriteReivewClick);
+        this.$doc.on('click', 'a[href="#respond"]', this.onWriteReivewClick);
       }
     }, {
       key: "onWriteReivewClick",
@@ -2321,22 +2057,25 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
           respondTop = respondTop - $('#wpadminbar').height();
         }
 
-        $("body, html").animate({
+        $('body, html').animate({
           scrollTop: respondTop
         }, 600);
       }
     }, {
       key: "setupComponents",
       value: function setupComponents() {
-        this.preview = new Attachments_Preview(this.form);
         new Comment_Activity(new ActivityStorage());
         new ReplyFormObserver();
         new Ajax_Comment();
       }
     }, {
-      key: "setFormEncoding",
-      value: function setFormEncoding() {
-        this.form.encoding = 'multipart/form-data';
+      key: "setFormEncodingAttribute",
+      value: function setFormEncodingAttribute() {
+        var form = document.querySelector('#commentform');
+
+        if (form) {
+          form.encoding = 'multipart/form-data';
+        }
       }
     }]);
 
@@ -2344,175 +2083,6 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
   }();
 
   var advanced_review = new Advanced_Review();
-})(jQuery);
-
-/***/ }),
-
-/***/ "./assets/src/js/public/components/review/deleteReview.js":
-/*!****************************************************************!*\
-  !*** ./assets/src/js/public/components/review/deleteReview.js ***!
-  \****************************************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-;
-
-(function ($) {
-  // remove the review of a user
-  var delete_count = 1;
-  $(document).on('click', '#directorist-review-remove', function (e) {
-    e.preventDefault();
-
-    if (delete_count > 1) {
-      // show error message
-      swal({
-        title: "WARNING!!",
-        text: atbdp_public_data.review_have_not_for_delete,
-        type: "warning",
-        timer: 2000,
-        showConfirmButton: false
-      });
-      return false; // if user try to submit the form more than once on a page load then return false and get out
-    }
-
-    var $this = $(this);
-    var id = $this.data('review_id');
-    var data = {
-      review_id: id,
-      action: "remove_listing_review"
-    };
-    swal({
-      title: atbdp_public_data.review_sure_msg,
-      text: atbdp_public_data.review_want_to_remove,
-      type: "warning",
-      cancelButtonText: atbdp_public_data.review_cancel_btn_text,
-      showCancelButton: true,
-      confirmButtonColor: "#DD6B55",
-      confirmButtonText: atbdp_public_data.review_delete_msg,
-      showLoaderOnConfirm: true,
-      closeOnConfirm: false
-    }, function (isConfirm) {
-      if (isConfirm) {
-        // user has confirmed, now remove the review
-        $.post(atbdp_public_data.ajaxurl, data, function (response) {
-          if ('success' === response) {
-            // show success message
-            swal({
-              title: "Deleted!!",
-              type: "success",
-              timer: 200,
-              showConfirmButton: false
-            });
-            $("#single_review_" + id).slideUp();
-            $this.remove();
-            $('#review_content').empty();
-            $(".directorist-review-form-action").remove();
-            $("#directorist-client-review-list").remove();
-            $("#reviewCounter").hide();
-            delete_count++; // increase the delete counter so that we do not need to delete the review more than once.
-          } else {
-            // show error message
-            swal({
-              title: "ERROR!!",
-              text: atbdp_public_data.review_wrong_msg,
-              type: "error",
-              timer: 2000,
-              showConfirmButton: false
-            });
-          }
-        });
-      }
-    }); // send an ajax request to the ajax-handler.php and then delete the review of the given id
-  });
-})(jQuery);
-
-/***/ }),
-
-/***/ "./assets/src/js/public/components/review/reviewAttatchment.js":
-/*!*********************************************************************!*\
-  !*** ./assets/src/js/public/components/review/reviewAttatchment.js ***!
-  \*********************************************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-;
-
-(function ($) {
-  // Review Attatchment
-  function handleFiles(files) {
-    var preview = document.getElementById('atbd_up_preview');
-
-    for (var i = 0; i < files.length; i++) {
-      var file = files[i];
-
-      if (!file.type.startsWith('image/')) {
-        continue;
-      }
-
-      var img = document.createElement("img");
-      img.classList.add("atbd_review_thumb");
-      var imgWrap = document.createElement('div');
-      imgWrap.classList.add('atbd_up_prev');
-      preview.appendChild(imgWrap); // Assuming that "preview" is the div output where the content will be displayed.
-
-      imgWrap.appendChild(img);
-      $(imgWrap).append('<span class="rmrf">x</span>');
-      var reader = new FileReader();
-
-      reader.onload = function (aImg) {
-        return function (e) {
-          aImg.src = e.target.result;
-        };
-      }(img);
-
-      reader.readAsDataURL(file);
-    }
-  }
-
-  $('#atbd_review_attachment').on('change', function (e) {
-    handleFiles(this.files);
-  });
-})(jQuery);
-
-/***/ }),
-
-/***/ "./assets/src/js/public/components/review/reviewPagination.js":
-/*!********************************************************************!*\
-  !*** ./assets/src/js/public/components/review/reviewPagination.js ***!
-  \********************************************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-;
-
-(function ($) {
-  // Review Pagination Control 
-  function atbdp_load_all_posts(page) {
-    var listing_id = $('#review_post_id').attr('data-post-id'); // Data to receive from our server
-    // the value in 'action' is the key that will be identified by the 'wp_ajax_' hook
-
-    var data = {
-      page: page,
-      listing_id: listing_id,
-      action: "atbdp_review_pagination"
-    }; // Send the data
-
-    $.post(atbdp_public_data.ajaxurl, data, function (response) {
-      // If successful Append the data into our html container
-      $('#directorist-client-review-list').empty().append(response);
-    });
-  } // Load page 1 as the default
-
-
-  if ($('#directorist-client-review-list').length) {
-    atbdp_load_all_posts(1);
-  } // Handle the clicks
-
-
-  $('body').on('click', '.atbdp-universal-pagination li.atbd-active', function () {
-    var page = $(this).attr('data-page');
-    atbdp_load_all_posts(page);
-  });
 })(jQuery);
 
 /***/ }),
@@ -2847,38 +2417,6 @@ function _slicedToArray(arr, i) {
 }
 
 module.exports = _slicedToArray;
-module.exports["default"] = module.exports, module.exports.__esModule = true;
-
-/***/ }),
-
-/***/ "./node_modules/@babel/runtime/helpers/typeof.js":
-/*!*******************************************************!*\
-  !*** ./node_modules/@babel/runtime/helpers/typeof.js ***!
-  \*******************************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-function _typeof(obj) {
-  "@babel/helpers - typeof";
-
-  if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
-    module.exports = _typeof = function _typeof(obj) {
-      return typeof obj;
-    };
-
-    module.exports["default"] = module.exports, module.exports.__esModule = true;
-  } else {
-    module.exports = _typeof = function _typeof(obj) {
-      return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-    };
-
-    module.exports["default"] = module.exports, module.exports.__esModule = true;
-  }
-
-  return _typeof(obj);
-}
-
-module.exports = _typeof;
 module.exports["default"] = module.exports, module.exports.__esModule = true;
 
 /***/ }),

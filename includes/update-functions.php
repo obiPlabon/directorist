@@ -2,14 +2,14 @@
 /**
  * Database update and migration functions.
  *
- * @since 7.0.6
+ * @since 7.1.0
  */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
 // Migrate old reviews data from review table to comments table
-function directorist_706_migrate_reviews_table_to_comments_table() {
+function directorist_710_migrate_reviews_table_to_comments_table() {
 	global $wpdb;
 
 	$review_table = $wpdb->prefix . 'atbdp_review';
@@ -43,13 +43,14 @@ function directorist_706_migrate_reviews_table_to_comments_table() {
 	}
 
 	//Delete review table
-	$wpdb->query( "DROP TABLE IF EXISTS {$review_table}" );
+	// TODO: Delete this table in future.
+	// $wpdb->query( "DROP TABLE IF EXISTS {$review_table}" );
 }
 
 // pending -> pending:0
 // declined -> trash
 // approved -> approved:1
-function directorist_706_migrate_posts_table_to_comments_table() {
+function directorist_710_migrate_posts_table_to_comments_table() {
 	global $wpdb;
 
 	$reviews = $wpdb->get_results(
@@ -85,13 +86,14 @@ function directorist_706_migrate_posts_table_to_comments_table() {
 		}
 
 		// Delete review type posts
-		foreach ( $reviews as $review ) {
-			wp_delete_post( $review->post_id, true );
-		}
+		// TODO: Delete this in the future
+		// foreach ( $reviews as $review ) {
+		// 	wp_delete_post( $review->post_id, true );
+		// }
 	}
 }
 
-function directorist_706_review_rating_clear_transients() {
+function directorist_710_review_rating_clear_transients() {
 	global $wpdb;
 
 	$listings = $wpdb->get_results( "SELECT listings.ID as id FROM {$wpdb->posts} AS listings WHERE listings.post_type='at_biz_dir' AND listings.comment_count >= 1" );
@@ -119,6 +121,6 @@ function _directorist_get_comment_status_by_review_status( $status = 'approved' 
 	return isset( $statuses[ $status ] ) ? $statuses[ $status ] : $statuses['pending'];
 }
 
-function directorist_706_update_db_version() {
-	\ATBDP_Installation::update_db_version( '7.0.6' );
+function directorist_710_update_db_version() {
+	\ATBDP_Installation::update_db_version( '7.1.0' );
 }

@@ -15,6 +15,7 @@ class Directorist_Listing_Author {
 	public $all_listings;
 	public $rating;
 	public $total_review;
+	public $columns;
 
 	public $listing_types;
 	public $current_listing_type;
@@ -68,6 +69,7 @@ class Directorist_Listing_Author {
 	function prepare_data() {
 		$this->listing_types        = $this->get_listing_types();
 		$this->current_listing_type = $this->get_current_listing_type();
+		$this->columns              = (int) atbdp_calculate_column( get_directorist_option( 'all_listing_columns', 3 ) );
 
 		$this->id = $this->extract_user_id( get_query_var( 'author_id' ) );
 
@@ -137,76 +139,39 @@ class Directorist_Listing_Author {
 	public function get_rating() {
 		$user_listings = $this->all_listings;
 
-		$review_in_post = 0;
-		$all_reviews    = 0;
+		$reviews_count = 0;
+		$reviews_sum   = 0;
 
-		if ( ! empty( $user_listings->ids ) ) :
+		if ( ! empty( $user_listings->ids ) ) {
 			// Prime caches to reduce future queries.
-			if ( ! empty( $user_listings->ids ) && is_callable( '_prime_post_caches' ) ) {
+			if ( function_exists( '_prime_post_caches' ) ) {
 				_prime_post_caches( $user_listings->ids );
 			}
 
-			$original_post = isset( $GLOBALS['post'] ) ? $GLOBALS['post'] : get_post();
+			foreach ( $user_listings->ids as $listings_id ) {
+				$average = directorist_get_listing_rating( $listings_id );
 
-			foreach ( $user_listings->ids as $listings_id ) :
-				$GLOBALS['post'] = get_post( $listings_id );
-				setup_postdata( $GLOBALS['post'] );
-
-				// TODO: remove the following line
-				// $average = ATBDP()->review->get_average($listings_id);
-				$average = directorist_get_listing_rating($listings_id);
-				if ( ! empty( $average ) ) {
-					$averagee = array( $average );
-					foreach ( $averagee as $key ) {
-						$all_reviews += $key;
-					}
-					$review_in_post++;
+				if ( $average > 0 ) {
+					$reviews_sum    += $average;
+					$reviews_count += 1;
 				}
-			endforeach;
+			}
+		}
 
-			$GLOBALS['post'] = $original_post;
-            wp_reset_postdata();
-		endif;
+		$total_rating = 0;
+		if ( $reviews_count > 0 ) {
+			$total_rating = number_format( ( $reviews_sum / $reviews_count ), 1 );
+		}
 
-		$author_rating = ( ! empty( $all_reviews ) && ! empty( $review_in_post ) ) ? ( $all_reviews / $review_in_post ) : 0;
-		$author_rating = substr( $author_rating, '0', '3' );
+		$this->rating       = $total_rating;
+		$this->total_review = $reviews_count;
 
-		$this->rating       = $author_rating;
-		$this->total_review = $review_in_post;
-
-		return $author_rating;
+		return $total_rating;
 	}
 
 	public function get_review_count() {
-		$user_listings = $this->all_listings;
-
-		$review_in_post = 0;
-
-		if ( ! empty( $user_listings->ids ) ) :
-			// Prime caches to reduce future queries.
-			if ( ! empty( $user_listings->ids ) && is_callable( '_prime_post_caches' ) ) {
-				_prime_post_caches( $user_listings->ids );
-			}
-
-			$original_post = $GLOBALS['post'];
-
-			foreach ( $user_listings->ids as $listings_id ) :
-				$GLOBALS['post'] = get_post( $listings_id );
-				setup_postdata( $GLOBALS['post'] );
-
-				// TODO: remove the following line
-				// $average = ATBDP()->review->get_average($listings_id);
-				$average = directorist_get_listing_rating($listings_id);
-				if ( ! empty( $average ) ) {
-					$review_in_post++;
-				}
-			endforeach;
-
-			$GLOBALS['post'] = $original_post;
-            wp_reset_postdata();
-		endif;
-
-		return $review_in_post;
+		$this->get_rating();
+		return $this->total_review;
 	}
 
 	private function enqueue_scripts() {
@@ -349,7 +314,7 @@ class Directorist_Listing_Author {
 		if ( $display_email == 'public' ) {
 			$email_endabled = true;
 		}
-		elseif ( $display_email == 'logged_in' && atbdp_logged_in_user() ) {
+		elseif ( $display_email == 'logged_in' && is_user_logged_in() ) {
 			$email_endabled = true;
 		}
 		else {
@@ -418,43 +383,13 @@ class Directorist_Listing_Author {
 
 		$this->enqueue_scripts();
 
-		if ( 'yes' === $logged_in_user_only && ! atbdp_logged_in_user() ) {
+		if ( 'yes' === $logged_in_user_only && ! is_user_logged_in() ) {
 			return ATBDP()->helper->guard( array('type' => 'auth') );
 		}
 
 		ob_start();
 		if ( ! empty( $atts['shortcode'] ) ) { Helper::add_shortcode_comment( $atts['shortcode'] ); }
 		echo Helper::get_template_contents( 'author-contents', array( 'author' => $this ) );
-
-		return ob_get_clean();
-	}
-
-	public function render_shortcode_author_archive( $atts = [] ) {
-
-		ob_start();
-		$all_authors_role	        =	get_directorist_option( 'all_authors_role', true );
-		$all_authors_select_role	=	get_directorist_option( 'all_authors_select_role', 'all' );
-		$args = array();
-		if( ! empty( $all_authors_role ) && 'all' != $all_authors_select_role ) {
-			$args = array( 'role__in' => array( $all_authors_select_role ) );
-		}
-		$args = array(
-			'all_authors' 						=> get_users( $args ),
-			'alphabets'	  						=> range( 'A', 'Z' ),
-			'all_authors_columns'				=> get_directorist_option( 'all_authors_columns', 3 ),
-			'all_authors_sorting'				=> get_directorist_option( 'all_authors_sorting', true ),
-			'all_authors_image'					=> get_directorist_option( 'all_authors_image', true ),
-			'all_authors_name'					=> get_directorist_option( 'all_authors_name', true ),
-			'all_authors_role'					=> $all_authors_role,
-			'all_authors_info'					=> get_directorist_option( 'all_authors_info', true ),
-			'all_authors_description'			=> get_directorist_option( 'all_authors_description', true ),
-			'all_authors_description_limit'		=> get_directorist_option( 'all_authors_description_limit', 13 ),
-			'all_authors_social_info'			=> get_directorist_option( 'all_authors_social_info', true ),
-			'all_authors_button'				=> get_directorist_option( 'all_authors_button', true ),
-			'all_authors_button_text'			=> get_directorist_option( 'all_authors_button_text', 'View All Listings' ),
-		);
-		if ( ! empty( $atts['shortcode'] ) ) { Helper::add_shortcode_comment( $atts['shortcode'] ); }
-		echo Helper::get_template_contents( 'author/archive', $args );
 
 		return ob_get_clean();
 	}

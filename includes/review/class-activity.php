@@ -3,7 +3,7 @@
  * Review activity class.
  *
  * @package Directorist\Review
- * @since 7.0.6
+ * @since 7.1.0
  */
 namespace Directorist\Review;
 
@@ -44,11 +44,7 @@ class Activity {
 				throw new \Exception( __( 'Invalid request.', 'directorist' ), 401 );
 			}
 
-			if ( empty( $comment_id ) ) {
-				throw new \Exception( __( 'Comment id cannot be empty.', 'directorist' ), 400 );
-			}
-
-			if ( is_null( get_comment( $comment_id ) ) ) {
+			if ( empty( $comment_id ) || is_null( get_comment( $comment_id ) ) ) {
 				throw new \Exception( __( 'Comment does not exist!.', 'directorist' ), 400 );
 			}
 
