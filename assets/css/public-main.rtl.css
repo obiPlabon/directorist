@@ -12413,6 +12413,7 @@ Review: New Style
   border-radius: 4px;
   background: #E1E4EC;
   margin: 1px;
+  outline: 0;
 }
 .directorist-review-submit__form .directorist-review-criteria__single .br-widget a:before {
   content: "";
@@ -12423,6 +12424,8 @@ Review: New Style
 }
 .directorist-review-submit__form .directorist-review-criteria__single .br-widget a:focus {
   background: #E1E4EC !important;
+  outline: 0 !important;
+  text-decoration: none !important;
 }
 .directorist-review-submit__form .directorist-review-criteria__single .br-widget a.br-selected, .directorist-review-submit__form .directorist-review-criteria__single .br-widget a.br-active {
   background: #fa8b0c !important;

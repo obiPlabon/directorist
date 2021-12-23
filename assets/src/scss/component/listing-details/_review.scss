@@ -695,6 +695,7 @@ Review: New Style
                         border-radius: 4px;
                         background: #E1E4EC;
                         margin: 1px;
+                        outline: 0;
 
                         &:before {
                             content: "\f005";
@@ -705,6 +706,8 @@ Review: New Style
                         }
                         &:focus{
                             background: #E1E4EC !important;
+                            outline: 0 !important;
+                            text-decoration: none !important;
                         }
 
                         &.br-selected,
