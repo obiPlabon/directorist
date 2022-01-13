@@ -3,54 +3,61 @@ namespace Directorist\Listings;
 
 class Query {
 
-	protected $defaults = array(
-		'include'  => null,   // post__in
-		'exclude'  => null,   // post__not_in
-		'per_page' => 10,     // posts_per_page
+	protected function get_default_args() {
+		$args = array(
+			// Default alternative
+			'include'  => null,        // post__in
+			'exclude'  => null,        // post__not_in
+			'per_page' => 10,          // posts_per_page
+			'search'   => null,        // q
+			'status'   => 'publish',   // status
 
-		// Category taxonomy args
-		'categories'          => null,        // array
-		'categories_field'    => 'term_id',
-		'categories_relation' => 'AND',
+			// Category taxonomy args
+			'categories'          => null,        // array
+			'categories_field'    => 'term_id',
+			'categories_relation' => 'AND',
 
-		'tags'          => [],          // array
-		'tags_field'    => 'term_id',
-		'tags_relation' => 'AND',
+			// Tag taxonomy
+			'tags'          => null,
+			'tags_field'    => 'term_id',
+			'tags_relation' => 'AND',
 
-		'locations'          => [],          // array
-		'locations_field'    => 'term_id',
-		'locations_relation' => 'AND',
+			// Location taxonomy
+			'locations'          => null,
+			'locations_field'    => 'term_id',
+			'locations_relation' => 'AND',
 
-		'directories'          => [],          // array
-		'directories_field'    => 'term_id',
-		'directories_relation' => 'AND',
+			// Directory type taxonomy
+			'directories'          => null,          // array
+			'directories_field'    => 'term_id',
+			'directories_relation' => 'AND',
 
-		'search' => null,
+			'rating'       => null,   // number
+			'review_count' => null,   // number
 
-		'rating'       => null,   // number
-		'review_count' => null,   // number
-		'view_count'   => null,   // numberß
+			'view_count'   => null,   // numberß
 
-		'status' => 'publish',
+			// Meta fields
+			'address'     => null,   // string
+			'website'     => null,   // string
+			'email'       => null,   // string
+			'phone'       => null,   // string
+			'fax'         => null,   // string
+			'zip'         => null,   // string
+			'distance'    => null,
+			'latitude'    => null,
+			'longitude'   => null,
+			'radius'      => [],
+			'price'       => [],
+			'price_range' => null,   // string
+			'featured'    => null,   // true || false
 
-		'address'     => null,   // string
-		'website'     => null,   // string
-		'email'       => null,   // string
-		'phone'       => null,   // string
-		'fax'         => null,   // string
-		'zip'         => null,   // string
-		'distance'    => null,
-		'latitude'    => null,
-		'longitude'   => null,
-		'radius'      => [],
-		'price'       => [],
-		'price_range' => null,   // string
+			'search_relation' => 'AND',
+			'meta_relation'   => 'AND',
+		);
 
-		'featured' => null,   // true || false
-
-		'search_relation' => 'AND',
-		'meta_relation'   => 'AND',
-	);
+		return apply_filters( 'directorist_listings_query_default_args', $args );
+	}
 
 	public function set_defaults() {
 		// Meta fields
@@ -67,23 +74,50 @@ class Query {
 		// distance - numeric
 		// latitude - numeric
 		// longitude - numeric
-
 	}
 
-	public function parse_args( array $args = [] ) {
-		$this->parsed_args = array_replace_recursive( $this->defaults, $args );
+	public function parse_args( array $args = array() ) {
+		$args = array_replace_recursive(
+			$this->get_default_args(),
+			$args
+		);
+
+		$args = $this->parse_native_args( $args );
+		$args = $this->parse_meta_args( $args );
+		$args = $this->parse_taxonomy_args( $args );
+	}
+
+	protected function parse_native_args( $args ) {
+		if ( ! isset( $args['posts_per_page'] ) || ! empty( $args['per_page'] ) ) {
+			$args['posts_per_page'] = $args['per_page'];
+			unset( $args['per_page'] );
+		}
+
+		if ( ! isset( $args['post__in'] ) && ! empty( $args['include'] ) ) {
+			$args['post__in'] = $args['include'];
+			unset( $args['include'] );
+		}
+
+		if ( ! isset( $args['post__not_in'] ) && ! empty( $args['exclude'] ) ) {
+			$args['post__not_in'] = $args['exclude'];
+			unset( $args['exclude'] );
+		}
+
+		if ( ! isset( $args['q'] ) && ! empty( $args['search'] ) ) {
+			$args['q'] = $args['search'];
+			unset( $args['search'] );
+		}
+
+		return $args;
+	}
+
+	protected function parse_meta_args( $args ) {
+	}
+
+	protected function parse_taxonomy_args( $args ) {
 	}
 
 	public function __construct( array $args = [], $query_id = 'listings' ) {
-		if ( empty( $query_id ) ) {
-			return new WP_Error( 'query_id_missing', __( 'Listings query id cannot be empty', 'directorist' ) );
-		}
-
-		$this->id = $query_id;
-		$this->set_defaults();
-		$this->parse_args( $args );
-
-		return $this->run();
 	}
 
 	public function prepare_query_args() {
