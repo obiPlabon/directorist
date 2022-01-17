@@ -2,40 +2,48 @@
 namespace Directorist\Listings;
 
 class Query {
+	const DEFAULT_TAX_QUERY_FIELD = 'term_id';
 
 	protected function get_default_args() {
 		$args = array(
 			// Default alternative
-			'include'  => null,        // post__in
-			'exclude'  => null,        // post__not_in
-			'per_page' => 10,          // posts_per_page
-			'search'   => null,        // q
-			'status'   => 'publish',   // status
+			'include'  => null,
+			'exclude'  => null,
+			'per_page' => 10,
+			'search'   => null,
+			'status'   => 'publish',
 
 			// Category taxonomy args
-			'categories'          => null,        // array
-			'categories_field'    => 'term_id',
-			'categories_relation' => 'AND',
+			'categories__in'              => null,
+			'categories__not_in'          => null,
+			'categories_field'            => self::DEFAULT_TAX_QUERY_FIELD,
+			'categories_include_children' => true,
+			'categories_relation'         => 'AND',
 
 			// Tag taxonomy
-			'tags'          => null,
-			'tags_field'    => 'term_id',
+			'tags__in'      => null,
+			'tags__not_in'  => null,
+			'tags_field'    => self::DEFAULT_TAX_QUERY_FIELD,
 			'tags_relation' => 'AND',
 
 			// Location taxonomy
-			'locations'          => null,
-			'locations_field'    => 'term_id',
+			'locations__in'      => null,
+			'locations__not_in'  => null,
+			'locations_field'    => self::DEFAULT_TAX_QUERY_FIELD,
 			'locations_relation' => 'AND',
 
 			// Directory type taxonomy
-			'directories'          => null,          // array
-			'directories_field'    => 'term_id',
+			'directories__in'      => null,
+			'directories__not_in'  => null,
+			'directories_field'    => self::DEFAULT_TAX_QUERY_FIELD,
 			'directories_relation' => 'AND',
 
-			'rating'       => null,   // number
-			'review_count' => null,   // number
-
-			'view_count'   => null,   // numberß
+			'rating'               => null,   // number
+			'rating_compare'       => '>=',
+			'review_count'         => null,   // number
+			'review_count_compare' => '>=',
+			'view_count'           => null,   // number
+			'view_count_compare'   => '>=',
 
 			// Meta fields
 			'address'     => null,   // string
@@ -59,32 +67,21 @@ class Query {
 		return apply_filters( 'directorist_listings_query_default_args', $args );
 	}
 
-	public function set_defaults() {
-		// Meta fields
-		// _featured - numeric - 1
-		// _listing_status - string - {expired, ...}
-		// _atbdp_post_views_count - numeric -
-		// _price - numeric -
-		// address - string
-		// website - string
-		// email - string
-		// phone - string
-		// fax - string
-		// zip - string
-		// distance - numeric
-		// latitude - numeric
-		// longitude - numeric
-	}
-
-	public function parse_args( array $args = array() ) {
-		$args = array_replace_recursive(
-			$this->get_default_args(),
-			$args
-		);
+	public function parse_args( $args = array() ) {
+		$args = wp_parse_args( $args, $this->get_default_args() );
 
 		$args = $this->parse_native_args( $args );
+
+		// Taxonomy args parsing.
+		$args = $this->parse_categories_args( $args );
+		$args = $this->parse_tags_args( $args );
+		$args = $this->parse_locations_args( $args );
+		$args = $this->parse_directories_args( $args );
+
+		// Meta args parsing.
 		$args = $this->parse_meta_args( $args );
-		$args = $this->parse_taxonomy_args( $args );
+
+		return $args;
 	}
 
 	protected function parse_native_args( $args ) {
@@ -112,23 +109,143 @@ class Query {
 	}
 
 	protected function parse_meta_args( $args ) {
+		$query = array();
+
+		foreach ( array( 'address', 'email', 'website', 'fax', 'zip' ) as $field ) {
+			if ( ! empty( $args[ $field ] ) ) {
+				$query[ $field ] = array(
+					'key'     => '_' . $field,
+					'value'   => $args[ $field ],
+					'compare' => 'LIKE'
+				);
+			}
+		}
+
+		if ( ! empty( $args['phone'] ) ) {
+			$query['phone'] = array(
+				'relation' => 'OR',
+				array(
+					'key'     => '_phone2',
+					'value'   => $args['phone'],
+					'compare' => 'LIKE'
+				),
+				array(
+					'key'     => '_phone',
+					'value'   => $args['phone'],
+					'compare' => 'LIKE'
+				)
+			);
+		}
+
+		if ( empty( $args['meta_query'] ) ) {
+			$args['meta_query'] = array();
+		}
+
+		$args['meta_query'] = array_merge( $args['meta_query'], $query );
+
+		return $args;
 	}
 
-	protected function parse_taxonomy_args( $args ) {
+	protected function parse_categories_args( $args ) {
+		return $this->parse_taxonomy_args( $args, ATBDP_CATEGORY );
 	}
 
-	public function __construct( array $args = [], $query_id = 'listings' ) {
+	protected function parse_tags_args( $args ) {
+		return $this->parse_taxonomy_args( $args, ATBDP_TAGS );
 	}
 
-	public function prepare_query_args() {
-		$this->parsed_args;
+	protected function parse_locations_args( $args ) {
+		return $this->parse_taxonomy_args( $args, ATBDP_LOCATION );
 	}
 
-	protected function get_query_args() {
-		return apply_filters( 'directorist_listings_query_args', $args, $this );
+	protected function parse_directories_args( $args ) {
+		return $this->parse_taxonomy_args( $args, ATBDP_DIRECTORY_TYPE );
 	}
 
-	public function run() {
-		return new \WP_Query( $this->get_query_args() );
+	protected function parse_taxonomy_args( $args, $taxonomy ) {
+		$prefix   = $this->get_taxonomy_query_prefix( $taxonomy );
+		$in       = $prefix . '__in';
+		$not_in   = $prefix . '__not_in';
+		$field    = $prefix . '_field';
+		$relation = $prefix . '_relation';
+
+		if ( empty( $args[ $in ] ) && empty( $args[ $not_in ] ) ) {
+			return $args;
+		}
+
+		$query = array();
+		if ( ! empty( $args[ $in ] ) ) {
+			$query[ $in ] = array(
+				'terms'    => $args[ $in ],
+				'taxonomy' => $taxonomy,
+				'operator' => 'IN',
+				'field'    => $this->validate_taxonomy_query_field( $args[ $field ] ),
+			);
+
+			if ( ! empty( $args[ $prefix . '_include_children'] ) && is_taxonomy_hierarchical( $taxonomy ) ) {
+				$query[ $in ]['include_children'] = true;
+			}
+		}
+
+		if ( ! empty( $args[ $not_in ] ) ) {
+			$query[ $not_in ] = array(
+				'terms'    => $args[ $not_in ],
+				'taxonomy' => $taxonomy,
+				'operator' => 'NOT IN',
+				'field'    => $this->validate_taxonomy_query_field( $args[ $field ] ),
+			);
+		}
+
+		if ( empty( $args['tax_query'] ) ) {
+			$args['tax_query'] = array();
+		}
+
+		unset(
+			$args[ $in ],
+			$args[ $not_in ],
+			$args[ $relation ],
+			$args[ $field ],
+			$args[ $prefix . '_include_children']
+		);
+
+		$args['tax_query'] = array_merge( $args['tax_query'], $query );
+
+		return $args;
 	}
+
+	private function get_taxonomy_query_prefix( $taxonomy ) {
+		$map = array(
+			ATBDP_CATEGORY       => 'categories',
+			ATBDP_TAGS           => 'tags',
+			ATBDP_LOCATION       => 'locations',
+			ATBDP_DIRECTORY_TYPE => 'directories',
+		);
+
+		return $map[ $taxonomy ];
+	}
+
+	private function validate_taxonomy_query_field( $field = self::DEFAULT_TAX_QUERY_FIELD ) {
+		if ( in_array( $field, array( 'term_id', 'name', 'slug', 'term_taxonomy_id' ), true ) ) {
+			return $field;
+		}
+
+		return self::DEFAULT_TAX_QUERY_FIELD;
+	}
+
+	public function __construct( $args = array() ) {
+		// $args = $this->parse_args( $args );
+		// return 'hello world';
+	}
+
+	// public function prepare_query_args() {
+	// 	$this->parsed_args;
+	// }
+
+	// protected function get_query_args() {
+	// 	return apply_filters( 'directorist_listings_query_args', $args, $this );
+	// }
+
+	// public function run() {
+	// 	return new \WP_Query( $this->get_query_args() );
+	// }
 }
