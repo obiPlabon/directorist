@@ -208,3 +208,12 @@ function directorist_user_review_exists( $user_email, $post_id ) {
 function directorist_is_review_reply_enabled() {
 	return (bool) get_directorist_option( 'review_enable_reply', false );
 }
+
+/**
+ * Listing review count meta field key.
+ *
+ * @return string
+ */
+function directorist_get_review_count_field_meta_key() {
+	return \Directorist\Review\Listing_Review_Meta::FIELD_REVIEW_COUNT;
+}
