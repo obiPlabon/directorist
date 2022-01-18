@@ -1293,6 +1293,8 @@ function admin_listing_form(directory_type) {
       $('.misc-pub-atbdp-expiration-time').empty().html(response.data['listing_expiration']);
       $('#listing_form_info').find('.directorist_loader').remove();
       $('select[name="directory_type"]').closest('#poststuff').find('#publishing-action').removeClass('directorist_disable');
+      window.dispatchEvent(new CustomEvent('directorist-reload-plupload'));
+      window.dispatchEvent(new CustomEvent('directorist-type-change'));
 
       if (response.data['required_js_scripts']) {
         var scripts = response.data['required_js_scripts'];

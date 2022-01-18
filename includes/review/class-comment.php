@@ -100,7 +100,7 @@ class Comment {
 				}
 
 				// Validate if sharing multiple reviews
-				if ( ! $rating_is_missing && self::review_exists_by( $author_email, $post_id ) ) {
+				if ( ! $rating_is_missing && directorist_user_review_exists( $author_email, $post_id ) ) {
 					$errors[] = __( '<strong>Error</strong>: You already shared a review.', 'directorist' );
 				}
 
@@ -233,16 +233,24 @@ class Comment {
 	 * @return mixed
 	 */
 	public static function set_comment_status( $approved, $comment_data ) {
-		if ( is_admin() || $comment_data['comment_type'] !== 'review' || ATBDP_POST_TYPE !== get_post_type( $comment_data['comment_post_ID'] ) ) {
+		if ( is_admin() || ATBDP_POST_TYPE !== get_post_type( $comment_data['comment_post_ID'] ) ) {
 			return $approved;
 		}
 
-		if ( directorist_is_immediate_review_approve_enabled() && $approved === 0 ) {
-			$approved = 1; // set to approved
+		$pending = 0;
+		$approve = 1;
+		$is_review = ( $comment_data['comment_type'] === 'review' );
+
+		if ( directorist_is_guest_review_enabled() && ! is_user_logged_in() && $is_review ) {
+			return $pending;
 		}
 
-		if ( ! directorist_is_immediate_review_approve_enabled() && $approved === 1 ) {
-			$approved = 0; // set to pending
+		if ( directorist_is_immediate_review_approve_enabled() && $is_review && $approved === 0 ) {
+			return $approve;
+		}
+
+		if ( ! directorist_is_immediate_review_approve_enabled() && $is_review && $approved === 1 ) {
+			return $pending;
 		}
 
 		return $approved;
@@ -267,7 +275,7 @@ class Comment {
 		if ( $post_id && ATBDP_POST_TYPE === get_post_type( $post_id ) ) {
 			do_action( 'directorist/review/save_comment' );
 
-			self::post_rating( $comment_id, $comment_data );
+			self::post_rating( $comment_id, $comment_data, $_POST );
 			self::clear_transients( $post_id );
 		}
 	}
@@ -290,34 +298,6 @@ class Comment {
 		Review_Meta::update_rating( $listing_id, self::get_average_rating_for_listing( $listing_id ) );
 
 		do_action( 'directorist/review/maybe_clear_transients', $listing_id );
-	}
-
-	/**
-	 * Check if user already shared a review.
-	 *
-	 * @param string $user_email
-	 * @param int $post_id.
-	 * @return bool
-	 */
-	public static function review_exists_by( $user_email, $post_id ) {
-		global $wpdb;
-
-		$has_review = $wpdb->get_var(
-			$wpdb->prepare(
-				"
-			SELECT count(comment_ID) FROM $wpdb->comments
-			WHERE comment_post_ID = %d
-			AND ( comment_approved = '1' OR comment_approved = '0' )
-			AND comment_type = 'review'
-			AND comment_author_email = '%s'
-			LIMIT 0, 1
-				",
-				$post_id,
-				$user_email
-			)
-		);
-
-		return (bool) $has_review;
 	}
 
 	/**
@@ -439,23 +419,18 @@ class Comment {
 		return $counts;
 	}
 
-	public static function post_rating( $comment_id, $comment_data ) {
-		if ( $comment_data['comment_type'] !== 'review' || empty( $_POST['rating'] ) ) {
+	public static function post_rating( $comment_id, $comment_data, $posted_data ) {
+		if ( $comment_data['comment_type'] !== 'review' || empty( $posted_data['rating'] ) ) {
 			return;
 		}
 
 		$builder = Builder::get( $comment_data['comment_post_ID'] );
 		$rating  = 0;
 
-		if ( is_array( $_POST['rating'] ) && $builder->is_rating_type_single() ) {
-			$rating = current( $_POST['rating'] );
-
+		if ( $builder->is_rating_type_single() ) {
+			$rating = is_array( $posted_data['rating'] ) ? current( $posted_data['rating'] ) : $posted_data['rating'];
 			// Base max rating is "5" and min is "0", make sure given rating is not out of the range
 			$rating = max( 0, min( 5, intval( $rating ) ) );
-			$rating = number_format( $rating, 2, '.', '' );
-		} else {
-			// Base max rating is "5" and min is "0", make sure given rating is not out of the range
-			$rating = max( 0, min( 5, intval( $_POST['rating'] ) ) );
 			$rating = number_format( $rating, 2, '.', '' );
 		}
 

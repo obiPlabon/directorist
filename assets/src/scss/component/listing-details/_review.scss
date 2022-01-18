@@ -263,8 +263,39 @@
 /*==================================
 Review: New Style
 ===================================*/
+.directorist-review-container {
+    margin-bottom: 35px;
+
+    .comment-notes,
+    .comment-form-cookies-consent {
+        margin-bottom: 20px;
+        font-style: italic;
+        font-size: 14px;
+        font-weight: normal;
+    }
+}
+
 .directorist-review-content {
     border-radius: 4px;
+
+    a > i {
+        font-size: .9em;
+    }
+
+    .directorist-btn > i {
+        margin-right: 5px;
+    }
+
+    .directorist-js-cancel-comment-edit {
+        font-size: 14px;
+        margin-left: 30px;
+        color: #8C90A4;
+
+        &:hover,
+        &:focus {
+            color: #090E30;
+        }
+    }
 
     .directorist-review-content {
         @include e(header) {
@@ -300,6 +331,26 @@ Review: New Style
                 span{
                     display: inline-block;
                     margin-right: 4px;
+                }
+            }
+            @include m(noreviews){
+                padding: 6px 0;
+                display: block;
+                >div{
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    flex-wrap: wrap;
+                    padding: 0 20px 6px;
+                    border-bottom: 1px solid #EFF1F6;
+                }
+            }
+            .directorist-noreviews{
+                font-size: 16px;
+                margin-bottom: 0;
+                padding: 19px 20px 15px;
+                a{
+                    color: $info;
                 }
             }
         }
@@ -422,6 +473,45 @@ Review: New Style
                 border: 1px solid #EFF1F6;
                 &:not(:last-child) {
                     margin-bottom: 10px;
+                }
+            }
+
+            .directorist-comment-edit-request {
+                position: relative;
+                &::after {
+                    content: "";
+                    display: block;
+                    position: absolute;
+                    left: 0;
+                    top: 0;
+                    height: 100%;
+                    width: 100%;
+                    z-index: 99;
+                    background-color: rgba(255, 255, 255, .8);
+                    border-radius: 4px;
+                }
+
+                &::before {
+                    position: absolute;
+                    z-index: 100;
+                    left: 50%;
+                    top: 50%;
+                    display: block;
+                    content: "";
+                    width: 24px;
+                    height: 24px;
+                    border-radius: 50%;
+                    border: 2px solid rgba(0, 0, 0, 0.2);
+                    border-top-color: rgba(0, 0, 0, 0.8);
+                    animation: directoristCommentEditLoading .6s linear infinite;
+                }
+            }
+
+            .directorist-comment-editing {
+                .directorist-review-single__report,
+                .directorist-review-single__content,
+                .directorist-review-single__reply {
+                    display: none;
                 }
             }
 
@@ -572,7 +662,7 @@ Review: New Style
                         }
                     }
                 }
-                .directorist-review-submit{
+                .directorist-review-submit {
                     margin-top: 0 !important;
                     margin-bottom: 0 !important;
                     border: 0 none !important;
@@ -580,7 +670,7 @@ Review: New Style
                         padding-left: 0;
                         padding-right: 0;
 
-                        h3{
+                        h3 {
                             display: flex;
                             align-items: center;
                             justify-content: space-between;
@@ -589,10 +679,8 @@ Review: New Style
                             margin: 0 !important;
                         }
                     }
-                    @include e(form){
-                        margin-top: 0 !important;
-                        padding: 15px 0 0;
-                    }
+                    // @include e(form){
+                    // }
                 }
             }
         }
@@ -661,11 +749,22 @@ Review: New Style
     }
 
     @include e(form) {
-        padding: 25px 25px 30px;
         margin: 0 !important;
-        .directorist-alert{
-            margin-bottom: 15px;
+
+        &:not(.directorist-form-comment-edit) {
+            padding: 25px;
         }
+
+        .directorist-review-single & {
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        .directorist-alert {
+            margin-bottom: 20px;
+            padding: 10px 20px;
+        }
+
         .directorist-review-criteria {
             margin-bottom: 25px;
             @include e(single) {
@@ -677,9 +776,9 @@ Review: New Style
                     width: 100px;
                     word-wrap: break-word;
                     word-break: break-all;
-                    font-size: 14px;
+                    font-size: 15px;
                     font-weight: 500;
-                    color: #525768;
+                    color: #090E30;
                     margin: 0;
                 }
 
@@ -734,6 +833,9 @@ Review: New Style
             textarea {
                 background: #F6F7F9;
                 font-size: 15px;
+                display: block;
+                resize: vertical;
+                margin: 0;
                 &:focus{
                     background: #F6F7F9;
                 }
@@ -747,10 +849,12 @@ Review: New Style
                 display: block;
             }
 
-            input[type=text] {
+            input[type="text"],
+            input[type="email"] {
                 max-width: 400px;
                 height: 46px;
                 background: #F6F7F9;
+                margin: 0;
             }
         }
 
@@ -833,9 +937,19 @@ Review: New Style
     }
 }
 
+.directorist-review-content + .directorist-review-submit.directorist-review-submit--hidden {
+    display: none !important;
+}
+
 /* Review responsiveness */
 @media (max-width: 480px){
     .directorist-review-content .directorist-review-content__overview__rating{
         flex: 0 0 100%;
+    }
+}
+
+@keyframes directoristCommentEditLoading {
+    to {
+        transform: rotate(360deg);
     }
 }

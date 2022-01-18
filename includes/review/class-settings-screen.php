@@ -59,10 +59,11 @@ class Settings_Screen {
 				],
 			],
 			'guest_review' => [
-				'type'    => 'toggle',
-				'label'   => __( 'Allow Guest Review', 'directorist' ),
-				'value'   => false,
-				'show-if' => [
+				'type'        => 'toggle',
+				'label'       => __( 'Allow Guest Review', 'directorist' ),
+				'description' => __( 'Guest reviews are not published immediately even when the setting is enabled.', 'directorist' ),
+				'value'       => false,
+				'show-if'     => [
 					'where'      => 'enable_review',
 					'conditions' => [
 						[
@@ -89,10 +90,11 @@ class Settings_Screen {
 					],
 				],
 			],
-			'review_approval_text' => [
-				'type'        => 'textarea',
-				'label'       => __( 'Approval Notification Text', 'directorist'),
-				'value'       => __( 'We have received your review. It requires approval.', 'directorist' ),
+			'review_enable_reply' => [
+				'type'        => 'toggle',
+				'label'       => __( 'Enable Reply', 'directorist' ),
+				'description' => __( 'Allow users to reply to review or reply to another reply.', 'directorist' ),
+				'value'       => false,
 				'show-if'     => [
 					'where'      => 'enable_review',
 					'conditions' => [
@@ -104,6 +106,21 @@ class Settings_Screen {
 					],
 				],
 			],
+			// 'review_approval_text' => [
+			// 	'type'        => 'textarea',
+			// 	'label'       => __( 'Approval Notification Text', 'directorist'),
+			// 	'value'       => __( 'We have received your review. It requires approval.', 'directorist' ),
+			// 	'show-if'     => [
+			// 		'where'      => 'enable_review',
+			// 		'conditions' => [
+			// 			[
+			// 				'key'     => 'value',
+			// 				'compare' => '=',
+			// 				'value'   => true
+			// 			],
+			// 		],
+			// 	],
+			// ],
 			// 'enable_reviewer_img' => [
 			// 	'type'    => 'toggle',
 			// 	'label'   => __( 'Enable Reviewer Image', 'directorist' ),

@@ -21,7 +21,6 @@ class Metabox {
 		add_action( 'add_meta_boxes', [ __CLASS__, 'update_meta_boxes' ], 20 );
 		add_filter( 'admin_comment_types_dropdown', [ __CLASS__, 'add_comment_types_in_dropdown' ] );
 
-		add_action( 'directorist/admin/review/meta_fields', [ __CLASS__, 'render_report_meta_field' ] );
 		add_action( 'directorist/admin/review/meta_fields', [ __CLASS__, 'render_rating_meta_field' ] );
 
 		add_filter( 'comment_edit_redirect', [ __CLASS__, 'comment_edit_redirect' ], 10, 2 );
@@ -69,6 +68,10 @@ class Metabox {
 	}
 
 	public static function add_menu() {
+		if ( ! directorist_is_review_enabled() ) {
+			return;
+		}
+
 		$menu_slug    = 'edit.php?post_type='. ATBDP_POST_TYPE;
 		$submenu_slug = 'edit-comments.php?post_type=' . ATBDP_POST_TYPE;
 
@@ -117,7 +120,7 @@ class Metabox {
 			return;
 		}
 
-		Comment::post_rating( $comment_id, $comment_data );
+		Comment::post_rating( $comment_id, $comment_data, $_POST );
 		Comment::clear_transients( $comment->comment_post_ID );
 	}
 
@@ -146,20 +149,6 @@ class Metabox {
 				<?php do_action( 'directorist/admin/review/meta_fields', $comment ); ?>
 			</tbody>
 		</table>
-		<?php
-	}
-
-	public static function render_report_meta_field( $comment ) {
-		if ( ! current_user_can( 'moderate_comments' ) ) {
-			return;
-		}
-
-		$reported = (int) Comment_Meta::get_reported( $comment->comment_ID, 0 );
-		?>
-		<tr>
-			<th><?php esc_html_e( 'Reported', 'directorist' ); ?></th>
-			<td><?php printf( _n( '%s time', '%s times', $reported, 'directorist' ), $reported ); ?></td>
-		</tr>
 		<?php
 	}
 

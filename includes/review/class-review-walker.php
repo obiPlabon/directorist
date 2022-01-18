@@ -84,6 +84,7 @@ class Walker extends Walker_Comment {
 		$show_pending_links = ! empty( $commenter['comment_author'] );
 		$has_parent         = (bool) $comment->comment_parent;
 		$rating             = Comment::get_rating( get_comment_ID() );
+		$is_review          = ( $comment->comment_type === 'review' );
 
 		if ( $commenter['comment_author_email'] ) {
 			$moderation_note = __( 'Your %1$s is awaiting moderation.', 'directorist' );
@@ -91,7 +92,7 @@ class Walker extends Walker_Comment {
 			$moderation_note = __( 'Your %1$s is awaiting moderation. This is a preview; your comment will be visible after it has been approved.', 'directorist' );
 		}
 
-		if ( $comment->comment_type === 'review' ) {
+		if ( $is_review ) {
 			$moderation_note = sprintf( $moderation_note, __( 'review', 'directorist' ) );
 		} else {
 			$moderation_note = sprintf( $moderation_note, __( 'comment', 'directorist' ) );
@@ -120,20 +121,20 @@ class Walker extends Walker_Comment {
 								?>
 							</div>
 							<div class="directorist-review-single__author__details">
-								<h2 class="fn"><?php comment_author_link(); ?> <time datetime="<?php echo esc_attr( get_comment_date( 'Y-m-d H:i:s' ) ); ?>"><?php comment_date( apply_filters( 'directorist_review_date_format', 'F Y' ) ); ?></time></h2>
+								<h2 class="fn"><?php comment_author_link(); ?> <time datetime="<?php echo esc_attr( get_comment_date( 'Y-m-d H:i:s' ) ); ?>"><?php comment_date( apply_filters( 'directorist_review_date_format', 'j F, Y' ) ); ?></time></h2>
 
-								<?php if ( ! $has_parent && $rating ) : ?>
+								<?php if ( $is_review && $rating ) : ?>
 									<span class="directorist-rating-stars">
 										<?php Markup::show_rating_stars( $rating ); ?>
 									</span>
 								<?php endif; ?>
 							</div>
 						</div>
-						<?php if ( ! $has_parent ) : ?>
+						<?php /* if ( $is_review ) : ?>
 							<div class="directorist-review-single__report">
-								<a <?php self::add_activity_prop( 'report' ); ?> href="#"><i class="la la-flag"></i> Report</a>
+								<a <?php self::add_activity_prop( 'report' ); ?> href="#" class="directorist-btn-modal-js"><i class="la la-flag"></i> Report</a>
 							</div>
-						<?php endif; ?>
+						<?php endif; */ ?>
 					</header>
 					<div class="directorist-review-single__content">
 						<?php comment_text(); ?>
@@ -146,9 +147,8 @@ class Walker extends Walker_Comment {
 				<?php endif; ?>
 
 				<div class="directorist-review-single__reply">
-					<?php edit_comment_link( sprintf( __( '%s Edit', 'directorist' ), '<i class="far fa-edit" aria-hidden="true"></i>' ) ); ?>
-
-					<?php comment_reply_link(
+					<?php
+					comment_reply_link(
 						array_merge(
 							$args,
 							array(
@@ -157,11 +157,23 @@ class Walker extends Walker_Comment {
 								'depth'      => $depth,
 								'max_depth'  => $args['max_depth'],
 								'add_below'  => 'div-comment',
-								// 'before'     => '',
-								// 'after'      => ''
 							)
 						)
-					); ?>
+					);
+
+					if ( current_user_can( 'edit_comment', get_comment_ID() ) ) {
+						echo directorist_get_comment_edit_link(
+							array_merge(
+								$args,
+								array(
+									'edit_text' => sprintf( __( '%s Edit', 'directorist' ), '<i class="fas fa-pencil-alt" aria-hidden="true"></i>' ),
+									'depth'      => $depth,
+									'max_depth'  => $args['max_depth']
+								)
+							)
+						);
+					}
+					?>
 				</div>
 			</article><!-- .comment-body -->
 		<?php
