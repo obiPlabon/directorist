@@ -8613,3 +8613,20 @@ function directorist_has_no_listing() {
 
 	return $has_no_listing;
 }
+
+/**
+ * Get an array of valid price ranges.
+ * Use can use `directorist_get_price_ranges` filter hook to add your custom.
+ *
+ * @return array Valid price ranges.
+ */
+function directorist_get_price_ranges() {
+	$price_ranges = array(
+		'skimming',
+		'moderate',
+		'economy',
+		'bellow_economy',
+	);
+
+	return apply_filters( 'directorist_price_ranges', $price_ranges );
+}
