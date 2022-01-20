@@ -418,7 +418,7 @@ class Query {
 	}
 
 	public function __construct( $args = array(), $query_id = null ) {
-		$this->do( $args = array(), $query_id = null );
+		$this->do( $args, $query_id );
 	}
 
 	protected function set_query_id( $query_id = null ) {
@@ -432,7 +432,7 @@ class Query {
 		}
 	}
 
-	public function do( $args = array(), $query_id = null ) {
+	public function do( $args, $query_id ) {
 		$this->set_query_id( $query_id );
 
 		$this->wp_query = new WP_Query( $this->parse_args( $args ) );

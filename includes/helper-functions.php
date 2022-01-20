@@ -8520,3 +8520,9 @@ function directorist_get_price_ranges() {
 
 	return apply_filters( 'directorist_price_ranges', $price_ranges );
 }
+
+function directorist_get_listings( $args = array(), $query_id = null ) {
+	$query = new Directorist\Listings\Query( $args, $query_id );
+
+	return $query->get_query();
+}
