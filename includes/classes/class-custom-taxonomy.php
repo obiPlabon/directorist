@@ -191,14 +191,13 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 		}
 
 		public function add_category_icon_column_sortable( $sortable ) {
-			$sortable['ID']                            = __( 'ID', 'directorist' );
-			$sortable['atbdp_category_icon']           = 'atbdp_category_icon';
-			$sortable['atbdp_category_directory_type'] = 'atbdp_category_directory_type';
+			$sortable['ID']                                  = 'ID';
+			$sortable['directorist_category_directory_type'] = 'directorist_category_directory_type';
 			return $sortable;
 		}
 
 		public function add_location_icon_column_sortable( $sortable ) {
-			$sortable['atbdp_location_directory_type'] = 'atbdp_location_directory_type';
+			$sortable['directorist_location_directory_type'] = 'directorist_location_directory_type';
 			return $sortable;
 		}
 
@@ -271,7 +270,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 			if ( ! $default_listing_type ) {
 				?>
 			<tr class="form-field term-group-wrap">
-				<th scope="row"><label for="directory-types"><?php esc_html_e( 'Directory Type', 'directorist' ); ?></label></th>
+				<th scope="row"><label for="directory-types"><?php esc_html_e( 'Directory', 'directorist' ); ?></label></th>
 				<td>
 				<div class="directory_types-wrapper">
 						<?php
@@ -340,7 +339,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 			$default_listing_type = $this->default_listing_type();
 			if ( ! $default_listing_type ) { ?>
 			<tr class="form-field term-group-wrap">
-				<th scope="row"><label for="category_icon"><?php esc_html_e( 'Directory Type', 'directorist' ); ?></label></th>
+				<th scope="row"><label for="category_icon"><?php esc_html_e( 'Directory', 'directorist' ); ?></label></th>
 				<td>
 					<div class="directory_types-wrapper">
 						<?php
@@ -432,7 +431,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 			if ( ! $default_listing_type ) {
 				?>
 			<div class="form-field term-group">
-			<label for="directory_type"><?php esc_html_e( 'Directory Type', 'directorist' ); ?></label>
+			<label for="directory_type"><?php esc_html_e( 'Directory', 'directorist' ); ?></label>
 			<div class="directory_types-wrapper">
 				<?php
 				if ( $directory_types ) {
@@ -478,7 +477,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 			if ( ! $default_listing_type ) {
 				?>
 			<div class="form-field term-group">
-				<label for="directory_type"><?php esc_html_e( 'Directory Type', 'directorist' ); ?></label>
+				<label for="directory_type"><?php esc_html_e( 'Directory', 'directorist' ); ?></label>
 				<div class="directory_types-wrapper">
 				<?php
 				if ( $directory_types ) {
@@ -626,13 +625,12 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 		public function category_columns( $original_columns ) {
 			$new_columns = $original_columns;
 			array_splice( $new_columns, 1 ); // in this way we could place our columns on the first place after the first checkbox.
-			$enable_multi_directory = get_directorist_option( 'enable_multi_directory' );
 
 			$new_columns['ID'] = __( 'ID', 'directorist' );
+			$new_columns['directorist_category_icon'] = __( 'Icon', 'directorist' );
 
-			$new_columns['atbdp_category_icon'] = __( 'Icon', 'directorist' );
-			if ( ! empty( $enable_multi_directory ) ) {
-				$new_columns['atbdp_category_directory_type'] = __( 'Directory Type', 'directorist' );
+			if ( directorist_is_multi_directory() ) {
+				$new_columns['directorist_category_directory_type'] = __( 'Directory', 'directorist' );
 			}
 
 			return array_merge( $new_columns, $original_columns );
@@ -643,7 +641,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 			array_splice( $new_columns, 2 ); // in this way we could place our columns on the first place after the first checkbox.
 			$enable_multi_directory = get_directorist_option( 'enable_multi_directory' );
 			if ( ! empty( $enable_multi_directory ) ) {
-				$new_columns['atbdp_location_directory_type'] = __( 'Directory Type', 'directorist' );
+				$new_columns['directorist_location_directory_type'] = __( 'Directory', 'directorist' );
 			}
 
 			return array_merge( $new_columns, $original_columns );
@@ -680,12 +678,12 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 			if ( $column_name == 'ID' ) {
 				return $term_id;
 			}
-			if ( $column_name == 'atbdp_category_icon' ) {
+			if ( $column_name == 'directorist_category_icon' ) {
 
 				return ! empty( $icon ) ? "<i class='{$icon}'></i>" : ' ';
 			}
 
-			if ( $column_name == 'atbdp_category_directory_type' ) {
+			if ( $column_name == 'directorist_category_directory_type' ) {
 				if ( $directory_type ) {
 					$listing_type = array();
 					foreach ( $directory_type as $type ) {
@@ -706,7 +704,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 		public function location_rows( $empty_string, $column_name, $term_id ) {
 			$directory_type = get_term_meta( $term_id, '_directory_type', true );
 
-			if ( $column_name == 'atbdp_location_directory_type' ) {
+			if ( $column_name == 'directorist_location_directory_type' ) {
 
 				if ( $directory_type && is_array( $directory_type ) ) {
 
