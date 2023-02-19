@@ -644,32 +644,21 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 		 * @see apply_filters( "manage_{$this->screen->taxonomy}_custom_column", '', $column_name, $tag->term_id );
 		 * @param string $return_string
 		 * @param int    $column_name
-		 * @param int    $term_id
+		 * @param int    $category_id
 		 * @return mixed
 		 */
-		public function category_rows( $return_string, $column_name, $term_id ) {
-			$icon = get_term_meta( $term_id, 'category_icon', true );
+		public function category_rows( $return_string, $column_name, $category_id ) {
+			$icon = get_term_meta( $category_id, 'category_icon', true );
 
 			if ( $column_name === 'directorist_category_icon' && $icon ) {
 				return sprintf( '<span class="%s" style="font-size: 1.6em"></span>', esc_attr( $icon ) );
 			}
 
 			if ( $column_name === 'directorist_category_directory_type' && directorist_is_multi_directory() ) {
-				$directory_type = get_term_meta( $term_id, '_directory_type', true );
-				$directory_type = ! empty( $directory_type ) ? $directory_type : array();
-				$directory_type = is_array( $directory_type ) ? $directory_type : array( $directory_type );
+				$directories = directorist_get_directories_of_category( $category_id );
 
-				if ( $directory_type ) {
-					$listing_type = array();
-					foreach ( $directory_type as $type ) {
-						if ( is_numeric( $type ) ) {
-							$get_type       = get_term_by( 'term_id', $type, ATBDP_TYPE );
-							$listing_type[] = ! empty( $get_type ) ? $get_type->slug : '';
-						} else {
-							$listing_type[] = $type;
-						}
-					}
-					return implode( ', ', $listing_type );
+				if ( ! empty( $directories ) ) {
+					return implode( ', ', array_values( $directories ) );
 				}
 			}
 

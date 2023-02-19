@@ -3969,3 +3969,47 @@ function directorist_get_page_id( string $page_name = '' ) : int {
 function directorist_is_multi_directory() {
 	return (bool) get_directorist_option( 'enable_multi_directory', false );
 }
+
+/**
+ * Get all the directories of a term (category or location).
+ *
+ * @since //TODO: add version number before merge.
+ * @param int $term_id
+ *
+ * @return array id=>name or empty array
+ */
+function directorist_get_directories_of_term( $term_id ) {
+	$directories = (array) get_term_meta( $term_id, '_directory_type', true );
+	$directories = array_map( 'absint', $directories );
+	$directories = array_filter( $directories );
+
+	$args = array(
+		'include'                => $directories,
+		'hide_empty'             => false,
+		'update_term_meta_cache' => false,
+		'fields'                 => 'id=>name',
+		'taxonomy'               => ATBDP_TYPE,
+	);
+
+	$directory_terms = get_terms( $args );
+
+	if ( is_wp_error( $directory_terms ) ) {
+		return array();
+	}
+
+	return $directory_terms;
+}
+
+/**
+ * @see directorist_get_directories_of_term()
+ */
+function directorist_get_directories_of_category( $category_id ) {
+	return directorist_get_directories_of_term( $category_id );
+}
+
+/**
+ * @see directorist_get_directories_of_term()
+ */
+function directorist_get_directories_of_location( $location_id ) {
+	return directorist_get_directories_of_term( $location_id );
+}
