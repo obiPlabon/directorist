@@ -3926,7 +3926,7 @@ function directorist_default_preview_size() {
  * @return int Page ID
  */
 function directorist_get_page_id( string $page_name = '' ) : int {
-    
+
     $page_to_option_map = apply_filters( 'directorist_pages', array(
         'location'      => 'single_location_page',
         'category'      => 'single_category_page',
@@ -3959,4 +3959,13 @@ function directorist_get_page_id( string $page_name = '' ) : int {
     }
 
     return (int) apply_filters( 'directorist_page_id', $page_id, $page_name );
+}
+
+/**
+ * Check if multi directory is enabled.
+ *
+ * @return bool
+ */
+function directorist_is_multi_directory() {
+	return (bool) get_directorist_option( 'enable_multi_directory', false );
 }
