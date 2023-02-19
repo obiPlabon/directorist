@@ -10,6 +10,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 			add_action( 'init', array( $this, 'add_custom_taxonomy' ), 0 );
 			add_filter( 'manage_' . ATBDP_CATEGORY . '_custom_column', array( $this, 'category_rows' ), 15, 3 );
 			add_filter( 'manage_edit-' . ATBDP_CATEGORY . '_columns', array( $this, 'category_columns' ) );
+			add_filter( ATBDP_CATEGORY . '_row_actions', array( $this, 'category_row_actions'), 10, 2 );
 
 			add_filter( 'manage_' . ATBDP_LOCATION . '_custom_column', array( $this, 'location_rows' ), 15, 3 );
 			add_filter( 'manage_edit-' . ATBDP_LOCATION . '_columns', array( $this, 'location_columns' ) );
@@ -622,68 +623,42 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 
 		}
 
-		public function category_columns( $original_columns ) {
-			$new_columns = $original_columns;
-			array_splice( $new_columns, 1 ); // in this way we could place our columns on the first place after the first checkbox.
+		public function category_columns( $columns ) {
+			$new_columns = $columns;
+			array_splice( $new_columns, 2 ); // in this way we could place our columns on the first place after the first checkbox.
 
-			$new_columns['ID'] = __( 'ID', 'directorist' );
 			$new_columns['directorist_category_icon'] = __( 'Icon', 'directorist' );
 
 			if ( directorist_is_multi_directory() ) {
 				$new_columns['directorist_category_directory_type'] = __( 'Directory', 'directorist' );
 			}
 
-			return array_merge( $new_columns, $original_columns );
-		}
+			unset( $columns['description'] );
 
-		public function location_columns( $original_columns ) {
-			$new_columns = $original_columns;
-			array_splice( $new_columns, 2 ); // in this way we could place our columns on the first place after the first checkbox.
-			$enable_multi_directory = get_directorist_option( 'enable_multi_directory' );
-			if ( ! empty( $enable_multi_directory ) ) {
-				$new_columns['directorist_location_directory_type'] = __( 'Directory', 'directorist' );
-			}
-
-			return array_merge( $new_columns, $original_columns );
+			return array_merge( $new_columns, $columns );
 		}
 
 		/**
 		 * Print data for custom rows in our custom category page
 		 *
 		 * @see apply_filters( "manage_{$this->screen->taxonomy}_custom_column", '', $column_name, $tag->term_id );
-		 * @param string $empty_string
+		 * @param string $return_string
 		 * @param int    $column_name
 		 * @param int    $term_id
 		 * @return mixed
 		 */
-		public function category_rows( $empty_string, $column_name, $term_id ) {
-			$icon           = get_term_meta( $term_id, 'category_icon', true );
-			$directory_type = get_term_meta( $term_id, '_directory_type', true );
-			$directory_type = ! empty( $directory_type ) ? $directory_type : array();
-			$directory_type = is_array( $directory_type ) ? $directory_type : array( $directory_type );
+		public function category_rows( $return_string, $column_name, $term_id ) {
+			$icon = get_term_meta( $term_id, 'category_icon', true );
 
-			/*
-			 $icon_type = array();
-			if (!empty($icon)){
-				$icon_type = explode('-', $icon);
-			}
-			if (!empty($icon_type[0]) && $icon_type[0] === 'fa'){
-				$class = 'fa '.$icon;
-			}elseif (!empty($icon_type[0]) && $icon_type[0] === 'la'){
-				$class = 'la '.$icon;
-			}else{
-				$class = 'none';
-			} */
-
-			if ( $column_name == 'ID' ) {
-				return $term_id;
-			}
-			if ( $column_name == 'directorist_category_icon' ) {
-
-				return ! empty( $icon ) ? "<i class='{$icon}'></i>" : ' ';
+			if ( $column_name === 'directorist_category_icon' && $icon ) {
+				return sprintf( '<span class="%s" style="font-size: 1.6em"></span>', esc_attr( $icon ) );
 			}
 
-			if ( $column_name == 'directorist_category_directory_type' ) {
+			if ( $column_name === 'directorist_category_directory_type' && directorist_is_multi_directory() ) {
+				$directory_type = get_term_meta( $term_id, '_directory_type', true );
+				$directory_type = ! empty( $directory_type ) ? $directory_type : array();
+				$directory_type = is_array( $directory_type ) ? $directory_type : array( $directory_type );
+
 				if ( $directory_type ) {
 					$listing_type = array();
 					foreach ( $directory_type as $type ) {
@@ -698,7 +673,26 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 				}
 			}
 
-			return $empty_string;
+			return $return_string;
+		}
+
+		public function category_row_actions( $actions, $term ) {
+			$action = array(
+				'id' => sprintf( '<span>ID: %s</span>', $term->term_id )
+			);
+
+			return ( $action + $actions );
+		}
+
+		public function location_columns( $original_columns ) {
+			$new_columns = $original_columns;
+			array_splice( $new_columns, 2 ); // in this way we could place our columns on the first place after the first checkbox.
+			$enable_multi_directory = get_directorist_option( 'enable_multi_directory' );
+			if ( ! empty( $enable_multi_directory ) ) {
+				$new_columns['directorist_location_directory_type'] = __( 'Directory', 'directorist' );
+			}
+
+			return array_merge( $new_columns, $original_columns );
 		}
 
 		public function location_rows( $empty_string, $column_name, $term_id ) {
