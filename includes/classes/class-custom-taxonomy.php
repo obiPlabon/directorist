@@ -421,50 +421,42 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 			}
 		}
 
-		public function add_category_form_fields( $taxonomy ) {
-			$directory_types      = get_terms(
-				array(
-					'taxonomy'   => ATBDP_TYPE,
-					'hide_empty' => false,
-				)
-			);
+		public function add_category_form_fields() {
+			$directories          = directorist_get_directories();
 			$default_listing_type = $this->default_listing_type();
-			if ( ! $default_listing_type ) {
-				?>
-			<div class="form-field term-group">
-			<label for="directory_type"><?php esc_html_e( 'Directory', 'directorist' ); ?></label>
-			<div class="directory_types-wrapper">
-				<?php
-				if ( $directory_types ) {
-					foreach ( $directory_types as $type ) {
-						?>
-						<div class="directory_type-group">
-							<input type="checkbox" class="postform" name="directory_type[]" id="directory_type-<?php echo esc_attr( $type->term_id ); ?>" value='<?php echo esc_attr( $type->term_id ); ?>'/><label for="directory_type-<?php echo esc_attr( $type->term_id ); ?>"><?php echo esc_html( $type->name ); ?></label>
-						</div>
-						<?php
-					}
-				}
-				?>
+
+			wp_nonce_field( directorist_get_nonce_key(), 'directorist_nonce' );
+
+			if ( ! $default_listing_type && ! is_wp_error( $directories ) ) : ?>
+				<div class="form-field term-group">
+					<label for="directory_type"><?php esc_html_e( 'Directory', 'directorist' ); ?></label>
+					<p><?php esc_html_e( 'You can assign the category to the following one or more directories.', 'directorist' ); ?></p>
+					<div class="directory_types-wrapper">
+						<?php foreach ( $directories as $directory ) : ?>
+							<div class="directory_type-group">
+								<input type="checkbox" class="postform" name="directory_type[]" id="directory_type-<?php echo esc_attr( $directory->term_id ); ?>" value='<?php echo esc_attr( $directory->term_id ); ?>'/>
+								<label for="directory_type-<?php echo esc_attr( $directory->term_id ); ?>"><?php echo esc_html( $directory->name ); ?></label>
+							</div>
+						<?php endforeach; ?>
+					</div>
 				</div>
-			</div>
-			<?php } ?>
+			<?php endif; ?>
+
 			<div class="form-field term-group">
-				<label for="category_icon"><?php esc_html_e( 'Category Icon', 'directorist' ); ?></label>
+				<label for="category_icon"><?php esc_html_e( 'Icon', 'directorist' ); ?></label>
 				<div class="directorist-category-icon-picker"></div>
                 <input type="hidden" class="category_icon_value" value="" name="category_icon">
 			</div>
+
 			<div class="form-field term-group">
 				<label for="atbdp-categories-image-id"><?php esc_html_e( 'Image', 'directorist' ); ?></label>
 				<input type="hidden" id="atbdp-categories-image-id" name="image"/>
 				<div id="atbdp-categories-image-wrapper"></div>
 				<p>
-					<input type="button" class="button button-secondary" id="atbdp-categories-upload-image"
-						   value="<?php esc_attr_e( 'Add Image', 'directorist' ); ?>"/>
+					<input type="button" class="button button-secondary" id="atbdp-categories-upload-image" value="<?php esc_attr_e( 'Add Image', 'directorist' ); ?>"/>
 				</p>
 			</div>
 			<?php
-
-			wp_nonce_field( directorist_get_nonce_key(), 'directorist_nonce' );
 		}
 
 		public function add_location_form_fields( $taxonomy ) {
