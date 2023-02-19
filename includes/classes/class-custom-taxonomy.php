@@ -324,7 +324,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 			if ( ! $default_listing_type && ! is_wp_error( $directories ) ) : ?>
 				<div class="form-field term-group">
 					<label for="directory_type"><?php esc_html_e( 'Directory', 'directorist' ); ?></label>
-					<p><?php esc_html_e( 'You can assign the category to the following one or more directories.', 'directorist' ); ?></p>
+					<p><?php esc_html_e( 'You can assign any one or more of the following directories to the category.', 'directorist' ); ?></p>
 					<div class="directory_types-wrapper">
 						<?php foreach ( $directories as $directory ) : ?>
 							<div class="directory_type-group">
