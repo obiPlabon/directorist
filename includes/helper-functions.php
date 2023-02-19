@@ -3979,28 +3979,27 @@ function directorist_is_multi_directory() {
  * @return array id=>name or empty array
  */
 function directorist_get_directories_of_term( $term_id ) {
-	$directories = (array) get_term_meta( $term_id, '_directory_type', true );
-	$directories = array_map( 'absint', $directories );
-	$directories = array_filter( $directories );
+	$directory_ids = (array) get_term_meta( $term_id, '_directory_type', true );
+	$directory_ids = array_map( 'absint', $directory_ids );
+	$directory_ids = array_filter( $directory_ids );
 
 	$args = array(
-		'include'                => $directories,
-		'hide_empty'             => false,
+		'include'                => $directory_ids,
 		'update_term_meta_cache' => false,
 		'fields'                 => 'id=>name',
-		'taxonomy'               => ATBDP_TYPE,
 	);
 
-	$directory_terms = get_terms( $args );
+	$directories = directorist_get_directories( $args );
 
-	if ( is_wp_error( $directory_terms ) ) {
+	if ( is_wp_error( $directories ) ) {
 		return array();
 	}
 
-	return $directory_terms;
+	return $directories;
 }
 
 /**
+ * @since //TODO: add version number before merge.
  * @see directorist_get_directories_of_term()
  */
 function directorist_get_directories_of_category( $category_id ) {
@@ -4008,8 +4007,29 @@ function directorist_get_directories_of_category( $category_id ) {
 }
 
 /**
+ * @since //TODO: add version number before merge.
  * @see directorist_get_directories_of_term()
  */
 function directorist_get_directories_of_location( $location_id ) {
 	return directorist_get_directories_of_term( $location_id );
+}
+
+/**
+ * Get all the directories.
+ * It's a wrapper around get_terms.
+ *
+ * @since //TODO: add version number before merge.
+ * @see get_terms()
+ * @param array $args Arguments of get_terms
+ *
+ * @return WP_Term[]|int[]|string[]|string|WP_Error Whatever is returned by get_terms.
+ */
+function directorist_get_directories( array $args = array() ) {
+	$args = wp_parse_args( $args, array(
+		'hide_empty' => false,
+	) );
+
+	$args['taxonomy'] = ATBDP_TYPE;
+
+	return get_terms( $args );
 }
