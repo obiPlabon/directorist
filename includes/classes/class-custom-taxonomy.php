@@ -538,14 +538,14 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 			$labels2 = array(
 				'name'              => _x( 'Categories', 'Category general name', 'directorist' ),
 				'singular_name'     => _x( 'Category', 'Category singular name', 'directorist' ),
-				'search_items'      => __( 'Search category', 'directorist' ),
-				'all_items'         => __( 'All categories', 'directorist' ),
-				'parent_item'       => __( 'Parent category', 'directorist' ),
-				'parent_item_colon' => __( 'Parent category:', 'directorist' ),
-				'edit_item'         => __( 'Edit category', 'directorist' ),
-				'update_item'       => __( 'Update category', 'directorist' ),
-				'add_new_item'      => __( 'Add New category', 'directorist' ),
-				'new_item_name'     => __( 'New category Name', 'directorist' ),
+				'search_items'      => __( 'Search Categories', 'directorist' ),
+				'all_items'         => __( 'All Categories', 'directorist' ),
+				'parent_item'       => __( 'Parent Category', 'directorist' ),
+				'parent_item_colon' => __( 'Parent Category:', 'directorist' ),
+				'edit_item'         => __( 'Edit Category', 'directorist' ),
+				'update_item'       => __( 'Update Category', 'directorist' ),
+				'add_new_item'      => __( 'Add New Category', 'directorist' ),
+				'new_item_name'     => __( 'New Category Name', 'directorist' ),
 				'menu_name'         => __( 'Categories', 'directorist' ),
 			);
 
