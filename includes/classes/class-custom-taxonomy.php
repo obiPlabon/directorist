@@ -4,52 +4,37 @@ defined( 'ABSPATH' ) || die( 'Direct access is not allowed.' );
 if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 	class ATBDP_Custom_Taxonomy {
 
-
 		public function __construct() {
-
 			add_action( 'init', array( $this, 'add_custom_taxonomy' ), 0 );
-			add_filter( 'manage_' . ATBDP_CATEGORY . '_custom_column', array( $this, 'category_rows' ), 15, 3 );
-			add_filter( 'manage_edit-' . ATBDP_CATEGORY . '_columns', array( $this, 'category_columns' ) );
-			add_filter( ATBDP_CATEGORY . '_row_actions', array( $this, 'category_row_actions'), 10, 2 );
-
-			add_filter( 'manage_' . ATBDP_LOCATION . '_custom_column', array( $this, 'location_rows' ), 15, 3 );
-			add_filter( 'manage_edit-' . ATBDP_LOCATION . '_columns', array( $this, 'location_columns' ) );
-			/*show the select box form field to select an icon*/
-			add_action( ATBDP_CATEGORY . '_add_form_fields', array( $this, 'add_category_form_fields' ), 10, 2 );
-			/*create the meta data*/
-			add_action( 'created_' . ATBDP_CATEGORY, array( $this, 'save_add_category_form_fields' ) );
-
-			/*Updating A Term With Meta Data*/
-			add_action( ATBDP_CATEGORY . '_edit_form_fields', array( $this, 'edit_category_form_fields' ), 10, 2 );
-			// update or save the meta data of the term
-			add_action( 'edited_' . ATBDP_CATEGORY, array( $this, 'save_edit_category_form_fields' ) );
-			/*make the columns sortable */
-			add_filter( 'manage_edit-' . ATBDP_CATEGORY . '_sortable_columns', array( $this, 'add_category_icon_column_sortable' ) );
-			add_filter( 'manage_edit-' . ATBDP_LOCATION . '_sortable_columns', array( $this, 'add_location_icon_column_sortable' ) );
-
-			// Modify the view link of the category tax
-			add_filter( ATBDP_CATEGORY . '_row_actions', array( $this, 'edit_taxonomy_view_link' ), 10, 2 );
-			// Modify the view link of the category tax
-			add_filter( ATBDP_LOCATION . '_row_actions', array( $this, 'edit_taxonomy_view_link' ), 10, 2 );
-			// to remove custom category metabox form add new listing page
-			// add_action( 'admin_menu', array($this,'remove_custom_taxonomy') );
-
-			/*show the select box form field to select an icon*/
-			add_action( ATBDP_LOCATION . '_add_form_fields', array( $this, 'add_location_form_fields' ), 10, 2 );
-			/*create the meta data*/
-			add_action( 'created_' . ATBDP_LOCATION, array( $this, 'save_add_location_form_fields' ), 10, 2 );
-			/*Updating A Term With Meta Data*/
-			add_action( ATBDP_LOCATION . '_edit_form_fields', array( $this, 'edit_location_form_fields' ), 10, 2 );
-			// update or save the meta data of the term
-			add_action( 'edited_' . ATBDP_LOCATION, array( $this, 'save_edit_location_form_fields' ), 10, 2 );
-
-			// Modify the view link of the category tax
-			add_filter( ATBDP_LOCATION . '_row_actions', array( $this, 'edit_taxonomy_view_link' ), 10, 2 );
-
+			add_action( 'wp_loaded', array( $this, 'directorist_bulk_term_update' ) );
 			add_filter( 'term_link', array( $this, 'taxonomy_redirect_page' ), 10, 3 );
 			add_action( 'template_redirect', array( $this, 'atbdp_template_redirect' ) );
 
-			add_action( 'wp_loaded', array( $this, 'directorist_bulk_term_update' ) );
+			/**
+			 * Category hooks.
+			 */
+			add_action( 'created_' . ATBDP_CATEGORY, array( $this, 'save_add_category_form_fields' ) );
+			add_action( 'edited_' . ATBDP_CATEGORY, array( $this, 'save_edit_category_form_fields' ) );
+			add_filter( ATBDP_CATEGORY . '_row_actions', array( $this, 'category_row_actions'), 10, 2 );
+			add_filter( 'manage_edit-' . ATBDP_CATEGORY . '_columns', array( $this, 'category_columns' ) );
+			add_filter( 'manage_edit-' . ATBDP_LOCATION . '_columns', array( $this, 'location_columns' ) );
+			add_filter( ATBDP_CATEGORY . '_row_actions', array( $this, 'edit_taxonomy_view_link' ), 10, 2 );
+			add_filter( 'manage_' . ATBDP_CATEGORY . '_custom_column', array( $this, 'category_rows' ), 15, 3 );
+			add_filter( 'manage_' . ATBDP_LOCATION . '_custom_column', array( $this, 'location_rows' ), 15, 3 );
+			add_action( ATBDP_CATEGORY . '_add_form_fields', array( $this, 'add_category_form_fields' ), 10, 2 );
+			add_action( ATBDP_CATEGORY . '_edit_form_fields', array( $this, 'edit_category_form_fields' ), 10, 2 );
+			add_filter( 'manage_edit-' . ATBDP_CATEGORY . '_sortable_columns', array( $this, 'add_category_icon_column_sortable' ) );
+
+			/**
+			 * Location hooks.
+			 */
+			add_filter( ATBDP_LOCATION . '_row_actions', array( $this, 'edit_taxonomy_view_link' ), 10, 2 );
+			add_filter( ATBDP_LOCATION . '_row_actions', array( $this, 'edit_taxonomy_view_link' ), 10, 2 );
+			add_action( 'created_' . ATBDP_LOCATION, array( $this, 'save_add_location_form_fields' ), 10, 2 );
+			add_action( 'edited_' . ATBDP_LOCATION, array( $this, 'save_edit_location_form_fields' ), 10, 2 );
+			add_action( ATBDP_LOCATION . '_add_form_fields', array( $this, 'add_location_form_fields' ), 10, 2 );
+			add_action( ATBDP_LOCATION . '_edit_form_fields', array( $this, 'edit_location_form_fields' ), 10, 2 );
+			add_filter( 'manage_edit-' . ATBDP_LOCATION . '_sortable_columns', array( $this, 'add_location_icon_column_sortable' ) );
 		}
 
 		public function directorist_bulk_term_update() {
