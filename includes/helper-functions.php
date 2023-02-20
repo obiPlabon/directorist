@@ -3983,6 +3983,10 @@ function directorist_get_directories_of_term( $term_id ) {
 	$directory_ids = array_map( 'absint', $directory_ids );
 	$directory_ids = array_filter( $directory_ids );
 
+	if ( empty( $directory_ids ) ) {
+		return array();
+	}
+
 	$args = array(
 		'include'                => $directory_ids,
 		'update_term_meta_cache' => false,

@@ -22,7 +22,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 			/*Updating A Term With Meta Data*/
 			add_action( ATBDP_CATEGORY . '_edit_form_fields', array( $this, 'edit_category_form_fields' ), 10, 2 );
 			// update or save the meta data of the term
-			add_action( 'edited_' . ATBDP_CATEGORY, array( $this, 'save_edit_category_form_fields' ), 10, 2 );
+			add_action( 'edited_' . ATBDP_CATEGORY, array( $this, 'save_edit_category_form_fields' ) );
 			/*make the columns sortable */
 			add_filter( 'manage_edit-' . ATBDP_CATEGORY . '_sortable_columns', array( $this, 'add_category_icon_column_sortable' ) );
 			add_filter( 'manage_edit-' . ATBDP_LOCATION . '_sortable_columns', array( $this, 'add_location_icon_column_sortable' ) );
@@ -50,9 +50,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 			add_action( 'template_redirect', array( $this, 'atbdp_template_redirect' ) );
 
 			add_action( 'wp_loaded', array( $this, 'directorist_bulk_term_update' ) );
-
 		}
-
 
 		public function directorist_bulk_term_update() {
 			if ( get_option( 'directorist_bulk_term_update_v7_0_3_2' ) ) {
@@ -104,7 +102,6 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 			}
 			update_option( 'directorist_bulk_term_update_v7_0_3_2', 1 );
 		}
-
 
 		public function atbdp_template_redirect() {
 			$redirect_url = '';
@@ -200,119 +197,6 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 		public function add_location_icon_column_sortable( $sortable ) {
 			$sortable['directorist_location_directory_type'] = 'directorist_location_directory_type';
 			return $sortable;
-		}
-
-		/**
-		 * This function will run when our taxonomy term will will be updated
-		 *
-		 * @param int $term_id Term id
-		 * @param int $tt_id Taxonomy ID
-		 */
-		public function save_edit_category_form_fields( $term_id, $tt_id ) {
-			if ( ! directorist_verify_nonce() ) {
-				return;
-			}
-
-			$directory_type = ! empty( $_POST['directory_type'] ) ? array_map( 'absint', (array) wp_unslash( $_POST['directory_type'] ) ) : array();
-			$icon           = ! empty( $_POST['category_icon'] ) ? sanitize_text_field( wp_unslash( $_POST['category_icon'] ) ) : '';
-			$image          = ! empty( $_POST['image'] ) ? absint( wp_unslash( $_POST['image'] ) ) : 0;
-
-			if ( empty( $directory_type ) ) {
-				$directory_type = array( $this->default_listing_type() );
-			}
-
-			update_term_meta( $term_id, '_directory_type', $directory_type );
-			update_term_meta( $term_id, 'category_icon', $icon );
-
-			// UPDATED CATEGORY IMAGE
-			if ( $image ) {
-				update_term_meta( $term_id, 'image', $image );
-			} else {
-				update_term_meta( $term_id, 'image', '' );
-			}
-		}
-
-		/**
-		 * This function will run when our taxonomy term will will be updated
-		 *
-		 * @param int $term_id Term id
-		 * @param int $tt_id Taxonomy ID
-		 */
-		public function save_edit_location_form_fields( $term_id, $tt_id ) {
-			if ( ! directorist_verify_nonce() ) {
-				return;
-			}
-
-			$default_listing_type = $this->default_listing_type();
-			if ( ! $default_listing_type && ! empty( $_POST['directory_type'] ) ) {
-				update_term_meta( $term_id, '_directory_type', array_map( 'absint', (array) wp_unslash( $_POST['directory_type'] ) ) );
-			} else {
-				update_term_meta( $term_id, '_directory_type', array( $default_listing_type ) );
-			}
-			// UPDATED location IMAGE
-			if ( isset( $_POST['image'] ) && '' !== $_POST['image'] ) {
-				update_term_meta( $term_id, 'image', (int) $_POST['image'] );
-			} else {
-				update_term_meta( $term_id, 'image', '' );
-			}
-		}
-
-		public function edit_location_form_fields( $term, $taxonomy ) {
-			// get current cat image
-			$image_id             = get_term_meta( $term->term_id, 'image', true );
-			$directory_type       = get_term_meta( $term->term_id, '_directory_type', true );
-			$value                = ! empty( $directory_type ) ? $directory_type : array();
-			$image_src            = ( $image_id ) ? wp_get_attachment_url( (int) $image_id ) : '';
-			$directory_types      = get_terms(
-				array(
-					'taxonomy'   => ATBDP_TYPE,
-					'hide_empty' => false,
-				)
-			);
-			$default_listing_type = $this->default_listing_type();
-			if ( ! $default_listing_type ) { ?>
-			<tr class="form-field term-group-wrap">
-				<th scope="row"><label for="category_icon"><?php esc_html_e( 'Directory', 'directorist' ); ?></label></th>
-				<td>
-					<div class="directory_types-wrapper">
-						<?php
-						if ( $directory_types ) {
-							foreach ( $directory_types as $type ) {
-								$checked = in_array( $type->term_id, $value ) ? 'checked' : '';
-								?>
-								<div class="directory_type-group">
-									<input type="checkbox" class="postform" name="directory_type[]" value='<?php echo esc_attr( $type->term_id ); ?>' id="<?php echo esc_attr( $type->term_id ); ?>" <?php echo esc_attr( $checked ); ?>/>
-									<label for="<?php echo esc_attr( $type->term_id ); ?>"><?php echo esc_html( $type->name ); ?></label>
-								</div>
-								<?php
-							}
-						}
-						?>
-					</div>
-				</td>
-			</tr>
-			<?php } ?>
-			<tr class="form-field term-group-wrap">
-				<th scope="row">
-					<label for="atbdp-categories-image-id"><?php esc_html_e( 'Image', 'directorist' ); ?></label>
-				</th>
-				<td>
-					<input type="hidden" id="atbdp-categories-image-id" name="image" value="<?php echo esc_attr( $image_id ); ?>"/>
-					<div id="atbdp-categories-image-wrapper">
-						<?php if ( $image_src ) : ?>
-							<img src="<?php echo esc_url( $image_src ); ?>"/>
-							<a href="" class="remove_cat_img"><span class="fa fa-times" title="Remove it"></span></a>
-						<?php endif; ?>
-					</div>
-					<p>
-						<input type="button" class="button button-secondary" id="atbdp-categories-upload-image"
-							   value="<?php esc_html_e( 'Add Image', 'directorist' ); ?>"/>
-					</p>
-				</td>
-			</tr>
-			<?php
-
-			wp_nonce_field( directorist_get_nonce_key(), 'directorist_nonce' );
 		}
 
 		public function add_category_form_fields() {
@@ -432,6 +316,40 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 			<?php
 		}
 
+		public function save_edit_category_form_fields( $term_id ) {
+			if ( ! directorist_verify_nonce() ) {
+				return;
+			}
+
+			$directories = ! empty( $_POST['directory_type'] ) ? (array) directorist_clean( wp_unslash( $_POST['directory_type'] ) ) : array();
+			$icon        = ! empty( $_POST['category_icon'] ) ? sanitize_text_field( wp_unslash( $_POST['category_icon'] ) ) : '';
+			$image       = ! empty( $_POST['image'] ) ? absint( wp_unslash( $_POST['image'] ) ) : 0;
+
+			$directories = wp_parse_id_list( $directories );
+
+			if ( empty( $directories ) ) {
+				$directories = array( $this->default_listing_type() );
+			}
+
+			if ( ! empty( $directories ) ) {
+				update_term_meta( $term_id, '_directory_type', $directories );
+			} else {
+				delete_term_meta( $term_id, '_directory_type', $directories );
+			}
+
+			if ( $icon ) {
+				update_term_meta( $term_id, 'category_icon', $icon );
+			} else {
+				delete_term_meta( $term_id, 'category_icon' );
+			}
+
+			if ( $image ) {
+				update_term_meta( $term_id, 'image', $image );
+			} else {
+				delete_term_meta( $term_id, 'image', '' );
+			}
+		}
+
 		public function add_location_form_fields( $taxonomy ) {
 			$directory_types      = get_terms(
 				array(
@@ -488,6 +406,89 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 			} else {
 				add_term_meta( $term_id, '_directory_type', array( $default_listing_type ), true );
 			}
+		}
+
+		/**
+		 * This function will run when our taxonomy term will will be updated
+		 *
+		 * @param int $term_id Term id
+		 * @param int $tt_id Taxonomy ID
+		 */
+		public function save_edit_location_form_fields( $term_id, $tt_id ) {
+			if ( ! directorist_verify_nonce() ) {
+				return;
+			}
+
+			$default_listing_type = $this->default_listing_type();
+			if ( ! $default_listing_type && ! empty( $_POST['directory_type'] ) ) {
+				update_term_meta( $term_id, '_directory_type', array_map( 'absint', (array) wp_unslash( $_POST['directory_type'] ) ) );
+			} else {
+				update_term_meta( $term_id, '_directory_type', array( $default_listing_type ) );
+			}
+			// UPDATED location IMAGE
+			if ( isset( $_POST['image'] ) && '' !== $_POST['image'] ) {
+				update_term_meta( $term_id, 'image', (int) $_POST['image'] );
+			} else {
+				update_term_meta( $term_id, 'image', '' );
+			}
+		}
+
+		public function edit_location_form_fields( $term, $taxonomy ) {
+			// get current cat image
+			$image_id             = get_term_meta( $term->term_id, 'image', true );
+			$directory_type       = get_term_meta( $term->term_id, '_directory_type', true );
+			$value                = ! empty( $directory_type ) ? $directory_type : array();
+			$image_src            = ( $image_id ) ? wp_get_attachment_url( (int) $image_id ) : '';
+			$directory_types      = get_terms(
+				array(
+					'taxonomy'   => ATBDP_TYPE,
+					'hide_empty' => false,
+				)
+			);
+			$default_listing_type = $this->default_listing_type();
+			if ( ! $default_listing_type ) { ?>
+			<tr class="form-field term-group-wrap">
+				<th scope="row"><label for="category_icon"><?php esc_html_e( 'Directory', 'directorist' ); ?></label></th>
+				<td>
+					<div class="directory_types-wrapper">
+						<?php
+						if ( $directory_types ) {
+							foreach ( $directory_types as $type ) {
+								$checked = in_array( $type->term_id, $value ) ? 'checked' : '';
+								?>
+								<div class="directory_type-group">
+									<input type="checkbox" class="postform" name="directory_type[]" value='<?php echo esc_attr( $type->term_id ); ?>' id="<?php echo esc_attr( $type->term_id ); ?>" <?php echo esc_attr( $checked ); ?>/>
+									<label for="<?php echo esc_attr( $type->term_id ); ?>"><?php echo esc_html( $type->name ); ?></label>
+								</div>
+								<?php
+							}
+						}
+						?>
+					</div>
+				</td>
+			</tr>
+			<?php } ?>
+			<tr class="form-field term-group-wrap">
+				<th scope="row">
+					<label for="atbdp-categories-image-id"><?php esc_html_e( 'Image', 'directorist' ); ?></label>
+				</th>
+				<td>
+					<input type="hidden" id="atbdp-categories-image-id" name="image" value="<?php echo esc_attr( $image_id ); ?>"/>
+					<div id="atbdp-categories-image-wrapper">
+						<?php if ( $image_src ) : ?>
+							<img src="<?php echo esc_url( $image_src ); ?>"/>
+							<a href="" class="remove_cat_img"><span class="fa fa-times" title="Remove it"></span></a>
+						<?php endif; ?>
+					</div>
+					<p>
+						<input type="button" class="button button-secondary" id="atbdp-categories-upload-image"
+							   value="<?php esc_html_e( 'Add Image', 'directorist' ); ?>"/>
+					</p>
+				</td>
+			</tr>
+			<?php
+
+			wp_nonce_field( directorist_get_nonce_key(), 'directorist_nonce' );
 		}
 
 		public function add_custom_taxonomy() {
