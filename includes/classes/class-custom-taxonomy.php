@@ -17,7 +17,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 			/*show the select box form field to select an icon*/
 			add_action( ATBDP_CATEGORY . '_add_form_fields', array( $this, 'add_category_form_fields' ), 10, 2 );
 			/*create the meta data*/
-			add_action( 'created_' . ATBDP_CATEGORY, array( $this, 'save_add_category_form_fields' ), 10, 2 );
+			add_action( 'created_' . ATBDP_CATEGORY, array( $this, 'save_add_category_form_fields' ) );
 
 			/*Updating A Term With Meta Data*/
 			add_action( ATBDP_CATEGORY . '_edit_form_fields', array( $this, 'edit_category_form_fields' ), 10, 2 );
@@ -237,24 +237,30 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 			<?php
 		}
 
-		public function save_add_category_form_fields( $term_id, $tt_id ) {
+		public function save_add_category_form_fields( $term_id ) {
 			if ( ! directorist_verify_nonce() ) {
 				return;
 			}
 
-			$default_listing_type = $this->default_listing_type();
-			if ( ! $default_listing_type && ! empty( $_POST['directory_type'] ) ) {
-				$directory_types = array_map( 'absint', (array) wp_unslash( $_POST['directory_type'] ) );
-				add_term_meta( $term_id, '_directory_type', $directory_types, true );
-			} else {
-				add_term_meta( $term_id, '_directory_type', array( $default_listing_type ), true );
+			$directories = ! empty( $_POST['directory_type'] ) ? (array) directorist_clean( wp_unslash( $_POST['directory_type'] ) ) : array();
+			$icon        = ! empty( $_POST['category_icon'] ) ? sanitize_text_field( wp_unslash( $_POST['category_icon'] ) ) : '';
+			$image       = ! empty( $_POST['image'] ) ? absint( wp_unslash( $_POST['image'] ) ) : 0;
+			$directories = wp_parse_id_list( $directories );
+
+			if ( empty( $directories ) ) {
+				$directories = array( $this->default_listing_type() );
 			}
 
-			$icon = ! empty( $_POST['category_icon'] ) ? sanitize_text_field( wp_unslash( $_POST['category_icon'] ) ) : '';
-			add_term_meta( $term_id, 'category_icon', $icon, true );
+			if ( ! empty( $directories ) ) {
+				add_term_meta( $term_id, '_directory_type', $directories );
+			}
 
-			if ( isset( $_POST['image'] ) && '' !== $_POST['image'] ) {
-				add_term_meta( $term_id, 'image', (int) $_POST['image'], true );
+			if ( $icon ) {
+				add_term_meta( $term_id, 'category_icon', $icon );
+			}
+
+			if ( $image ) {
+				add_term_meta( $term_id, 'image', $image );
 			}
 		}
 
