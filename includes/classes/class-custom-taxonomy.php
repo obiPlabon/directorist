@@ -35,6 +35,46 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 			add_filter( ATBDP_LOCATION . '_row_actions', array( $this, 'edit_taxonomy_view_link' ), 10, 2 );
 			add_filter( ATBDP_LOCATION . '_row_actions', array( $this, 'edit_taxonomy_view_link' ), 10, 2 );
 			add_filter( 'manage_edit-' . ATBDP_LOCATION . '_sortable_columns', array( $this, 'add_location_icon_column_sortable' ) );
+
+			add_filter( 'bulk_actions-edit-' . ATBDP_CATEGORY, array( $this, 'register_bulk_actions' ) );
+			add_filter( 'handle_bulk_actions-edit-' . ATBDP_CATEGORY, array( $this, 'handle_bulk_actions' ), 10, 3 );
+			add_filter( 'bulk_actions-edit-' . ATBDP_LOCATION, array( $this, 'register_bulk_actions' ) );
+			add_filter( 'handle_bulk_actions-edit-' . ATBDP_LOCATION, array( $this, 'handle_bulk_actions' ), 10, 3 );
+		}
+
+		public function register_bulk_actions( $actions ) {
+			$taxonomy = substr( current_filter(), 18 ); // Extract taxonomy name from current filter name.
+
+			if ( directorist_is_multi_directory() && current_user_can( get_taxonomy( $taxonomy )->cap->edit_terms ) ) {
+				$actions[ __( 'Directory', 'directorist') ] = array(
+					'directory_reset_to_empty'   => __( 'Reset To Empty' ),
+					'directory_reset_to_default' => __( 'Reset To Default' ),
+				);
+			}
+
+			return $actions;
+		}
+
+		public function handle_bulk_actions( $location, $action, $terms ) {
+			$taxonomy = substr( current_filter(), 25 ); // Extract taxonomy name from current filter name.
+
+			if ( ! directorist_is_multi_directory() || ! current_user_can( get_taxonomy( $taxonomy )->cap->edit_terms ) ) {
+				return $location;
+			}
+
+			if ( $action === 'directory_reset_to_empty' ) {
+				foreach ( $terms as $term ) {
+					delete_term_meta( $term, '_directory_type' );
+				}
+			}
+
+			if ( $action === 'directory_reset_to_default' && ( $default_directory = directorist_get_default_directory() ) ) {
+				foreach ( $terms as $term ) {
+					update_term_meta( $term, '_directory_type', $default_directory );
+				}
+			}
+
+			return $location;
 		}
 
 		public function directorist_bulk_term_update() {
@@ -523,7 +563,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 				'back_to_items'     => __( '&larr; Go to Locations', 'directorist' ),
 				'not_found'         => __( 'No locations found.', 'directorist' ),
 				'no_terms'          => __( 'No locations', 'directorist' ),
-				'filter_by_item'     => __( 'Filter by location', 'directorist' ),
+				'filter_by_item'    => __( 'Filter by location', 'directorist' ),
 			);
 
 			$args = array(
