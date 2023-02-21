@@ -42,6 +42,12 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 			add_filter( 'handle_bulk_actions-edit-' . ATBDP_LOCATION, array( $this, 'handle_bulk_actions' ), 10, 3 );
 
 			add_filter( 'term_updated_messages', array( $this, 'add_term_updated_messages' ) );
+
+			add_action( 'delete_' . ATBDP_DIRECTORY_TYPE, array( $this, 'clean_directory_to_taxonomy_relation' ) );
+		}
+
+		public function clean_directory_to_taxonomy_relation( $directory_id ) {
+			delete_metadata( 'term', null, "_directory_type_{$directory_id}", '', true );
 		}
 
 		public function add_term_updated_messages( $messages ) {
