@@ -318,8 +318,10 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 				$directories = array( $this->default_listing_type() );
 			}
 
+			$directories = array_filter( $directories );
+
 			if ( ! empty( $directories ) ) {
-				add_term_meta( $term_id, '_directory_type', $directories );
+				directorist_update_directories_of_term( $term_id, $directories );
 			}
 
 			if ( $icon ) {
@@ -404,10 +406,12 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 				$directories = array( $this->default_listing_type() );
 			}
 
+			$directories = array_filter( $directories );
+
 			if ( ! empty( $directories ) ) {
-				update_term_meta( $term_id, '_directory_type', $directories );
+				directorist_update_directories_of_term( $term_id, $directories );
 			} else {
-				delete_term_meta( $term_id, '_directory_type', $directories );
+				directorist_delete_directories_of_term( $term_id );
 			}
 
 			if ( $icon ) {
@@ -505,8 +509,10 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 				$directories = array( $this->default_listing_type() );
 			}
 
+			$directories = array_filter( $directories );
+
 			if ( ! empty( $directories ) ) {
-				add_term_meta( $term_id, '_directory_type', $directories );
+				directorist_update_directories_of_term( $term_id, $directories );
 			}
 
 			if ( $image ) {
@@ -576,10 +582,12 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 				$directories = array( $this->default_listing_type() );
 			}
 
+			$directories = array_filter( $directories );
+
 			if ( ! empty( $directories ) ) {
-				update_term_meta( $term_id, '_directory_type', $directories );
+				directorist_update_directories_of_term( $term_id, $directories );
 			} else {
-				delete_term_meta( $term_id, '_directory_type', $directories );
+				directorist_delete_directories_of_term( $term_id );
 			}
 
 			if ( $image ) {

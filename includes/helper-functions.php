@@ -4037,3 +4037,29 @@ function directorist_get_directories( array $args = array() ) {
 
 	return get_terms( $args );
 }
+
+function directorist_update_directories_of_term( $term_id, array $directory_ids ) {
+	$directory_ids = array_filter( $directory_ids );
+
+	if ( empty( $directory_ids ) ) {
+		return;
+	}
+
+	// Save as serialized to display.
+	update_term_meta( $term_id, '_directory_type', $directory_ids );
+
+	// Save separately to improve query performance.
+	foreach ( $directory_ids as $directory_id ) {
+		update_term_meta( $term_id, "_directory_type_{$directory_id}", 1 );
+	}
+}
+
+function directorist_delete_directories_of_term( $term_id ) {
+	$directories = directorist_get_directories_of_term( $term_id );
+
+	foreach ( array_keys( $directories ) as $directory_id ) {
+		delete_term_meta( $term_id, "_directory_type_{$directory_id}" );
+	}
+
+	delete_term_meta( $term_id, '_directory_type' );
+}
