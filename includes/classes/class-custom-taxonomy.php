@@ -40,6 +40,44 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 			add_filter( 'handle_bulk_actions-edit-' . ATBDP_CATEGORY, array( $this, 'handle_bulk_actions' ), 10, 3 );
 			add_filter( 'bulk_actions-edit-' . ATBDP_LOCATION, array( $this, 'register_bulk_actions' ) );
 			add_filter( 'handle_bulk_actions-edit-' . ATBDP_LOCATION, array( $this, 'handle_bulk_actions' ), 10, 3 );
+
+			add_filter( 'term_updated_messages', array( $this, 'add_term_updated_messages' ) );
+		}
+
+		public function add_term_updated_messages( $messages ) {
+			$messages[ ATBDP_LOCATION ] = array(
+				0 => '',
+				1 => __( 'Location added.', 'directorist' ),
+				2 => __( 'Location deleted.', 'directorist' ),
+				3 => __( 'Location updated.', 'directorist' ),
+				4 => __( 'Location not added.', 'directorist' ),
+				5 => __( 'Location not updated.', 'directorist' ),
+				6 => __( 'Locations deleted.', 'directorist' ),
+				7 => __( 'Locations directory updated.', 'directorist' ),
+			);
+
+			$messages[ ATBDP_CATEGORY ] = array(
+				0 => '',
+				1 => __( 'Category added.', 'directorist' ),
+				2 => __( 'Category deleted.', 'directorist' ),
+				3 => __( 'Category updated.', 'directorist' ),
+				4 => __( 'Category not added.', 'directorist' ),
+				5 => __( 'Category not updated.', 'directorist' ),
+				6 => __( 'Categories deleted.', 'directorist' ),
+				7 => __( 'Categories directory updated.', 'directorist' ),
+			);
+
+			$messages[ ATBDP_TAGS ] = array(
+				0 => '',
+				1 => __( 'Tag added.', 'directorist' ),
+				2 => __( 'Tag deleted.', 'directorist' ),
+				3 => __( 'Tag updated.', 'directorist' ),
+				4 => __( 'Tag not added.', 'directorist' ),
+				5 => __( 'Tag not updated.', 'directorist' ),
+				6 => __( 'Tags deleted.', 'directorist' ),
+			);
+
+			return $messages;
 		}
 
 		public function register_bulk_actions( $actions ) {
@@ -66,12 +104,16 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 				foreach ( $terms as $term ) {
 					delete_term_meta( $term, '_directory_type' );
 				}
+
+				$location = add_query_arg( 'message', 7, $location );
 			}
 
 			if ( $action === 'directory_reset_to_default' && ( $default_directory = directorist_get_default_directory() ) ) {
 				foreach ( $terms as $term ) {
 					update_term_meta( $term, '_directory_type', $default_directory );
 				}
+
+				$location = add_query_arg( 'message', 7, $location );
 			}
 
 			return $location;
