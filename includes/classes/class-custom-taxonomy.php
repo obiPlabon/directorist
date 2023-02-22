@@ -106,17 +106,21 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 				return $location;
 			}
 
+			$default_directory = directorist_get_default_directory();
+
 			if ( $action === 'directory_reset_to_empty' ) {
 				foreach ( $terms as $term ) {
 					delete_term_meta( $term, '_directory_type' );
+					delete_term_meta( $term, '_directory_type_' . $default_directory );
 				}
 
 				$location = add_query_arg( 'message', 7, $location );
 			}
 
-			if ( $action === 'directory_reset_to_default' && ( $default_directory = directorist_get_default_directory() ) ) {
+			if ( $action === 'directory_reset_to_default' && $default_directory ) {
 				foreach ( $terms as $term ) {
 					update_term_meta( $term, '_directory_type', $default_directory );
+					update_term_meta( $term, '_directory_type_' . $default_directory, 1 );
 				}
 
 				$location = add_query_arg( 'message', 7, $location );

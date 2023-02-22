@@ -2297,39 +2297,37 @@ function search_category_location_filter($settings, $taxonomy_id, $prefix = '')
     );
 
     if (ATBDP_CATEGORY == $taxonomy_id){
-        $arg = apply_filters('atbdp_search_listing_category_argument', $args);
+        $args = apply_filters('atbdp_search_listing_category_argument', $args);
     } else {
-        $arg = apply_filters('atbdp_search_listing_location_argument', $args);
+        $args = apply_filters('atbdp_search_listing_location_argument', $args);
     }
 
-    $terms = get_terms( $taxonomy_id, $arg );
+	$args['taxonomy'] = $taxonomy_id;
+	$args['meta_key'] = '_directory_type_' . $settings['listing_type'];
+
+    $terms = get_terms( $args );
 
     $html = '';
 
     if (count($terms) > 0) {
-
         foreach ($terms as $term) {
-            $directory_type = get_term_meta( $term->term_id, '_directory_type', true );
-            $directory_type = ! empty( $directory_type ) ? $directory_type : array();
-            if( in_array( $settings['listing_type'], $directory_type ) ) {
-                $settings['term_id'] = $term->term_id;
+			$settings['term_id'] = $term->term_id;
 
-                $count = 0;
-                if (!empty($settings['hide_empty']) || !empty($settings['show_count'])) {
-                    $count = atbdp_listings_count_by_category($term->term_id);
+			$count = 0;
+			if (!empty($settings['hide_empty']) || !empty($settings['show_count'])) {
+				$count = atbdp_listings_count_by_category($term->term_id);
 
-                    if (!empty($settings['hide_empty']) && 0 == $count) continue;
-                }
-                $selected = ($term_id == $term->term_id) ? "selected" : '';
-                $custom_field    = in_array( $term->term_id, $settings['assign_to_category']['assign_to_cat'] ) ? true : '';
-                $html .= '<option data-custom-field="' . $custom_field . '" value="' . $term->term_id . '" ' . $selected . '>';
-                $html .= $prefix . $term->name;
-                if (!empty($settings['show_count'])) {
-                    $html .= ' (' . $count . ')';
-                }
-                $html .= search_category_location_filter($settings, $taxonomy_id, $prefix . '&nbsp;&nbsp;&nbsp;');
-                $html .= '</option>';
-            }
+				if (!empty($settings['hide_empty']) && 0 == $count) continue;
+			}
+			$selected = ($term_id == $term->term_id) ? "selected" : '';
+			$custom_field    = in_array( $term->term_id, $settings['assign_to_category']['assign_to_cat'] ) ? true : '';
+			$html .= '<option data-custom-field="' . $custom_field . '" value="' . $term->term_id . '" ' . $selected . '>';
+			$html .= $prefix . $term->name;
+			if (!empty($settings['show_count'])) {
+				$html .= ' (' . $count . ')';
+			}
+			$html .= search_category_location_filter($settings, $taxonomy_id, $prefix . '&nbsp;&nbsp;&nbsp;');
+			$html .= '</option>';
         }
 
     }
