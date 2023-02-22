@@ -432,13 +432,18 @@ final class Directorist_Base
 	 */
 	private function includes()
 	{
+		include_once ATBDP_INC_DIR . 'directorist-helper-functions.php';
+		include_once ATBDP_INC_DIR . 'directorist-directory-functions.php';
+		include_once ATBDP_INC_DIR . 'directorist-listings-functions.php';
+		include_once ATBDP_INC_DIR . 'directorist-sanitization-functions.php';
+		include_once ATBDP_INC_DIR . 'directorist-user-functions.php';
+
 		$this->autoload( ATBDP_INC_DIR . 'helpers/' );
 		$this->autoload( ATBDP_INC_DIR . 'asset-loader/' );
 		$this->autoload( ATBDP_INC_DIR . 'widgets/' );
 
 		self::require_files([
 			ATBDP_INC_DIR . 'class-helper',
-			ATBDP_INC_DIR . 'helper-functions',
 			ATBDP_INC_DIR . 'template-functions',
 			ATBDP_INC_DIR . 'custom-actions',
 			ATBDP_INC_DIR . 'custom-filters',
