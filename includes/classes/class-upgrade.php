@@ -26,6 +26,67 @@ class ATBDP_Upgrade
 		add_action('directorist_before_directory_type_edited', array($this, 'promo_banner') );
 
 		add_action( 'admin_notices', array( $this, 'bfcm_notice') );
+
+		add_action( 'in_plugin_update_message-' . DIRECTORIST_BASE, function( $plugin_data ) {
+			$this->version_update_warning( ATBDP_VERSION, $plugin_data['new_version'] );
+		} );
+	}
+
+	protected function version_update_warning( $current_version, $new_version ) {
+		$current_version_minor_part = explode( '.', $current_version )[1];
+		$new_version_minor_part = explode( '.', $new_version )[1];
+
+		if ( $current_version_minor_part === $new_version_minor_part ) {
+			return;
+		}
+		?>
+		<style>
+			.directorist-major-update-warning__separator {
+				border: 1px solid #ffb900;
+				margin: 15px -12px;
+			}
+			.directorist-major-update-warning {
+				margin-block-end: 5px;
+				max-width: 1000px;
+				display: flex;
+			}
+			.directorist-major-update-warning__icon {
+				color: #f56e28;
+				font-size: 17px;
+				margin-inline-end: 9px;
+				margin-inline-start: 2px
+			}
+			.directorist-major-update-warning__title {
+				font-weight: 600;
+				margin-block-end: 10px;
+			}
+
+			.directorist-major-update-warning + p:empty {
+				display: none;
+			}
+		</style>
+		<hr class="directorist-major-update-warning__separator" />
+		<div class="directorist-major-update-warning">
+			<div class="directorist-major-update-warning__icon">
+				<span class="dashicons dashicons-info"></span>
+			</div>
+			<div>
+				<div class="directorist-major-update-warning__title">
+					<?php echo esc_html__( 'Heads up, Please backup before update!', 'directorist' ); ?>
+				</div>
+				<div class="directorist-major-update-warning__message">
+					<?php
+					printf(
+					/* translators: %1$s Link open tag, %2$s: Link close tag. */
+						esc_html__( 'The latest update includes some substantial changes across different areas of the plugin. We highly recommend you %1$sbackup your site before upgrading%2$s, and make sure you first update in a staging environment.', 'directorist' ),
+						'<a target="_blank" href="https://directorist.com/blog/">',
+						'</a>'
+					);
+					?>
+				</div>
+			</div>
+		</div>
+		<?php
 	}
 
 	public function is_pro_user() {

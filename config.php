@@ -69,3 +69,5 @@ if ( !defined('ATBDP_ALERT_MSG') ) { define('ATBDP_ALERT_MSG', __('You do not ha
 if ( !defined('ATBDP_VIEW_DIR') ) { define('ATBDP_VIEW_DIR', ATBDP_DIR.'includes/view/'); }
 
 define( 'DIRECTORIST_VENDOR', DIRECTORIST_ASSETS . 'vendor/' );
+
+define( 'DIRECTORIST_BASE', plugin_basename( DIRECTORIST__FILE__ ) );
