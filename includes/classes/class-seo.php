@@ -59,8 +59,8 @@ if ( ! class_exists( 'ATBDP_SEO' ) ) :
 
 			add_filter('wpseo_title', array($this, 'wpseo_title'));
 			add_filter('wpseo_metadesc', array($this, 'wpseo_metadesc'));
-			add_filter('wpseo_canonical', array($this, 'wpseo_canonical'));
-			add_filter('wpseo_opengraph_url', array($this, 'wpseo_canonical'));
+			add_filter('wpseo_canonical', array($this, 'directorist_canonical'));
+			add_filter('wpseo_opengraph_url', array($this, 'directorist_canonical'));
 			add_filter('wpseo_opengraph_title', array($this, 'wpseo_opengraph_title'));
 			//add_filter('wpseo_opengraph_image', array($this, 'wpseo_opengraph_image'));
 
@@ -77,6 +77,7 @@ if ( ! class_exists( 'ATBDP_SEO' ) ) :
 
             add_filter( 'rank_math/frontend/title', [ $this, 'optimize_rankmath_frontend_meta_title' ], 20, 1 );
             add_filter( 'rank_math/frontend/description', [ $this, 'optimize_rankmath_frontend_meta_description' ], 20, 1);
+            add_filter( 'rank_math/frontend/canonical', [ $this, 'directorist_canonical' ], 20, 1);
         }
 
 		// Optimize rankmath frontend meta title
@@ -549,7 +550,7 @@ if ( ! class_exists( 'ATBDP_SEO' ) ) :
          * @param     array    $url    The Yoast canonical URL.
          * @return                     Modified canonical URL.
          */
-        public function wpseo_canonical($url)
+        public function directorist_canonical($url)
         {
             global $post;
 
@@ -648,7 +649,7 @@ if ( ! class_exists( 'ATBDP_SEO' ) ) :
              * @param string $atbdp_page The atbdpectory page type if any.
              * @param string $sep The title separator symbol.
              */
-            return apply_filters('atbdp_seo_meta_title', __($title, 'directorist'), $page, $sep);
+            return apply_filters( 'atbdp_seo_meta_title', $title, $page, $sep );
         }
 
         // add_opengraph_meta
@@ -777,7 +778,7 @@ if ( ! class_exists( 'ATBDP_SEO' ) ) :
                 $seo_meta = call_user_func_array( [ $this, $callback ], [ $seo_meta ] );
             }
 
-            $title = $seo_meta['title'] . ' | ' . get_bloginfo('name');
+            $title = $seo_meta['title'] . ' | ' . get_bloginfo( 'name' );
             $seo_meta['title'] = apply_filters( 'directorist_seo_meta_title', $title, $seo_meta['title'] );
 
             if ( ! empty( $seo_meta['description'] ) ) {
@@ -790,7 +791,7 @@ if ( ! class_exists( 'ATBDP_SEO' ) ) :
                  * @param string $meta_desc   The page description including variables.
                  * @param string $gd_page The atbdpectory page type if any.
                  */
-                $seo_meta['description'] = apply_filters('atbdp_seo_meta_description_pre', __($seo_meta['description'], 'directorist'), $seo_meta['page'], '');
+                $seo_meta['description'] = apply_filters( 'atbdp_seo_meta_description_pre', $seo_meta['description'], $seo_meta['page'] );
             }
 
             return $seo_meta;
@@ -830,10 +831,10 @@ if ( ! class_exists( 'ATBDP_SEO' ) ) :
             $category = get_term_by( 'id', $category, ATBDP_CATEGORY );
             $location = get_term_by( 'id', $location, ATBDP_LOCATION );
 
-            $in_s_string_text = ! empty($query) ? sprintf(__( '%s', 'directorist' ), $query ) : '';
-            $in_cat_text      = ! empty($category) ? ( ! empty( $query ) ? __('from', 'directorist') : '' ) . $category->name : '';
-            $in_loc_text      = ! empty($location) ? ( ! empty( $query ) ? __('from', 'directorist') : '' ) . $location->name : '';
-            
+            $in_s_string_text = ! empty( $query ) ? $query : '';
+            $in_cat_text      = ! empty( $category ) ? ( ! empty( $query ) ? __( 'from', 'directorist ') : '' ) . $category->name : '';
+            $in_loc_text      = ! empty( $location ) ? ( ! empty( $query ) ? __( 'from', 'directorist ') : '' ) . $location->name : '';
+
             $how_to = get_directorist_option('meta_title_for_search_result', 'searched_value');
 
             if ( 'searched_value' === $how_to ) {

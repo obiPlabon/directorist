@@ -89,7 +89,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 		public function register_bulk_actions( $actions ) {
 			$taxonomy = substr( current_filter(), 18 ); // Extract taxonomy name from current filter name.
 
-			if ( directorist_is_multi_directory() && current_user_can( get_taxonomy( $taxonomy )->cap->edit_terms ) ) {
+			if ( directorist_is_multi_directory_enabled() && current_user_can( get_taxonomy( $taxonomy )->cap->edit_terms ) ) {
 				$actions[ __( 'Directory', 'directorist') ] = array(
 					'directory_reset_to_empty'   => __( 'Reset To Empty' ),
 					'directory_reset_to_default' => __( 'Reset To Default' ),
@@ -102,7 +102,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 		public function handle_bulk_actions( $location, $action, $terms ) {
 			$taxonomy = substr( current_filter(), 25 ); // Extract taxonomy name from current filter name.
 
-			if ( ! directorist_is_multi_directory() || ! current_user_can( get_taxonomy( $taxonomy )->cap->edit_terms ) ) {
+			if ( ! directorist_is_multi_directory_enabled() || ! current_user_can( get_taxonomy( $taxonomy )->cap->edit_terms ) ) {
 				return $location;
 			}
 
@@ -443,7 +443,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 
 			$new_columns['directorist_category_icon'] = __( 'Icon', 'directorist' );
 
-			if ( directorist_is_multi_directory() ) {
+			if ( directorist_is_multi_directory_enabled() ) {
 				$new_columns['directorist_category_directory_type'] = __( 'Directory', 'directorist' );
 			}
 
@@ -459,7 +459,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 				return sprintf( '<span class="%s" style="font-size: 1.6em"></span>', esc_attr( $icon ) );
 			}
 
-			if ( $column_name === 'directorist_category_directory_type' && directorist_is_multi_directory() ) {
+			if ( $column_name === 'directorist_category_directory_type' && directorist_is_multi_directory_enabled() ) {
 				$directories = directorist_get_directories_of_category( $category_id );
 
 				if ( ! empty( $directories ) ) {
@@ -635,9 +635,11 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 				'query_var'         => true,
 				'public'            => true,
 				'show_in_nav_menus' => true,
+				'capabilities'      => array(
+					'assign_terms' => get_post_type_object( ATBDP_POST_TYPE )->cap->publish_posts,
+				),
 			);
 
-			// get the rewrite slug from the user settings, if exist use it.
 			$slug = ATBDP_LOCATION;
 			if ( ! empty( $slug ) ) {
 				$args['rewrite'] = array(
@@ -669,9 +671,11 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 				'query_var'         => true,
 				'public'            => true,
 				'show_in_nav_menus' => true,
+				'capabilities'      => array(
+					'assign_terms' => get_post_type_object( ATBDP_POST_TYPE )->cap->publish_posts,
+				),
 			);
 
-			// get the rewrite slug from the user settings, if exist use it.
 			$slug = ATBDP_CATEGORY;
 			if ( ! empty( $slug ) ) {
 				$args['rewrite'] = array(
@@ -723,7 +727,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 			$new_columns = $columns;
 			array_splice( $new_columns, 2 );
 
-			if ( directorist_is_multi_directory() ) {
+			if ( directorist_is_multi_directory_enabled() ) {
 				$new_columns['directorist_location_directory_type'] = __( 'Directory', 'directorist' );
 			}
 
@@ -731,7 +735,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 		}
 
 		public function location_rows( $return_string, $column_name, $location_id ) {
-			if ( $column_name === 'directorist_location_directory_type' && directorist_is_multi_directory() ) {
+			if ( $column_name === 'directorist_location_directory_type' && directorist_is_multi_directory_enabled() ) {
 				$directories = directorist_get_directories_of_location( $location_id );
 
 				if ( ! empty( $directories ) ) {
