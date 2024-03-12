@@ -19,15 +19,117 @@ class ATBDP_Upgrade
 
 		add_action('admin_notices', array($this, 'upgrade_notice'), 100);
 
+		add_action('directorist_before_settings_panel_header', array($this, 'promo_banner') );
+
+		add_action('directorist_before_all_directory_types', array($this, 'promo_banner') );
+
+		add_action('directorist_before_directory_type_edited', array($this, 'promo_banner') );
+
+		add_action( 'admin_notices', array( $this, 'bfcm_notice') );
 	}
 
-	public function upgrade_notice()
-	{
-		if (!current_user_can('administrator')) return;
+	public function is_pro_user() {
+		$plugin = get_user_meta( get_current_user_id(), '_plugins_available_in_subscriptions', true );
+		$theme  = get_user_meta( get_current_user_id(), '_themes_available_in_subscriptions', true );
 
-		if( '7.0' !== ATBDP_VERSION ) return;
+		if( $plugin || $theme ) {
+			return true;
+		} else {
+			return false;
+		}
+	}
 
-		if ( get_user_meta( get_current_user_id(), $this->upgrade_notice_id, true ) || ! empty( $this->directorist_migration[ $this->upgrade_notice_id ] ) ) return;
+	public function promo_banner(){
+		if ( self::can_manage_plugins() && ! self::is_pro_user() ) {
+			ATBDP()->load_template( 'admin-templates/admin-promo-banner' );
+		}
+	}
+
+	protected static function can_manage_plugins() {
+		return ( current_user_can( 'install_plugins' ) || current_user_can( 'manage_options' ) );
+	}
+
+	public function bfcm_notice() {
+		if ( ! self::can_manage_plugins() || self::is_pro_user() ) {
+			return;
+		}
+
+		$response_body  = self::promo_remote_get();
+		$display        = ! empty( $response_body->promo_2_display ) ? $response_body->promo_2_display : '';
+		$text           = ! empty( $response_body->promo_2_text ) ? $response_body->promo_2_text : '';
+		$version        = ! empty( $response_body->promo_2_version ) ? $response_body->promo_2_version : '';
+		$link           = ! empty( $response_body->get_now_button_link ) ? self::promo_link( $response_body->get_now_button_link ) : '';
+
+		$closed_version = get_user_meta( get_current_user_id(), 'directorist_promo2_closed_version', true );
+
+		if ( !$display || $version == $closed_version || !$text ) {
+			return;
+		}
+
+		$text = str_replace( '{{link}}', $link, $text );
+
+		$dismiss_url = add_query_arg(
+			array(
+				'directorist_promo2_closed_version' => $version,
+				'directorist_promo2_nonce'          => wp_create_nonce( 'directorist_promo2_closed_version' ),
+			),
+			atbdp_get_current_url()
+		);
+
+		$notice = '<div class="notice notice-info is-dismissible"><p style="font-size: 16px;">' . $text . '</p><a href="'.esc_url( $dismiss_url ).'" class="notice-dismiss" style="text-decoration: none;"><span class="screen-reader-text">'. __( 'Dismiss this notice.', 'directorist' ) .'</span></a></div>';
+
+		echo wp_kses_post( $notice );
+	}
+
+	public static function promo_remote_get() {
+		$url     = 'https://app.directorist.com/wp-json/directorist/v1/get-promo';
+		$headers = [
+			'user-agent' => 'Directorist/' . md5( esc_url( home_url() ) ) . ';',
+			'Accept'     => 'application/json',
+		];
+
+		$config = [
+			'method'      => 'GET',
+			'timeout'     => 30,
+			'redirection' => 5,
+			'httpversion' => '1.0',
+			'headers'     => $headers,
+			'cookies'     => [],
+		];
+
+		$response_body = [];
+
+		$cached_response = get_transient( 'directorist_get_promo_banner' );
+
+		if( $cached_response ) {
+			$response_body = $cached_response;
+		} else {
+			try {
+				$response = wp_remote_get( $url, $config );
+				$response_body = ! is_wp_error( $response ) ? wp_remote_retrieve_body( $response ) : [];
+				set_transient( 'directorist_get_promo_banner', $response_body, 24 * HOUR_IN_SECONDS );
+			} catch ( Exception $e ) {
+				return $response_body;
+			}
+		}
+
+		$response_body = is_string( $response_body ) ? json_decode( $response_body ) : $response_body;
+
+		return $response_body;
+	}
+
+	public function upgrade_notice() {
+		if ( ! self::can_manage_plugins() ) {
+			return;
+		}
+
+		if ( '7.0' !== ATBDP_VERSION ) {
+			return;
+		}
+
+		if ( get_user_meta( get_current_user_id(), $this->upgrade_notice_id, true ) || ! empty( $this->directorist_migration[ $this->upgrade_notice_id ] ) ) {
+			return;
+		}
 
 		$text = '';
 
@@ -46,7 +148,10 @@ class ATBDP_Upgrade
 
 	}
 
-	public function configure_notices(){
+	public function configure_notices() {
+		if ( ! self::can_manage_plugins() ) {
+			return;
+		}
 
 		$this->directorist_notices      = get_option( 'directorist_notices' );
 
@@ -60,8 +165,23 @@ class ATBDP_Upgrade
 		if ( isset( $_GET['directorist-depricated-notice'] ) ) {
 			$this->directorist_notices[ $this->legacy_notice_id ] = 1;
 			update_option( 'directorist_notices', $this->directorist_notices );
-
 		}
+
+		if ( isset( $_GET['close-directorist-promo-version'], $_GET['directorist_promo_nonce'] ) && wp_verify_nonce( $_GET['directorist_promo_nonce'], 'close-directorist-promo-version' ) ) {
+			update_user_meta( get_current_user_id(), '_directorist_promo_closed', directorist_clean( wp_unslash( $_GET['close-directorist-promo-version'] ) ) );
+		}
+
+		if ( isset( $_GET['directorist_promo2_closed_version'], $_GET['directorist_promo2_nonce'] ) && wp_verify_nonce( $_GET['directorist_promo2_nonce'], 'directorist_promo2_closed_version' ) ) {
+			update_user_meta( get_current_user_id(), 'directorist_promo2_closed_version', directorist_clean( wp_unslash( $_GET['directorist_promo2_closed_version'] ) ) );
+		}
+	}
+
+	public static function promo_link( $link ) {
+		if( defined( 'DIRECTORIST_AFFLILIATE_ID' ) && DIRECTORIST_AFFLILIATE_ID !== null ) {
+			$link = $link . "ref/" . DIRECTORIST_AFFLILIATE_ID;
+		}
+
+		return $link;
 	}
 
 }

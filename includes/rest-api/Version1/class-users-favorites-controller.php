@@ -139,7 +139,10 @@ class User_Favorites_Controller extends Abstract_Controller {
 	 * @return WP_Error|WP_REST_Response
 	 */
 	public function create_item( $request ) {
-		$user_id   = (int) $request['user_id'];
+		$user_id = (int) $request['user_id'];
+
+		do_action( 'directorist_rest_before_query', 'create_user_favorites_item', $request, $user_id );
+
 		$user_data = get_userdata( $user_id );
 
 		if ( empty( $user_data ) ) {
@@ -153,32 +156,32 @@ class User_Favorites_Controller extends Abstract_Controller {
 			return new WP_Error( 'directorist_rest_invalid_listing_id', __( 'Invalid listing ID.', 'directorist' ), 400 );
 		}
 
-		$old_favorites = $this->get_favorites( $user_id );
-		$favorites     = array_merge( $old_favorites, [ $listing_id ] );
-		$favorites     = array_unique( $favorites );
-		$favorites     = array_values( $favorites );
-
-		update_user_meta( $user_id, 'atbdp_favourites', $favorites );
+		$old_favorites = directorist_get_user_favorites( $user_id );
+		$new_favorites = directorist_add_user_favorites( $user_id, $listing_id );
 
 		$data = array(
 			'id'            => $listing_id,
 			'old_favorites' => $old_favorites,
-			'new_favorites' => $favorites,
+			'new_favorites' => $new_favorites,
 		);
 
 		/**
 		 * Fires after a user favorite is created or updated via the REST API.
 		 *
-		 * @param array           $favorites User favorites.
+		 * @param array           $new_favorites User favorites.
 		 * @param WP_REST_Request $request   Request object.
 		 * @param boolean         $creating  True when creating user, false when updating user.
 		 */
-		do_action( 'directorist_rest_insert_user_favorite', $favorites, $request, false );
+		do_action( 'directorist_rest_insert_user_favorite', $new_favorites, $request, false );
 
 		$request->set_param( 'context', 'edit' );
 		$response = $this->prepare_item_for_response( $data, $request );
 		$response = rest_ensure_response( $response );
 		$response->set_status( 201 );
+
+		do_action( 'directorist_rest_after_query', 'create_user_favorites_item', $request, $user_id );
+
+		$response = apply_filters( 'directorist_rest_response', $response, 'create_user_favorites_item', $request, $data );
 
 		return $response;
 	}
@@ -190,30 +193,33 @@ class User_Favorites_Controller extends Abstract_Controller {
 	 * @return WP_Error|WP_REST_Response
 	 */
 	public function delete_item( $request ) {
-		$user_id   = (int) $request['user_id'];
+		$user_id    = (int) $request['user_id'];
+		$listing_id = (int) $request['id'];
+
+		do_action( 'directorist_rest_before_query', 'delete_user_favorites_item', $request, $user_id, $listing_id );
+
 		$user_data = get_userdata( $user_id );
 
 		if ( empty( $user_data ) ) {
 			return new WP_Error( 'directorist_rest_invalid_user_id', __( 'Invalid user ID.', 'directorist' ), 400 );
 		}
 
-		$listing_id   = (int) $request['id'];
 		$listing_data = get_post( $listing_id );
 
 		if ( empty( $listing_data ) || get_post_type( $listing_data ) != ATBDP_POST_TYPE ) {
 			return new WP_Error( 'directorist_rest_invalid_listing_id', __( 'Invalid listing ID.', 'directorist' ), 400 );
 		}
 
-		$old_favorites = $this->get_favorites( $user_id );
-		$favorites = array_diff( $old_favorites, [ $listing_id ] );
-		$favorites = array_values( $favorites );
+		$old_favorites = directorist_get_user_favorites( $user_id );
 
-		update_user_meta( $user_id, 'atbdp_favourites', $favorites );
+		directorist_delete_user_favorites( $user_id, $listing_id );
+
+		$new_favorites = directorist_get_user_favorites( $user_id );
 
 		$data = array(
 			'id'            => $listing_id,
 			'old_favorites' => $old_favorites,
-			'new_favorites' => $favorites,
+			'new_favorites' => $new_favorites,
 		);
 
 		$request->set_param( 'context', 'edit' );
@@ -226,7 +232,11 @@ class User_Favorites_Controller extends Abstract_Controller {
 		 * @param WP_REST_Response $response  The response returned from the API.
 		 * @param WP_REST_Request  $request   The request sent to the API.
 		 */
-		do_action( 'directorist_rest_delete_user_favorite', $favorites, $response, $request );
+		do_action( 'directorist_rest_delete_user_favorite', $new_favorites, $response, $request );
+
+		do_action( 'directorist_rest_after_query', 'delete_user_favorites_item', $request, $user_id, $listing_id );
+
+		$response = apply_filters( 'directorist_rest_response', $response, 'create_user_favorites_item', $request, $data );
 
 		return $response;
 	}
@@ -254,18 +264,6 @@ class User_Favorites_Controller extends Abstract_Controller {
 		return apply_filters( 'directorist_rest_prepare_user_favorite', $response, $data, $request );
 	}
 
-	public function get_favorites( $user_id ) {
-		$favorites = get_user_meta( $user_id, 'atbdp_favourites', true );
-
-		if ( ! empty( $favorites ) && is_array( $favorites ) ) {
-			$favorites = array_map( 'absint', $favorites );
-		} else {
-			$favorites = [];
-		}
-
-		return $favorites;
-	}
-
 	/**
 	 * Get the User's favorite schema, conforming to JSON Schema.
 	 *
@@ -288,3 +286,5 @@ class User_Favorites_Controller extends Abstract_Controller {
 		return $this->add_additional_fields_schema( $schema );
 	}
 }
+/* This code is retrieving the user meta data for the user ID of the user that is logged
+in. */

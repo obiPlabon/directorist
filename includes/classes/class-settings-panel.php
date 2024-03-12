@@ -1,5 +1,7 @@
 <?php
 
+use Directorist\Asset_Loader\Enqueue;
+
 if ( ! class_exists('ATBDP_Settings_Panel') ) {
 	class ATBDP_Settings_Panel
 	{
@@ -59,6 +61,13 @@ if ( ! class_exists('ATBDP_Settings_Panel') ) {
                 'description' => __( 'Loads unminified .css, .js files', 'directorist' ),
             ];
 
+            $fields['legacy_icon'] = [
+                'type'  => 'toggle',
+                'label' => __( 'Legacy Icon Support', 'directorist' ),
+				'value' => false,
+                'description' => sprintf( __( 'Icon support for legacy v7.3.3 templates. Enable this only if there are outdated directorist templates in your theme, you can check them <a href="%s" target="__blank">here</a>.<br/>Note: This setting is temporary and will be removed in the future.', 'directorist' ), menu_page_url( 'directorist-status', false ) . '#atbds_template' ),
+            ];
+
             $fields['import_settings'] = [
                 'type'         => 'import',
                 'label'        => 'Import Settings',
@@ -75,7 +84,7 @@ if ( ! class_exists('ATBDP_Settings_Panel') ) {
             $fields['single_listing_slug_with_directory_type'] = [
                 'type'  => 'toggle',
                 'label' => __('Listing Slug with Directory Type', 'directorist'),
-                'value' => get_directorist_option( 'enable_multi_directory' ),
+                'value' => directorist_is_multi_directory_enabled(),
                 'show-if' => [
                     'where' => "enable_multi_directory",
                     'conditions' => [
@@ -108,7 +117,7 @@ if ( ! class_exists('ATBDP_Settings_Panel') ) {
                         'label' => __( 'Start Building Directory', 'directorist' ),
                         'type'  => 'success',
                         'url'   => admin_url( 'edit.php?post_type=at_biz_dir&page=atbdp-directory-types' ),
-                        'show'  => get_directorist_option( 'enable_multi_directory', false ),
+                        'show'  => directorist_is_multi_directory_enabled(),
                     ]
                 ]
             ];
@@ -122,7 +131,12 @@ if ( ! class_exists('ATBDP_Settings_Panel') ) {
                 'data'                       => [],
             ];
 
-            $users = get_users([ 'role__not_in' => 'Administrator' ]); // Administrator | Subscriber
+			$users = get_users(
+				array(
+					'role__not_in' => 'Administrator',   // Administrator | Subscriber
+					'number'       => apply_filters( 'directorist_announcement_user_query_num', 1000 ),
+				)
+			);
             $recipient = [];
 
             if ( ! empty( $users ) ) {
@@ -185,6 +199,10 @@ if ( ! class_exists('ATBDP_Settings_Panel') ) {
                         'label' => 'Send a copy to email',
                         'value' => true,
                     ],
+					'nonce' => [
+						'type'  => 'hidden',
+						'value' => wp_create_nonce( directorist_get_nonce_key() ),
+                    ],
                 ],
                 'value' => '',
                 'save-option-data' => false,
@@ -232,7 +250,9 @@ if ( ! class_exists('ATBDP_Settings_Panel') ) {
                 {$c}==TODAY=={$e} : It outputs the current date<br/>
                 {$c}==NOW=={$e} : It outputs the current time<br/>
                 {$c}==DASHBOARD_LINK=={$e} : It outputs the user dashboard page link<br/>
-                {$c}==USER_PASSWORD=={$e} : It outputs new user's temporary passoword<br/><br/>
+                {$c}==USER_PASSWORD=={$e} : It outputs new user's temporary passoword<br/>
+                {$c}==CONFIRM_EMAIL_ADDRESS_URL=={$e} : It outputs verify email link<br/>
+                {$c}==SET_PASSWORD_AND_CONFIRM_EMAIL_ADDRESS_URL=={$e} : It outputs set new password and verify email link<br/><br/>
                 Additionally, you can also use HTML tags in your template.
 SWBD;
 
@@ -321,9 +341,10 @@ SWBD;
             ];
 
 			$fields['lazy_load_taxonomy_fields'] = [
-                'type'  => 'toggle',
-                'label' => __( 'Lazy load category and location fields', 'directorist' ),
-				'value' => false
+                'type'        => 'toggle',
+                'label'       => __( 'Lazy Load Term Fields', 'directorist' ),
+                'description' => __( 'Enables lazy loading in category, location and tag fields', 'directorist' ),
+                'value'       => false
             ];
 
             return $fields;
@@ -337,7 +358,7 @@ SWBD;
 			$path = ( ! empty( $args['path'] ) ) ? $args['path'] : '';
 
 			// $path = 'directory/directory.json'
-			$file = trailingslashit( dirname( ATBDP_FILE ) ) . "admin/assets/simple-data/{$path}";
+			$file = DIRECTORIST_ASSETS_DIR . "sample-data/{$path}";
 			if ( ! file_exists( $file ) ) { return ''; }
 
 			$data = file_get_contents( $file );
@@ -373,7 +394,7 @@ SWBD;
             }
 
 
-			$field_list = ( ! empty( $_POST['field_list'] ) ) ? Directorist\Helper::maybe_json( $_POST['field_list'] ) : [];
+			$field_list = ( ! empty( $_POST['field_list'] ) ) ? Directorist\Helper::maybe_json( sanitize_text_field( wp_unslash( $_POST['field_list'] ) ) ) : [];
 
 			// If field list is empty
 			if ( empty( $field_list ) || ! is_array( $field_list ) ) {
@@ -389,7 +410,7 @@ SWBD;
 			foreach ( $field_list as $field_key ) {
 				if ( ! isset( $_POST[ $field_key ] ) ) { continue; }
 
-				$options[ $field_key ] = $_POST[ $field_key ];
+				$options[ $field_key ] = sanitize_text_field( wp_unslash( $_POST[ $field_key ] ) );
 			}
 
             // Prepare Settings
@@ -423,6 +444,11 @@ SWBD;
 			}
 
 			update_option( 'atbdp_option', $atbdp_options );
+
+            /**
+            * @since 7.3.0
+            */
+            do_action( 'directorist_options_updated' );
 
 			// Send Status
 			$status['options'] = $options;
@@ -459,6 +485,9 @@ Please remember that your order may be canceled if you do not make your payment 
 
         $bank_payment_desc = __('You can make your payment directly to our bank account using this gateway. Please use your ORDER ID as a reference when making the payment. We will complete your order as soon as your deposit is cleared in our bank.', 'directorist');
         $pricing_plan = '<a style="color: red" href="https://directorist.com/product/directorist-pricing-plans" target="_blank">Pricing Plans</a>';
+
+		$default_size = directorist_default_preview_size();
+		$default_preview_size_text = $default_size['width'].'x'.$default_size['height'].' px';
 
             $this->fields = apply_filters('atbdp_listing_type_settings_field_list', [
 
@@ -1419,22 +1448,6 @@ Please remember that your order may be canceled if you do not make your payment 
                     'label' => __('Border Color', 'directorist'),
                     'value' => '#444752',
                 ],
-
-                'font_type' => [
-                    'label' => __('Icon Library', 'directorist'),
-                    'type'  => 'select',
-                    'value' => 'line',
-                    'options' => [
-                        [
-                            'label' => __('Font Awesome', 'directorist'),
-                            'value' => 'font',
-                        ],
-                        [
-                            'label' => __('Line Awesome', 'directorist'),
-                            'value' => 'line',
-                        ],
-                    ],
-                ],
                 'can_renew_listing' => [
                     'label' => __('Can User Renew Listing?', 'directorist'),
                     'type'  => 'toggle',
@@ -1572,6 +1585,11 @@ Please remember that your order may be canceled if you do not make your payment 
                             ['key' => 'value', 'compare' => '=', 'value' => true],
                         ],
                     ],
+                ],
+                'listing_instant_search' => [
+                    'type' => 'toggle',
+                    'label' => __('Instant Search', 'directorist'),
+                    'value' => false,
                 ],
                 'listing_filters_button' => [
                     'type' => 'toggle',
@@ -1835,8 +1853,12 @@ Please remember that your order may be canceled if you do not make your payment 
                 'preview_image_quality' => [
                     'label' => __('Preview Image Quality', 'directorist'),
                     'type'  => 'select',
-                    'value' => 'large',
+                    'value' => 'directorist_preview',
                     'options' => [
+                        [
+                            'value' => 'directorist_preview',
+                            'label' => __( 'Default', 'directorist' ),
+                        ],
                         [
                             'value' => 'medium',
                             'label' => __('Medium', 'directorist'),
@@ -1850,6 +1872,7 @@ Please remember that your order may be canceled if you do not make your payment 
                             'label' => __('Full', 'directorist'),
                         ],
                     ],
+					'description' => sprintf( __( 'Default: %s.<br/>If you change this option, please regenerate all thumbnails using <a href="%s" target="_blank">this</a> plugin. Otherwise it may not work properly.', 'directorist' ), $default_preview_size_text, 'https://wordpress.org/plugins/regenerate-thumbnails/' ),
                 ],
                 'way_to_show_preview' => [
                     'label' => __('Image Size', 'directorist'),
@@ -1958,22 +1981,6 @@ Please remember that your order may be canceled if you do not make your payment 
                         [
                             'value' => 'contact',
                             'label' => __('Display From Contact Information', 'directorist'),
-                        ],
-                    ],
-                ],
-
-                'publish_date_format' => [
-                    'label' => __('Publish Date Format', 'directorist'),
-                    'type'  => 'select',
-                    'value' => 'time_ago',
-                    'options' => [
-                        [
-                            'value' => 'time_ago',
-                            'label' => __('Number of Days Ago', 'directorist'),
-                        ],
-                        [
-                            'value' => 'publish_date',
-                            'label' => __('Standard Date Format', 'directorist'),
                         ],
                     ],
                 ],
@@ -2274,107 +2281,107 @@ Please remember that your order may be canceled if you do not make your payment 
                 ],
 
                 // review settings
-                'enable_review' => [
-                    'type' => 'toggle',
-                    'label' => __('Enable Reviews & Rating', 'directorist'),
-                    'value' => true,
-                ],
-                'enable_owner_review' => [
-                    'type' => 'toggle',
-                    'label' => __('Enable Owner Review', 'directorist'),
-                    'description' => __('Allow a listing owner to post a review on his/her own listing.', 'directorist'),
-                    'value' => true,
-                    'show-if' => [
-                        'where' => "enable_review",
-                        'conditions' => [
-                            ['key' => 'value', 'compare' => '=', 'value' => true],
-                        ],
-                    ],
-                ],
-                'approve_immediately' => [
-                    'type' => 'toggle',
-                    'label' => __('Approve Immediately?', 'directorist'),
-                    'value' => true,
-                    'show-if' => [
-                        'where' => "enable_review",
-                        'conditions' => [
-                            ['key' => 'value', 'compare' => '=', 'value' => true],
-                        ],
-                    ],
-                ],
-                'review_approval_text' => [
-                    'type' => 'textarea',
-                    'label' => __('Approval Notification Text', 'directorist'),
-                    'description' => __('You can set the title for featured listing to show on the ORDER PAGE', 'directorist'),
-                    'value' => __('We have received your review. It requires approval.', 'directorist'),
-                    'show-if' => [
-                        'where' => "enable_review",
-                        'conditions' => [
-                            ['key' => 'value', 'compare' => '=', 'value' => true],
-                        ],
-                    ],
-                ],
-                'enable_reviewer_img' => [
-                    'type' => 'toggle',
-                    'label' => __('Enable Reviewer Image', 'directorist'),
-                    'value' => true,
-                    'show-if' => [
-                        'where' => "enable_review",
-                        'conditions' => [
-                            ['key' => 'value', 'compare' => '=', 'value' => true],
-                        ],
-                    ],
-                ],
-                'enable_reviewer_content' => [
-                    'type' => 'toggle',
-                    'label' => __('Enable Reviewer content', 'directorist'),
-                    'value' => true,
-                    'description' => __('Allow to display content of reviewer on single listing page.', 'directorist'),
-                    'show-if' => [
-                        'where' => "enable_review",
-                        'conditions' => [
-                            ['key' => 'value', 'compare' => '=', 'value' => true],
-                        ],
-                    ],
-                ],
-                'required_reviewer_content' => [
-                    'type' => 'toggle',
-                    'label' => __('Required Reviewer content', 'directorist'),
-                    'value' => true,
-                    'description' => __('Allow to Require the content of reviewer on single listing page.', 'directorist'),
-                    'show-if' => [
-                        'where' => "enable_review",
-                        'conditions' => [
-                            ['key' => 'value', 'compare' => '=', 'value' => true],
-                        ],
-                    ],
-                ],
-                'review_num' => [
-                    'label' => __('Number of Reviews', 'directorist'),
-                    'description' => __('Enter how many reviews to show on Single listing page.', 'directorist'),
-                    'type'  => 'number',
-                    'value' => '5',
-                    'min' => '1',
-                    'max' => '20',
-                    'step' => '1',
-                    'show-if' => [
-                        'where' => "enable_review",
-                        'conditions' => [
-                            ['key' => 'value', 'compare' => '=', 'value' => true],
-                        ],
-                    ],
-                ],
-                'guest_review' => [
-                    'type' => 'toggle',
-                    'label' => __('Guest Review Submission', 'directorist'),
-                    'value' => false,
-                    'show-if' => [
-                        'where' => "enable_review",
-                        'conditions' => [
-                            ['key' => 'value', 'compare' => '=', 'value' => true],
-                        ],
-                    ],
-                ],
+                // 'enable_review' => [
+                //     'type' => 'toggle',
+                //     'label' => __('Enable Reviews & Rating', 'directorist'),
+                //     'value' => true,
+                // ],
+                // 'enable_owner_review' => [
+                //     'type' => 'toggle',
+                //     'label' => __('Enable Owner Review', 'directorist'),
+                //     'description' => __('Allow a listing owner to post a review on his/her own listing.', 'directorist'),
+                //     'value' => true,
+                //     'show-if' => [
+                //         'where' => "enable_review",
+                //         'conditions' => [
+                //             ['key' => 'value', 'compare' => '=', 'value' => true],
+                //         ],
+                //     ],
+                // ],
+                // 'approve_immediately' => [
+                //     'type' => 'toggle',
+                //     'label' => __('Approve Immediately?', 'directorist'),
+                //     'value' => true,
+                //     'show-if' => [
+                //         'where' => "enable_review",
+                //         'conditions' => [
+                //             ['key' => 'value', 'compare' => '=', 'value' => true],
+                //         ],
+                //     ],
+                // ],
+                // 'review_approval_text' => [
+                //     'type' => 'textarea',
+                //     'label' => __('Approval Notification Text', 'directorist'),
+                //     'description' => __('You can set the title for featured listing to show on the ORDER PAGE', 'directorist'),
+                //     'value' => __('We have received your review. It requires approval.', 'directorist'),
+                //     'show-if' => [
+                //         'where' => "enable_review",
+                //         'conditions' => [
+                //             ['key' => 'value', 'compare' => '=', 'value' => true],
+                //         ],
+                //     ],
+                // ],
+                // 'enable_reviewer_img' => [
+                //     'type' => 'toggle',
+                //     'label' => __('Enable Reviewer Image', 'directorist'),
+                //     'value' => true,
+                //     'show-if' => [
+                //         'where' => "enable_review",
+                //         'conditions' => [
+                //             ['key' => 'value', 'compare' => '=', 'value' => true],
+                //         ],
+                //     ],
+                // ],
+                // 'enable_reviewer_content' => [
+                //     'type' => 'toggle',
+                //     'label' => __('Enable Reviewer content', 'directorist'),
+                //     'value' => true,
+                //     'description' => __('Allow to display content of reviewer on single listing page.', 'directorist'),
+                //     'show-if' => [
+                //         'where' => "enable_review",
+                //         'conditions' => [
+                //             ['key' => 'value', 'compare' => '=', 'value' => true],
+                //         ],
+                //     ],
+                // ],
+                // 'required_reviewer_content' => [
+                //     'type' => 'toggle',
+                //     'label' => __('Required Reviewer content', 'directorist'),
+                //     'value' => true,
+                //     'description' => __('Allow to Require the content of reviewer on single listing page.', 'directorist'),
+                //     'show-if' => [
+                //         'where' => "enable_review",
+                //         'conditions' => [
+                //             ['key' => 'value', 'compare' => '=', 'value' => true],
+                //         ],
+                //     ],
+                // ],
+                // 'review_num' => [
+                //     'label' => __('Number of Reviews', 'directorist'),
+                //     'description' => __('Enter how many reviews to show on Single listing page.', 'directorist'),
+                //     'type'  => 'number',
+                //     'value' => '5',
+                //     'min' => '1',
+                //     'max' => '20',
+                //     'step' => '1',
+                //     'show-if' => [
+                //         'where' => "enable_review",
+                //         'conditions' => [
+                //             ['key' => 'value', 'compare' => '=', 'value' => true],
+                //         ],
+                //     ],
+                // ],
+                // 'guest_review' => [
+                //     'type' => 'toggle',
+                //     'label' => __('Guest Review Submission', 'directorist'),
+                //     'value' => false,
+                //     'show-if' => [
+                //         'where' => "enable_review",
+                //         'conditions' => [
+                //             ['key' => 'value', 'compare' => '=', 'value' => true],
+                //         ],
+                //     ],
+                // ],
                 // select map settings
                 'select_listing_map' => [
                     'label' => __('Select Map', 'directorist'),
@@ -2626,27 +2633,39 @@ Please remember that your order may be canceled if you do not make your payment 
                     'label' => __('Display Name', 'directorist'),
                     'value' => true,
                 ],
-                'all_authors_role' => [
-                    'type'  => 'toggle',
-                    'label' => __('Display Roles', 'directorist'),
-                    'value' => true,
-                ],
                 'all_authors_select_role' => [
                     'label' => __('Select Role', 'directorist'),
                     'type'  => 'select',
                     'value' => 'all',
                     'options' => $this->get_user_roles(),
-                    'show-if' => [
-                        'where' => "all_authors_role",
-                        'conditions' => [
-                            ['key' => 'value', 'compare' => '=', 'value' => true],
+                ],
+                'all_authors_contact' => [
+                    'label' => esc_html__( 'Contact Info', 'directorist' ),
+                    'type'  => 'checkbox',
+                    'value' => [
+                            'phone',
+                            'address',
+                            'website',
+                        ],
+                    'description' => esc_html__( 'Email will show only for logged in user.', 'directorist' ),
+                    'options' => [
+                        [
+                            'value' => 'phone',
+                            'label' => esc_html__( 'Phone', 'directorist' ),
+                        ],
+                        [
+                            'value' => 'email',
+                            'label' => esc_html__( 'Email', 'directorist' ),
+                        ],
+                        [
+                            'value' => 'address',
+                            'label' => esc_html__( 'Address', 'directorist' ),
+                        ],
+                        [
+                            'value' => 'website',
+                            'label' => esc_html__( 'Website', 'directorist' ),
                         ],
                     ],
-                ],
-                'all_authors_info' => [
-                    'type'  => 'toggle',
-                    'label' => __('Display Contact Info', 'directorist'),
-                    'value' => true,
                 ],
                 'all_authors_description' => [
                     'type'  => 'toggle',
@@ -3530,23 +3549,6 @@ Please remember that your order may be canceled if you do not make your payment 
                     'description'   => __('Enter the Name of the currency eg. USD or GBP etc.', 'directorist'),
                     'value'         => 'USD',
                 ],
-                'g_thousand_separator'    => [
-                    'type'          => 'text',
-                    'label'         => __('Thousand Separator', 'directorist'),
-                    'description'   => __('Enter the currency thousand separator. Eg. , or . etc.', 'directorist'),
-                    'value'         => ',',
-                ],
-                'allow_decimal' => [
-                    'label'         => __('Allow Decimal', 'directorist'),
-                    'type'          => 'toggle',
-                    'value'         => true,
-                ],
-                'g_decimal_separator'    => [
-                    'type'          => 'text',
-                    'label'         => __('Decimal Separator', 'directorist'),
-                    'description'   => __('Enter the currency decimal separator. Eg. "." or ",". Default is "."', 'directorist'),
-                    'value'         => '.',
-                ],
                 'g_currency_position' => [
                     'label'        => __('Currency Position', 'directorist'),
                     'type'        => 'select',
@@ -3740,6 +3742,17 @@ Please remember that your order may be canceled if you do not make your payment 
                     'value'         => false,
                 ],
                 // registration settings
+                'new_user_registration' => [
+                    'label'         => __('New User Registration', 'directorist'),
+                    'type'          => 'toggle',
+                    'value'         => true,
+                ],
+                'enable_email_verification' => [
+                    'label'         => __('Enable Email Verification', 'directorist'),
+                    'type'          => 'toggle',
+                    'value'         => false,
+                    'description'   => sprintf(__('Enable email verification to verify user email during registration. To view the verification status navigate to Users → %s.', 'directorist'), "<a href='" . admin_url('users.php') . "'>" . __('All Users', 'directorist') . "</a>")
+                ],
                 'reg_username'    => [
                     'type'          => 'text',
                     'label'         => __('Label', 'directorist'),
@@ -4542,7 +4555,7 @@ Please remember that your order may be canceled if you do not make your payment 
                                 'general_settings' => [
                                     'fields'      => [
                                         'enable_multi_directory',
-                                        'font_type', 'can_renew_listing', 'email_to_expire_day', 'email_renewal_day', 'delete_expired_listing', 'delete_expired_listings_after', 'deletion_mode', 'paginate_author_listings', 'display_author_email', 'author_cat_filter', 'guest_listings',
+                                        'can_renew_listing', 'email_to_expire_day', 'email_renewal_day', 'delete_expired_listing', 'delete_expired_listings_after', 'deletion_mode', 'paginate_author_listings', 'display_author_email', 'author_cat_filter', 'guest_listings', 'lazy_load_taxonomy_fields'
                                     ],
                                 ],
 
@@ -4554,7 +4567,7 @@ Please remember that your order may be canceled if you do not make your payment 
                             'sections' => apply_filters( 'atbdp_listing_settings_listings_page_sections', [
                                 'labels' => [
                                     'fields'      => [
-                                        'display_listings_header', 'all_listing_title', 'listing_filters_button', 'listing_filters_icon', 'listings_filter_button_text', 'listing_tags_field', 'listing_default_radius_distance', 'listings_filters_button', 'listings_reset_text', 'listings_apply_text', 'display_sort_by', 'sort_by_text', 'listings_sort_by_items', 'display_view_as', 'view_as_text', 'listings_view_as_items', 'default_listing_view', 'grid_view_as', 'all_listing_columns', 'order_listing_by', 'sort_listing_by', 'preview_image_quality', 'way_to_show_preview', 'crop_width', 'crop_height', 'prv_container_size_by', 'prv_background_type', 'prv_background_color', 'default_preview_image', 'info_display_in_single_line', 'address_location', 'publish_date_format', 'paginate_all_listings', 'all_listing_page_items'
+                                        'display_listings_header', 'all_listing_title', 'listing_instant_search', 'listing_filters_button', 'listing_filters_icon', 'listings_filter_button_text', 'listing_tags_field', 'listing_default_radius_distance', 'listings_filters_button', 'listings_reset_text', 'listings_apply_text', 'display_sort_by', 'sort_by_text', 'listings_sort_by_items', 'display_view_as', 'view_as_text', 'listings_view_as_items', 'default_listing_view', 'grid_view_as', 'all_listing_columns', 'order_listing_by', 'sort_listing_by', 'preview_image_quality', 'way_to_show_preview', 'crop_width', 'crop_height', 'prv_container_size_by', 'prv_background_type', 'prv_background_color', 'default_preview_image', 'info_display_in_single_line', 'address_location', 'paginate_all_listings', 'all_listing_page_items'
                                     ],
                                 ],
                             ] ),
@@ -4590,26 +4603,13 @@ Please remember that your order may be canceled if you do not make your payment 
                             ] ),
                         ],
 
-
-                        'review' => [
-                            'label' => __('Review', 'directorist'),
-                            'icon' => '<i class="fa fa-star"></i>',
-                            'sections' => apply_filters( 'atbdp_listing_settings_review_sections', [
-                                'labels' => [
-                                    'fields'      => [
-                                        'enable_review', 'enable_owner_review', 'approve_immediately', 'review_approval_text', 'enable_reviewer_img', 'enable_reviewer_content', 'required_reviewer_content', 'review_num', 'guest_review'
-                                    ],
-                                ],
-                            ] ),
-                        ],
-
                         'currency_settings' => [
                             'label' => __( 'Listing Currency', 'directorist' ),
                             'icon' => '<i class="fa fa-money-bill"></i>',
                             'sections' => apply_filters( 'atbdp_currency_settings_sections', [
                                 'title_metas' => [
                                     'fields'      => [
-                                        'g_currency_note', 'g_currency', 'g_thousand_separator', 'allow_decimal', 'g_decimal_separator', 'g_currency_position'
+                                        'g_currency_note', 'g_currency', 'g_currency_position'
                                      ],
                                 ],
                             ] ),
@@ -4670,7 +4670,7 @@ Please remember that your order may be canceled if you do not make your payment 
                             'sections' => apply_filters( 'directorist_search_setting_sections', [
                                 'search_form' => [
                                     'fields'      => [
-                                        'search_title', 'search_subtitle', 'search_border', 'search_more_filter', 'search_more_filter_icon', 'search_button', 'search_button_icon', 'home_display_filter', 'search_filters','search_default_radius_distance', 'search_listing_text', 'search_more_filters', 'search_reset_text', 'search_apply_filter', 'show_popular_category', 'popular_cat_title', 'popular_cat_num', 'search_home_bg', 'lazy_load_taxonomy_fields'
+                                        'search_title', 'search_subtitle', 'search_border', 'search_more_filter', 'search_more_filter_icon', 'search_button', 'search_button_icon', 'home_display_filter', 'search_filters','search_default_radius_distance', 'search_listing_text', 'search_more_filters', 'search_reset_text', 'search_apply_filter', 'show_popular_category', 'popular_cat_title', 'popular_cat_num', 'search_home_bg',
                                      ],
                                 ],
                             ] ),
@@ -4699,6 +4699,13 @@ Please remember that your order may be canceled if you do not make your payment 
                             'label' => __('Registration Form', 'directorist'),
                             'icon' => '<i class="fa fa-envelope-open"></i>',
                             'sections' => apply_filters( 'atbdp_reg_settings_sections', [
+                                'new_user' => [
+                                    'title'       => '',
+                                    'description' => '',
+                                    'fields'      => [
+                                        'new_user_registration', 'enable_email_verification'
+                                     ],
+                                ],
                                 'username' => [
                                     'title'       => __('Username', 'directorist'),
                                     'description' => '',
@@ -4849,6 +4856,7 @@ Please remember that your order may be canceled if you do not make your payment 
 
                             ] ),
                         ],
+                        
                         'user_dashboard' => [
                             'label' => __('Dashboard', 'directorist'),
                             'icon' => '<i class="fa fa-chart-bar"></i>',
@@ -4882,7 +4890,7 @@ Please remember that your order may be canceled if you do not make your payment 
                                     'title'       => __('All Authors', 'directorist'),
                                     'description' => '',
                                     'fields'      => [
-                                        'all_authors_columns', 'all_authors_sorting', 'all_authors_image', 'all_authors_name', 'all_authors_role', 'all_authors_select_role', 'all_authors_info', 'all_authors_description', 'all_authors_description_limit', 'all_authors_social_info', 'all_authors_button', 'all_authors_button_text', 'all_authors_pagination', 'all_authors_per_page'
+                                        'all_authors_columns', 'all_authors_sorting', 'all_authors_image', 'all_authors_name', 'all_authors_select_role', 'all_authors_contact', 'all_authors_description', 'all_authors_description_limit', 'all_authors_social_info', 'all_authors_button', 'all_authors_button_text', 'all_authors_pagination', 'all_authors_per_page'
                                         ],
                                 ],
                             ] ),
@@ -5281,6 +5289,12 @@ Please remember that your order may be canceled if you do not make your payment 
                                         'script_debugging',
                                      ],
                                 ],
+                                'others' => [
+                                    'title' => __( 'Others', 'directorist' ),
+                                    'fields'      => [
+                                        'legacy_icon',
+                                     ],
+                                ],
                                 'uninstall' => [
                                     'title' => __( 'Uninstall', 'directorist' ),
                                     'fields' => [ 'enable_uninstall' ]
@@ -5339,13 +5353,11 @@ Please remember that your order may be canceled if you do not make your payment 
                 $this->fields[ $field_key ]['value'] = $atbdp_options[ $field_key ];
             }
 
-            $atbdp_settings_manager_data = [
+			$settings_builder_data = [
                 'fields'  => $this->fields,
                 'layouts' => $this->layouts,
                 'config'  => $this->config,
             ];
-
-            wp_localize_script('directorist-settings-manager', 'atbdp_settings_manager_data', $atbdp_settings_manager_data);
 
             /* $status = $this->update_settings_options([
                 'new_listing_status' => 'publish',
@@ -5357,8 +5369,46 @@ Please remember that your order may be canceled if you do not make your payment 
 
             var_dump( [ '$check_new' => $check_new,  '$check_edit' => $check_edit] ); */
 
-            atbdp_load_admin_template('settings-manager/settings');
+			$settings_builder_data['fields'] = $this->sanitize_fields_data( $settings_builder_data['fields'] );
+
+            $data = [
+                'settings_builder_data' => base64_encode( json_encode( $settings_builder_data ) )
+            ];
+
+            atbdp_load_admin_template( 'settings-manager/settings', $data );
         }
+
+		/**
+		 * Sanitize Fields Data
+		 *
+		 * @param array $fields
+		 * @return array Fields
+		 */
+		public function sanitize_fields_data( $fields ) {
+
+			foreach( $fields as $key => $field_args ) {
+
+				foreach( $field_args as $field_args_key => $field_args_value ) {
+
+					$type = isset( $field_args['type'] ) ? $field_args['type'] : 'text';
+
+					if ( 'value' === $field_args_key && 'textarea' === $type ) {
+						$fields[ $key ][ $field_args_key ] = sanitize_textarea_field( $field_args_value );
+						continue;
+					}
+
+					if ( 'value' === $field_args_key && 'number' === $type ) {
+						$fields[ $key ][ $field_args_key ] = floatval( sanitize_text_field( $field_args_value ) );
+						continue;
+					}
+
+					$fields[ $key ][ $field_args_key ] = directorist_clean( $field_args_value );
+				}
+
+			}
+
+			return $fields;
+		}
 
         /**
          * Get all the pages in an array where each page is an array of key:value:id and key:label:name

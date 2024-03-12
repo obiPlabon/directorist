@@ -92,7 +92,10 @@ class Listings_Controller extends Posts_Controller {
 	 * @return WP_Error|WP_REST_Response
 	 */
 	public function get_items( $request ) {
-		$query_args    = $this->prepare_objects_query( $request );
+		$query_args = $this->prepare_objects_query( $request );
+
+		do_action( 'directorist_rest_before_query', 'get_listing_items', $request, $query_args );
+
 		$query_results = $this->get_listings( $query_args );
 
 		$objects = array();
@@ -127,6 +130,10 @@ class Listings_Controller extends Posts_Controller {
 			$next_link = add_query_arg( 'page', $next_page, $base );
 			$response->link_header( 'next', $next_link );
 		}
+
+		do_action( 'directorist_rest_after_query', 'get_listing_items', $request, $query_args );
+
+		$response = apply_filters( 'directorist_rest_response', $response, 'get_listing_items', $request, $query_args );
 
 		return $response;
 	}
@@ -300,7 +307,7 @@ class Listings_Controller extends Posts_Controller {
 
 			case 'popular':
 				$meta_query['views'] = [
-					'key'     => '_atbdp_post_views_count',
+					'key'     => directorist_get_listing_views_count_meta_key(),
 					'value'   => get_directorist_option( 'views_for_popular', 4 ),
 					'type'    => 'NUMERIC',
 					'compare' => '>=',
@@ -422,34 +429,12 @@ class Listings_Controller extends Posts_Controller {
 
 		// Rating query.
 		if ( ! empty( $request['rating'] ) ) {
-			$matched_listing_ids = array();
-			$listings_ids        = \ATBDP_Listings_Data_Store::get_listings_ids( array(
-				'no_found_rows' => true,
-				'cache_results' => false,
-			) );
-
-			if ( ! empty( $listings_ids ) ) {
-				foreach ( $listings_ids as $listings_id ) {
-					$average = ATBDP()->review->get_average( $listings_id );
-
-					if ( $average >= $request['rating'] ) {
-						$matched_listing_ids[] = $listings_id;
-					}
-				}
-			}
-
-			if ( empty( $matched_listing_ids ) ) {
-				$matched_listing_ids = [0];
-			}
-
-			if ( ! empty( $args['post__in'] ) ) {
-				$args['post__in'] = array_merge(
-					$args['post__in'],
-					array_filter( $matched_listing_ids )
-				);
-			} else {
-				$args['post__in'] = $matched_listing_ids;
-			}
+			$meta_query['rating'] = array(
+				'key'     => directorist_get_rating_field_meta_key(),
+				'value'   => $request['rating'],
+				'type'    => 'NUMERIC',
+				'compare' => '>=',
+			);
 		}
 
 		// Radius query.
@@ -509,7 +494,10 @@ class Listings_Controller extends Posts_Controller {
 	 * @return WP_Error|WP_REST_Response
 	 */
 	public function get_item( $request ) {
-		$id   = (int) $request['id'];
+		$id = (int) $request['id'];
+
+		do_action( 'directorist_rest_before_query', 'get_listing_item', $request, $id );
+
 		$post = get_post( $id );
 
 		if ( empty( $id ) || empty( $post->ID ) || $post->post_type !== $this->post_type ) {
@@ -522,6 +510,10 @@ class Listings_Controller extends Posts_Controller {
 		if ( $this->public ) {
 			$response->link_header( 'alternate', get_permalink( $id ), array( 'type' => 'text/html' ) );
 		}
+
+		do_action( 'directorist_rest_after_query', 'get_listing_item', $request, $id );
+
+		$response = apply_filters( 'directorist_rest_response', $response, 'get_listing_item', $request, $id );
 
 		return $response;
 	}
@@ -537,7 +529,7 @@ class Listings_Controller extends Posts_Controller {
 	public function prepare_item_for_response( $object, $request ) {
 		$context       = ! empty( $request['context'] ) ? $request['context'] : 'view';
 		$this->request = $request;
-		$data          = $this->get_listing_data( $object, $context, $request );
+		$data          = $this->get_listing_data( $object, $request, $context );
 
 		$data     = $this->add_additional_fields_to_object( $data, $request );
 		$data     = $this->filter_response_by_context( $data, $context );
@@ -662,11 +654,12 @@ class Listings_Controller extends Posts_Controller {
 	 * Get listing data.
 	 *
 	 * @param WP_Post   $listing WP_Post instance.
+	 * @param WP_REST_Request $request Request object.
 	 * @param string    $context Request context. Options: 'view' and 'edit'.
-	 *
+	 * 
 	 * @return array
 	 */
-	protected function get_listing_data( $listing, $context = 'view', $request ) {
+	protected function get_listing_data( $listing, $request, $context = 'view' ) {
 		$fields  = $this->get_fields_for_response( $request );
 
 		$base_data = array();
@@ -724,7 +717,7 @@ class Listings_Controller extends Posts_Controller {
 					$base_data['social_links'] = $this->get_listing_social_links( $listing->ID );
 					break;
 				case 'views_count':
-					$base_data['views_count'] = (int) get_post_meta( $listing->ID, '_atbdp_post_views_count', true );
+					$base_data['views_count'] = directorist_get_listing_views_count( $listing->ID );
 					break;
 				case 'map_hidden':
 					$base_data['map_hidden'] = (bool) get_post_meta( $listing->ID, '_hide_map', true );
@@ -783,13 +776,13 @@ class Listings_Controller extends Posts_Controller {
 					}
 					break;
 				case 'reviews_allowed':
-					$base_data['reviews_allowed'] = (bool) get_directorist_option( 'enable_review', 1 );
+					$base_data['reviews_allowed'] = directorist_is_review_enabled();
 					break;
 				case 'average_rating':
-					$base_data['average_rating'] = ATBDP()->review->get_average( $listing->ID );
+					$base_data['average_rating'] = directorist_get_listing_rating( $listing->ID );
 					break;
 				case 'rating_count':
-					$base_data['rating_count'] = ATBDP()->review->db->count( array( 'post_id' => $listing->ID ) );
+					$base_data['rating_count'] = directorist_get_listing_review_count( $listing->ID );
 					break;
 				case 'related_ids':
 					$base_data['related_ids'] = $this->get_related_listings_ids( $listing->ID );
@@ -1512,6 +1505,10 @@ class Listings_Controller extends Posts_Controller {
 	 * @param WP_Post $post Post object.
 	 */
 	protected function delete_post( $post ) {
+		do_action( 'directorist_rest_before_query', 'delete_listing_item', $post );
+
 		wp_delete_post( $post->ID, true );
+
+		do_action( 'directorist_rest_after_query', 'delete_listing_item', $post );
 	}
 }

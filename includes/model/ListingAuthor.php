@@ -5,6 +5,8 @@
 
 namespace Directorist;
 
+use Directorist\database\DB;
+
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 class Directorist_Listing_Author {
@@ -45,28 +47,28 @@ class Directorist_Listing_Author {
 			'posts_per_page' => -1,
 		);
 
-		$posts = \ATBDP_Listings_Data_Store::get_archive_listings_query( $args, [ 'cache' => false ]);
-		return $posts;
+		return DB::get_listings_data( $args );
 	}
 
 	// extract_user_id
 	public function extract_user_id( $user_id = '' ) {
+		$user_id = urldecode($user_id); //decode the URL to remove encoded spaces, special characters
 		$extracted_user_id = ( is_numeric( $user_id ) ) ? $user_id : get_current_user_id();
-		
+
 		if ( is_string( $user_id ) && ! empty( $user_id ) ) {
 			$user = get_user_by( 'login', $user_id );
-			
+
 			if ( $user ) {
 				$extracted_user_id = $user->ID;
 			}
 		}
-		
+
 		$extracted_user_id = intval( $extracted_user_id );
 
 		return $extracted_user_id;
 	}
 
-	function prepare_data() {
+	public function prepare_data() {
 		$this->listing_types        = $this->get_listing_types();
 		$this->current_listing_type = $this->get_current_listing_type();
 		$this->columns              = (int) atbdp_calculate_column( get_directorist_option( 'all_listing_columns', 3 ) );
@@ -76,7 +78,7 @@ class Directorist_Listing_Author {
 		if ( ! $this->id ) {
 			return \ATBDP_Helper::guard( [ 'type' => '404' ] );
 		}
-		
+
 		$this->all_listings = $this->get_all_posts();
 		$this->get_rating();
 
@@ -105,7 +107,7 @@ class Directorist_Listing_Author {
 		$current = !empty($listing_types) ? array_key_first( $listing_types ) : '';
 
 		if ( ! empty( $_GET['directory_type' ] ) ) {
-			$current = $_GET['directory_type' ];
+			$current = sanitize_text_field( wp_unslash( $_GET['directory_type' ] ) );
 		}
 		else if (  get_query_var( 'directory-type' ) ) {
 			$current = get_query_var( 'directory-type' );
@@ -129,9 +131,7 @@ class Directorist_Listing_Author {
 
 	// Hooks ------------
 	public function archive_type( $listings ) {
-		$count = count( $listings->listing_types );
-		$enable_multi_directory = get_directorist_option( 'enable_multi_directory', false );
-		if ( $count > 1 && ! empty( $enable_multi_directory ) ) {
+		if ( count( $listings->listing_types ) > 1 && directorist_is_multi_directory_enabled() ) {
 			Helper::get_template( 'archive/directory-type-nav', array('listings' => $listings) );
 		}
 	}
@@ -139,91 +139,43 @@ class Directorist_Listing_Author {
 	public function get_rating() {
 		$user_listings = $this->all_listings;
 
-		$review_in_post = 0;
-		$all_reviews    = 0;
+		$reviews_count = 0;
+		$reviews_sum   = 0;
 
-		if ( ! empty( $user_listings->ids ) ) :
+		if ( ! empty( $user_listings->ids ) ) {
 			// Prime caches to reduce future queries.
-			if ( ! empty( $user_listings->ids ) && is_callable( '_prime_post_caches' ) ) {
+			if ( function_exists( '_prime_post_caches' ) ) {
 				_prime_post_caches( $user_listings->ids );
 			}
-			
-			$original_post = isset( $GLOBALS['post'] ) ? $GLOBALS['post'] : get_post();
 
-			foreach ( $user_listings->ids as $listings_id ) :
-				$GLOBALS['post'] = get_post( $listings_id );
-				setup_postdata( $GLOBALS['post'] );
+			foreach ( $user_listings->ids as $listings_id ) {
+				$average = directorist_get_listing_rating( $listings_id );
 
-				$average = ATBDP()->review->get_average( $listings_id );
-				if ( ! empty( $average ) ) {
-					$averagee = array( $average );
-					foreach ( $averagee as $key ) {
-						$all_reviews += $key;
-					}
-					$review_in_post++;
+				if ( $average > 0 ) {
+					$reviews_sum    += $average;
+					$reviews_count += 1;
 				}
-			endforeach;
+			}
+		}
 
-			$GLOBALS['post'] = $original_post;
-            wp_reset_postdata();
-		endif;
+		$total_rating = 0;
+		if ( $reviews_count > 0 ) {
+			$total_rating = number_format( ( $reviews_sum / $reviews_count ), 1 );
+		}
 
-		$author_rating = ( ! empty( $all_reviews ) && ! empty( $review_in_post ) ) ? ( $all_reviews / $review_in_post ) : 0;
-		$author_rating = substr( $author_rating, '0', '3' );
+		$this->rating       = $total_rating;
+		$this->total_review = $reviews_count;
 
-		$this->rating       = $author_rating;
-		$this->total_review = $review_in_post;
-
-		return $author_rating;
+		return $total_rating;
 	}
 
 	public function get_review_count() {
-		$user_listings = $this->all_listings;
-
-		$review_in_post = 0;
-
-		if ( ! empty( $user_listings->ids ) ) :
-			// Prime caches to reduce future queries.
-			if ( ! empty( $user_listings->ids ) && is_callable( '_prime_post_caches' ) ) {
-				_prime_post_caches( $user_listings->ids );
-			}
-
-			$original_post = $GLOBALS['post'];
-
-			foreach ( $user_listings->ids as $listings_id ) :
-				$GLOBALS['post'] = get_post( $listings_id );
-				setup_postdata( $GLOBALS['post'] );
-
-				$average = ATBDP()->review->get_average( $listings_id );
-				if ( ! empty( $average ) ) {
-					$review_in_post++;
-				}
-			endforeach;
-
-			$GLOBALS['post'] = $original_post;
-            wp_reset_postdata();
-		endif;
-
-		return $review_in_post;
-	}
-
-	private function enqueue_scripts() {
-		wp_enqueue_script( 'directorist-search-form-listing' );
-        wp_enqueue_script( 'directorist-search-listing' );
-
-		$data = Script_Helper::get_search_script_data();
-		wp_localize_script( 'directorist-search-form-listing', 'atbdp_search_listing', $data );
-		wp_localize_script( 'directorist-search-listing', 'atbdp_search', [
-			'ajaxnonce' => wp_create_nonce('bdas_ajax_nonce'),
-			'ajax_url' => admin_url('admin-ajax.php'),
-			'added_favourite' => __('Added to favorite', 'directorist'),
-			'please_login' => __('Please login first', 'directorist')
-		]);
-		wp_localize_script( 'directorist-search-listing', 'atbdp_search_listing', $data );
+		$this->get_rating();
+		return $this->total_review;
 	}
 
 	public function author_listings_query() {
-		$category = ! empty( $_GET['category'] ) ? $_GET['category'] : '';
+		$category = ! empty( $_GET['category'] ) ? sanitize_text_field( wp_unslash( $_GET['category'] ) ) : '';
 		$paged    = atbdp_get_paged_num();
 		$paginate = get_directorist_option( 'paginate_author_listings', 1 );
 
@@ -261,7 +213,7 @@ class Directorist_Listing_Author {
 				),
 			);
 		}
-		
+
 		if ( ! empty( $category ) ) {
 			$args['tax_query'] = $category;
 		}
@@ -414,16 +366,10 @@ class Directorist_Listing_Author {
 			return $redirect;
 		}
 
-		$this->enqueue_scripts();
-
 		if ( 'yes' === $logged_in_user_only && ! is_user_logged_in() ) {
 			return ATBDP()->helper->guard( array('type' => 'auth') );
 		}
 
-		ob_start();
-		if ( ! empty( $atts['shortcode'] ) ) { Helper::add_shortcode_comment( $atts['shortcode'] ); }
-		echo Helper::get_template_contents( 'author-contents', array( 'author' => $this ) );
-
-		return ob_get_clean();
+		return Helper::get_template_contents( 'author-contents', array( 'author' => $this ) );
 	}
 }

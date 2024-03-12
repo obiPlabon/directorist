@@ -10,7 +10,7 @@
 (function () {
   this.EzMediaUploader = function (args) {
     var defaults = {
-      containerID: "ez-media-uploader",
+      containerClass: "directorist-image-upload",
       oldFiels: null,
       oldFielsUrl: null,
       maxFileSize: 0,
@@ -97,8 +97,8 @@
     // -----------------------------------------
     // init
     this.init = function () {
-      var id = this.options.containerID;
-      var container = document.getElementById(id);
+      var className = this.options.containerClass;
+      var container = document.getElementsByClassName(className);
       if (!container) {
         return;
       }
@@ -114,27 +114,27 @@
 
     this.getMarkupOptions = function () {
       if (!this.container) { return null; }
-
       var container = this.container;
       var self = this;
+      let uploadOptions = container[0].hasAttribute('data-uploader') ? JSON.parse(container[0].getAttribute('data-uploader')) : {"type":"jpg, jpeg, png, gif","max_num_of_img":"1","max_total_img_size":0,"is_required":"0","max_size_per_img":4096, "allow_multiple": "0", "show_alerts": "0", "show_file_size": "0", "featured": "0", "allow_sorting": "0", "show_info": "0", "uploader_type":"avater"};
 
       var options = [
-        { key: 'maxFileSize', dataAttr: 'max-file-size', dataType: 'int' },
-        { key: 'maxTotalFileSize', dataAttr: 'max-total-file-size', dataType: 'int' },
-        { key: 'minFileItems', dataAttr: 'min-file-items', dataType: 'int' },
-        { key: 'maxFileItems', dataAttr: 'max-file-items', dataType: 'int' },
-        { key: 'allowedFileFormats', dataAttr: 'type', dataType: 'array' },
-        { key: 'allowMultiple', dataAttr: 'allow-multiple', dataType: 'bool' },
-        { key: 'showAlerts', dataAttr: 'show-alerts', dataType: 'bool' },
-        { key: 'showFileSize', dataAttr: 'show-file-size', dataType: 'bool' },
-        { key: 'featured', dataAttr: 'featured', dataType: 'bool' },
-        { key: 'allowSorting', dataAttr: 'allow-sorting', dataType: 'bool' },
-        { key: 'showInfo', dataAttr: 'show-info', dataType: 'bool' },
-        { key: 'uploaderType', dataAttr: 'uploader-type', dataType: 'string' },
+        { key: 'maxFileSize', dataAttr: uploadOptions.max_size_per_img ? uploadOptions.max_size_per_img.toString() : 'max_size_per_img', dataType: 'int' },
+        { key: 'maxTotalFileSize', dataAttr: uploadOptions.max_total_img_size ? uploadOptions.max_total_img_size.toString() : 'max_total_img_size', dataType: 'int' },
+        { key: 'minFileItems', dataAttr: uploadOptions.is_required ? uploadOptions.is_required.toString() : 'is_required', dataType: 'int' },
+        { key: 'maxFileItems', dataAttr: uploadOptions.max_num_of_img ? uploadOptions.max_num_of_img.toString() : 'max_num_of_img', dataType: 'int' },
+        { key: 'allowedFileFormats', dataAttr: uploadOptions.type ? uploadOptions.type.toString() : 'type', dataType: 'array' },
+        { key: 'allowMultiple', dataAttr: uploadOptions.allow_multiple ? uploadOptions.allow_multiple.toString() : 'allow_multiple', dataType: 'bool' },
+        { key: 'showAlerts', dataAttr: uploadOptions.show_alerts ? uploadOptions.show_alerts.toString() : 'show_alerts', dataType: 'bool' },
+        { key: 'showFileSize', dataAttr: uploadOptions.show_file_size ? uploadOptions.show_file_size.toString() : 'show_file_size', dataType: 'bool' },
+        { key: 'featured', dataAttr: uploadOptions.featured ? uploadOptions.featured.toString() : 'featured', dataType: 'bool' },
+        { key: 'allowSorting', dataAttr: uploadOptions.allow_sorting ? uploadOptions.allow_sorting.toString() : 'allow_sorting', dataType: 'bool' },
+        { key: 'showInfo', dataAttr: uploadOptions.show_info ? uploadOptions.show_info.toString() : 'show_info', dataType: 'bool' },
+        { key: 'uploaderType', dataAttr: uploadOptions.uploader_type ? uploadOptions.uploader_type.toString() : 'uploader_type', dataType: 'string' },
       ];
 
       forEach(options, function (option) {
-        var option_arrt = container.getAttribute('data-' + option.dataAttr);
+        var option_arrt = option.dataAttr;
         var has_data = (option_arrt && option_arrt.length) ? true : false;
 
         // String
@@ -178,7 +178,7 @@
     this.getMarkupDictionary = function () {
       if (!this.container) { return null; }
 
-      var container = this.container;
+      var container = this.container[0];
       var self = this;
 
       var label_classes = [
@@ -316,6 +316,12 @@
           message: alerts.minFileItems.replace(/(__DT__)/g, min_file_items)
         });
       }
+      
+      var dirImageUpload = document.querySelector(".directorist-image-upload");
+
+      if(dirImageUpload && dirImageUpload.classList.contains('max-file-reached')) {
+        dirImageUpload.classList.remove('max-file-reached');
+      }
 
       // Validate Max File Items
       var max_file_items = this.options.maxFileItems;
@@ -327,6 +333,10 @@
           errorKey: "maxFileItems",
           message: alerts.maxFileItems.replace(/(__DT__)/g, max_file_items)
         });
+      }
+
+      if (valid_max_file_items && (filesMeta.length >= max_file_items)) {
+        this.container[0].classList.add('max-file-reached');
       }
 
       // Validate Max File Size
@@ -365,13 +375,17 @@
             message: alerts.maxTotalFileSize.replace(/(__DT__)/g, max_total_file_size_in_text)
           });
         }
+
+        if (total_file_size_in_byte > max_total_file_size_in_byte) {
+          this.container[0].classList.add('max-file-reached');
+        }
       }
 
       if ( this.options.showAlerts && !this.isClean ) {
         updateValidationFeedback(error_log, this.statusSection);
       }
 
-      var info_elm = self.container.querySelectorAll('.ezmu__info-list-item');
+      var info_elm = self.container[0].querySelectorAll('.ezmu__info-list-item');
       if (info_elm && info_elm.length) {
         forEach(info_elm, function (info_elm) {
           removeClass(info_elm, 'has-error');
@@ -380,7 +394,7 @@
 
       if (!this.isClean && this.options.showInfo && error_log.length) {
         forEach(error_log, function (item) {
-          var info_elm = self.container.querySelectorAll('.ezmu__info-list-item.' + item.errorKey);
+          var info_elm = self.container[0].querySelectorAll('.ezmu__info-list-item.' + item.errorKey);
           if (info_elm && info_elm.length) {
             addClass(info_elm[0], 'has-error');
           }
@@ -489,7 +503,7 @@
     this.attachElements = function () {
       if (!this.container) { return null; }
 
-      var container = this.container;
+      var container = this.container[0];
       addClass(container, "ez-media-uploader");
       container.innerHTML = "";
 
@@ -553,7 +567,7 @@
       // Attach Drag & Drop Listener
       this.attachDragNDropListener();
 
-      this.container.addEventListener("click", function (e) {
+      this.container[0].addEventListener("click", function (e) {
         if (!e.target) {
           return;
         }
@@ -575,7 +589,7 @@
     this.attachFileChangeListener = function () {
       if (!this.container) { return null; }
 
-      var file_input = this.container.querySelectorAll("#" + this.fileInputID);
+      var file_input = this.container[0].querySelectorAll("#" + this.fileInputID);
       var fileInputElm = file_input ? file_input[0] : null;
 
       if (fileInputElm) {
@@ -595,7 +609,7 @@
       if (!this.container) { return null; }
 
       var self = this;
-      var drop_area = this.container;
+      var drop_area = this.container[0]
       var drag_events = ["dragenter", "dragleave", "dragover", "drop"];
 
       var dragEnter = function (e) {
@@ -604,7 +618,7 @@
         }
 
         if (self.draggingCounter > 0) {
-          addClass(self.container, "highlight");
+          addClass(self.container[0], "highlight");
         }
       };
 
@@ -614,7 +628,7 @@
         }
 
         if (self.draggingCounter < 1) {
-          removeClass(self.container, "highlight");
+          removeClass(self.container[0], "highlight");
         }
       };
 
@@ -633,7 +647,7 @@
         document.addEventListener(
           event_name,
           function () {
-            addClass(self.container, "drag-enter");
+            addClass(self.container[0], "drag-enter");
           },
           false
         );
@@ -644,7 +658,7 @@
         document.addEventListener(
           event_name,
           function () {
-            removeClass(self.container, "drag-enter");
+            removeClass(self.container[0], "drag-enter");
           },
           false
         );
@@ -792,7 +806,9 @@
 
         var has_no_duplicate = validateDuplicateFile(this.filesMeta, file_item);
 
-        if (file_is_valid && has_no_duplicate) {
+        var not_maximum_files = validateMaximumFile(this.filesMeta, file_item);
+
+        if (file_is_valid && has_no_duplicate && not_maximum_files) {
           temp_files.push(file_item);
         }
       }
@@ -869,7 +885,7 @@
 
       if ( ! this.options.allowMultiple && this.filesMeta.length ) {
         label_txt = this.options.dictionary.label.change;
-        var button = this.container.querySelectorAll('.ezmu__update-file-btn');
+        var button = this.container[0].querySelectorAll('.ezmu__update-file-btn');
         button[0].innerHTML = label_txt;
       }
 
@@ -1338,7 +1354,7 @@
       return false;
     }
 
-    var markup_files_meta = container.querySelectorAll('.ezmu__old-files-meta');
+    var markup_files_meta = container[0].querySelectorAll('.ezmu__old-files-meta');
     var files_meta = [];
 
     if (!markup_files_meta.length) {
@@ -1466,6 +1482,23 @@
     return has_no_duplicate;
   }
 
+  function validateMaximumFile(all_files) {
+    var not_maximum_files = true;
+
+    for (var i = 0; i < all_files.length; i++) {
+
+      var dirImageUpload = document.querySelector(".directorist-image-upload")
+
+      if(dirImageUpload.classList.contains('max-file-reached')) {
+        not_maximum_files = false;
+
+        break;
+      }
+    }
+
+    return not_maximum_files;
+  }
+
   // formatedFileSize
   function formatedFileSize(file_size) {
     file_size = parseFloat(file_size);
@@ -1554,8 +1587,6 @@
     return defaults;
   }
 
-
-
   // addClass
   function addClass(element, class_name) {
     if (!(typeof element === 'object' && 'className' in element)) { return; }
@@ -1594,4 +1625,5 @@
       cb(array[i], i);
     }
   }
+
 })();
