@@ -5,7 +5,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 	class ATBDP_Custom_Taxonomy {
 
 		public function __construct() {
-			add_action( 'init', array( $this, 'register_taxonomy' ), 0 );
+			add_action( 'init', array( $this, 'register_taxonomy' ), 15 );
 			add_action( 'wp_loaded', array( $this, 'directorist_bulk_term_update' ) );
 			add_filter( 'term_link', array( $this, 'taxonomy_redirect_page' ), 10, 3 );
 			add_action( 'template_redirect', array( $this, 'atbdp_template_redirect' ) );
@@ -23,7 +23,6 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 			add_filter( 'manage_' . ATBDP_LOCATION . '_custom_column', array( $this, 'location_rows' ), 15, 3 );
 			add_action( ATBDP_CATEGORY . '_add_form_fields', array( $this, 'add_category_form_fields' ), 10, 2 );
 			add_action( ATBDP_CATEGORY . '_edit_form_fields', array( $this, 'edit_category_form_fields' ), 10, 2 );
-			add_filter( 'manage_edit-' . ATBDP_CATEGORY . '_sortable_columns', array( $this, 'add_category_icon_column_sortable' ) );
 
 			/**
 			 * Location hooks.
@@ -34,7 +33,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 			add_action( ATBDP_LOCATION . '_edit_form_fields', array( $this, 'edit_location_form_fields' ) );
 			add_filter( ATBDP_LOCATION . '_row_actions', array( $this, 'edit_taxonomy_view_link' ), 10, 2 );
 			add_filter( ATBDP_LOCATION . '_row_actions', array( $this, 'edit_taxonomy_view_link' ), 10, 2 );
-			add_filter( 'manage_edit-' . ATBDP_LOCATION . '_sortable_columns', array( $this, 'add_location_icon_column_sortable' ) );
+
 
 			add_filter( 'bulk_actions-edit-' . ATBDP_CATEGORY, array( $this, 'register_bulk_actions' ) );
 			add_filter( 'handle_bulk_actions-edit-' . ATBDP_CATEGORY, array( $this, 'handle_bulk_actions' ), 10, 3 );
@@ -91,8 +90,8 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 
 			if ( directorist_is_multi_directory_enabled() && current_user_can( get_taxonomy( $taxonomy )->cap->edit_terms ) ) {
 				$actions[ __( 'Directory', 'directorist') ] = array(
-					'directory_reset_to_empty'   => __( 'Reset To Empty' ),
-					'directory_reset_to_default' => __( 'Reset To Default' ),
+					'directory_reset_to_empty'   => __( 'Reset To Empty', 'directorist' ),
+					'directory_reset_to_default' => __( 'Reset To Default', 'directorist' ),
 				);
 			}
 
@@ -265,20 +264,11 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 			return $actions;
 		}
 
-		public function add_category_icon_column_sortable( $sortable ) {
-			$sortable['ID']                                  = 'ID';
-			$sortable['directorist_category_directory_type'] = 'directorist_category_directory_type';
-			return $sortable;
-		}
-
-		public function add_location_icon_column_sortable( $sortable ) {
-			$sortable['directorist_location_directory_type'] = 'directorist_location_directory_type';
-			return $sortable;
-		}
-
 		public function add_category_form_fields() {
-			$directories          = directorist_get_directories();
 			$default_listing_type = $this->default_listing_type();
+			$directories = directorist_get_directories( array(
+				'fields' => 'id=>name',
+			) );
 
 			wp_nonce_field( directorist_get_nonce_key(), 'directorist_nonce' );
 
@@ -287,10 +277,10 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 					<label for="directory_type"><?php esc_html_e( 'Directory', 'directorist' ); ?></label>
 					<p><?php esc_html_e( 'You can assign any one or more of the following directories to the category.', 'directorist' ); ?></p>
 					<div class="directory_types-wrapper">
-						<?php foreach ( $directories as $directory ) : ?>
+						<?php foreach ( $directories as $directory_id => $directory_name ) : ?>
 							<div class="directory_type-group">
-								<input type="checkbox" class="postform" name="directory_type[]" id="directory_type-<?php echo esc_attr( $directory->term_id ); ?>" value='<?php echo esc_attr( $directory->term_id ); ?>'/>
-								<label for="directory_type-<?php echo esc_attr( $directory->term_id ); ?>"><?php echo esc_html( $directory->name ); ?></label>
+								<input type="checkbox" class="postform" name="directory_type[]" id="directory_type-<?php echo esc_attr( $directory_id ); ?>" value='<?php echo esc_attr( $directory_id ); ?>'/>
+								<label for="directory_type-<?php echo esc_attr( $directory_id ); ?>"><?php echo esc_html( $directory_name ); ?></label>
 							</div>
 						<?php endforeach; ?>
 					</div>
@@ -331,7 +321,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 			$directories = array_filter( $directories );
 
 			if ( ! empty( $directories ) ) {
-				directorist_update_directories_of_term( $term_id, $directories );
+				directorist_update_category_directory( $term_id, $directories );
 			}
 
 			if ( $icon ) {
@@ -345,11 +335,13 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 
 		public function edit_category_form_fields( $term ) {
 			$icon_class           = get_term_meta( $term->term_id, 'category_icon', true );
-			$selected_directories = directorist_get_directories_of_category( $term->term_id );
-			$directories          = directorist_get_directories();
+			$selected_directories = directorist_get_category_directory( $term->term_id );
 			$default_listing_type = $this->default_listing_type();
 			$image_id             = get_term_meta( $term->term_id, 'image', true );
 			$image_src            = ( $image_id ) ? wp_get_attachment_url( (int) $image_id ) : '';
+			$directories          = directorist_get_directories( array(
+				'fields' => 'id=>name',
+			) );
 
 			wp_nonce_field( directorist_get_nonce_key(), 'directorist_nonce' );
 
@@ -359,12 +351,12 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 					<td>
 						<div class="directory_types-wrapper">
 							<?php
-							foreach ( $directories as $directory ) :
-								$checked = array_key_exists( $directory->term_id, $selected_directories ) ? 'checked' : '';
+							foreach ( $directories as $directory_id => $directory_name ) :
+								$checked = in_array( $directory_id, $selected_directories, true ) ? 'checked' : '';
 								?>
 								<div class="directory_type-group">
-									<input type="checkbox" class="postform" name="directory_type[]" value="<?php echo esc_attr( $directory->term_id ); ?>" id="<?php echo esc_attr( $directory->term_id ); ?>" <?php echo esc_attr( $checked ); ?> />
-									<label for="<?php echo esc_attr( $directory->term_id ); ?>"><?php echo esc_html( $directory->name ); ?></label>
+									<input type="checkbox" class="postform" name="directory_type[]" value="<?php echo esc_attr( $directory_id ); ?>" id="<?php echo esc_attr( $directory_id ); ?>" <?php echo esc_attr( $checked ); ?> />
+									<label for="<?php echo esc_attr( $directory_id ); ?>"><?php echo esc_html( $directory_name ); ?></label>
 								</div>
 							<?php endforeach; ?>
 						</div>
@@ -419,9 +411,9 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 			$directories = array_filter( $directories );
 
 			if ( ! empty( $directories ) ) {
-				directorist_update_directories_of_term( $term_id, $directories );
+				directorist_update_category_directory( $term_id, $directories );
 			} else {
-				directorist_delete_directories_of_term( $term_id );
+				// directorist_delete_directories_of_term( $term_id );
 			}
 
 			if ( $icon ) {
@@ -460,7 +452,10 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 			}
 
 			if ( $column_name === 'directorist_category_directory_type' && directorist_is_multi_directory_enabled() ) {
-				$directories = directorist_get_directories_of_category( $category_id );
+				$directories = directorist_get_directories( array(
+					'fields'  => 'id=>name',
+					'include' => directorist_get_category_directory( $category_id )
+				) );
 
 				if ( ! empty( $directories ) ) {
 					return implode( ', ', array_values( $directories ) );
@@ -479,8 +474,10 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 		}
 
 		public function add_location_form_fields() {
-			$directories          = directorist_get_directories();
 			$default_listing_type = $this->default_listing_type();
+			$directories          = directorist_get_directories( array(
+				'fields' => 'id=>name'
+			) );
 
 			wp_nonce_field( directorist_get_nonce_key(), 'directorist_nonce' );
 
@@ -489,10 +486,10 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 					<label for="directory_type"><?php esc_html_e( 'Directory', 'directorist' ); ?></label>
 					<p><?php esc_html_e( 'You can assign any one or more of the following directories to the location.', 'directorist' ); ?></p>
 					<div class="directory_types-wrapper">
-						<?php foreach ( $directories as $directory ) : ?>
+						<?php foreach ( $directories as $directory_id => $directory_name ) : ?>
 							<div class="directory_type-group">
-								<input type="checkbox" class="postform" name="directory_type[]" id="directory_type-<?php echo esc_attr( $directory->term_id ); ?>" value='<?php echo esc_attr( $directory->term_id ); ?>'/>
-								<label for="directory_type-<?php echo esc_attr( $directory->term_id ); ?>"><?php echo esc_html( $directory->name ); ?></label>
+								<input type="checkbox" class="postform" name="directory_type[]" id="directory_type-<?php echo esc_attr( $directory_id ); ?>" value='<?php echo esc_attr( $directory_id ); ?>'/>
+								<label for="directory_type-<?php echo esc_attr( $directory_id ); ?>"><?php echo esc_html( $directory_name ); ?></label>
 							</div>
 						<?php endforeach; ?>
 					</div>
@@ -522,7 +519,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 			$directories = array_filter( $directories );
 
 			if ( ! empty( $directories ) ) {
-				directorist_update_directories_of_term( $term_id, $directories );
+				directorist_update_location_directory( $term_id, $directories );
 			}
 
 			if ( $image ) {
@@ -531,11 +528,13 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 		}
 
 		public function edit_location_form_fields( $term ) {
-			$selected_directories = directorist_get_directories_of_location( $term->term_id );
-			$directories          = directorist_get_directories();
+			$selected_directories = directorist_get_location_directory( $term->term_id );
 			$default_listing_type = $this->default_listing_type();
 			$image_id             = get_term_meta( $term->term_id, 'image', true );
 			$image_src            = ( $image_id ) ? wp_get_attachment_url( (int) $image_id ) : '';
+			$directories          = directorist_get_directories( array(
+				'fields' => 'id=>name',
+			) );
 
 			wp_nonce_field( directorist_get_nonce_key(), 'directorist_nonce' );
 
@@ -545,12 +544,12 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 					<td>
 						<div class="directory_types-wrapper">
 							<?php
-							foreach ( $directories as $directory ) :
-								$checked = array_key_exists( $directory->term_id, $selected_directories ) ? 'checked' : '';
+							foreach ( $directories as $directory_id => $directory_name ) :
+								$checked = in_array( $directory_id, $selected_directories, true ) ? 'checked' : '';
 								?>
 								<div class="directory_type-group">
-									<input type="checkbox" class="postform" name="directory_type[]" value="<?php echo esc_attr( $directory->term_id ); ?>" id="<?php echo esc_attr( $directory->term_id ); ?>" <?php echo esc_attr( $checked ); ?> />
-									<label for="<?php echo esc_attr( $directory->term_id ); ?>"><?php echo esc_html( $directory->name ); ?></label>
+									<input type="checkbox" class="postform" name="directory_type[]" value="<?php echo esc_attr( $directory_id ); ?>" id="<?php echo esc_attr( $directory_id ); ?>" <?php echo esc_attr( $checked ); ?> />
+									<label for="<?php echo esc_attr( $directory_id ); ?>"><?php echo esc_html( $directory_name ); ?></label>
 								</div>
 							<?php endforeach; ?>
 						</div>
@@ -595,9 +594,9 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 			$directories = array_filter( $directories );
 
 			if ( ! empty( $directories ) ) {
-				directorist_update_directories_of_term( $term_id, $directories );
+				directorist_get_location_directory( $term_id, $directories );
 			} else {
-				directorist_delete_directories_of_term( $term_id );
+				// directorist_delete_directories_of_term( $term_id );
 			}
 
 			if ( $image ) {
@@ -736,7 +735,10 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 
 		public function location_rows( $return_string, $column_name, $location_id ) {
 			if ( $column_name === 'directorist_location_directory_type' && directorist_is_multi_directory_enabled() ) {
-				$directories = directorist_get_directories_of_location( $location_id );
+				$directories = directorist_get_directories( array(
+					'fields'  => 'id=>name',
+					'include' => directorist_get_location_directory( $location_id )
+				) );
 
 				if ( ! empty( $directories ) ) {
 					return implode( ', ', array_values( $directories ) );
@@ -879,8 +881,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 		}
 
 		public function default_listing_type() {
-			$enable_multi_directory = get_directorist_option( 'enable_multi_directory' );
-			if ( empty( $enable_multi_directory ) || ( 1 == count( $this->get_listing_types() ) ) ) {
+			if ( ! directorist_is_multi_directory_enabled() || ( 1 == count( $this->get_listing_types() ) ) ) {
 				return $this->get_current_listing_type();
 			}
 		}
