@@ -180,7 +180,7 @@ function directorist_get_term_directory( $term_id ) {
 		return array();
 	}
 
-	return wp_parse_id_list( $directories );
+	return array_filter( wp_parse_id_list( $directories ) );
 }
 
 function directorist_get_location_directory( $location_id ) {

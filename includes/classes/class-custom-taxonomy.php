@@ -452,9 +452,15 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 			}
 
 			if ( $column_name === 'directorist_category_directory_type' && directorist_is_multi_directory_enabled() ) {
+				$selected_directories = directorist_get_category_directory( $category_id );
+
+				if ( empty( $selected_directories ) ) {
+					return;
+				}
+
 				$directories = directorist_get_directories( array(
 					'fields'  => 'id=>name',
-					'include' => directorist_get_category_directory( $category_id )
+					'include' => $selected_directories,
 				) );
 
 				if ( ! empty( $directories ) ) {
@@ -735,9 +741,15 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 
 		public function location_rows( $return_string, $column_name, $location_id ) {
 			if ( $column_name === 'directorist_location_directory_type' && directorist_is_multi_directory_enabled() ) {
+				$selected_directories = directorist_get_location_directory( $location_id );
+
+				if ( empty( $selected_directories ) ) {
+					return;
+				}
+
 				$directories = directorist_get_directories( array(
 					'fields'  => 'id=>name',
-					'include' => directorist_get_location_directory( $location_id )
+					'include' => $selected_directories
 				) );
 
 				if ( ! empty( $directories ) ) {
