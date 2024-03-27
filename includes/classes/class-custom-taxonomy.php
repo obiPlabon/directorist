@@ -393,7 +393,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 			<?php
 		}
 
-		public function save_edit_category_form_fields( $term_id ) {
+		public function save_edit_category_form_fields( $category_id ) {
 			if ( ! directorist_verify_nonce() ) {
 				return;
 			}
@@ -411,21 +411,21 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 			$directories = array_filter( $directories );
 
 			if ( ! empty( $directories ) ) {
-				directorist_update_category_directory( $term_id, $directories );
+				directorist_update_category_directory( $category_id, $directories );
 			} else {
-				// directorist_delete_directories_of_term( $term_id );
+				directorist_delete_category_directory( $category_id );
 			}
 
 			if ( $icon ) {
-				update_term_meta( $term_id, 'category_icon', $icon );
+				update_term_meta( $category_id, 'category_icon', $icon );
 			} else {
-				delete_term_meta( $term_id, 'category_icon' );
+				delete_term_meta( $category_id, 'category_icon' );
 			}
 
 			if ( $image ) {
-				update_term_meta( $term_id, 'image', $image );
+				update_term_meta( $category_id, 'image', $image );
 			} else {
-				delete_term_meta( $term_id, 'image', '' );
+				delete_term_meta( $category_id, 'image', '' );
 			}
 		}
 
@@ -584,7 +584,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 			<?php
 		}
 
-		public function save_edit_location_form_fields( $term_id ) {
+		public function save_edit_location_form_fields( $location_id ) {
 			if ( ! directorist_verify_nonce() ) {
 				return;
 			}
@@ -600,15 +600,15 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 			$directories = array_filter( $directories );
 
 			if ( ! empty( $directories ) ) {
-				directorist_get_location_directory( $term_id, $directories );
+				directorist_update_location_directory( $location_id, $directories );
 			} else {
-				// directorist_delete_directories_of_term( $term_id );
+				directorist_delete_location_directory( $location_id );
 			}
 
 			if ( $image ) {
-				update_term_meta( $term_id, 'image', $image );
+				update_term_meta( $location_id, 'image', $image );
 			} else {
-				delete_term_meta( $term_id, 'image', '' );
+				delete_term_meta( $location_id, 'image', '' );
 			}
 		}
 

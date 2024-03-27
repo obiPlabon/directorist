@@ -190,3 +190,15 @@ function directorist_get_location_directory( $location_id ) {
 function directorist_get_category_directory( $category_id ) {
 	return directorist_get_term_directory( $category_id );
 }
+
+function directorist_delete_term_directory( $term_id ) {
+	delete_term_meta( $term_id, '_directory_type' );
+}
+
+function directorist_delete_category_directory( $category_id ) {
+	directorist_delete_term_directory( $category_id );
+}
+
+function directorist_delete_location_directory( $location_id ) {
+	directorist_delete_term_directory( $location_id );
+}
