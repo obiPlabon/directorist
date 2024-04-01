@@ -8,26 +8,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die();
 }
 
-/**
- * Get all the directories.
- * It's a wrapper around get_terms.
- *
- * @since //TODO: add version number before merge.
- * @see get_terms()
- * @param array $args Arguments of get_terms
- *
- * @return WP_Term[]|int[]|string[]|string|WP_Error Whatever is returned by get_terms.
- */
-function directorist_get_directories( array $args = array() ) {
-	$args = wp_parse_args( $args, array(
-		'hide_empty' => false,
-	) );
-
-	$args['taxonomy'] = ATBDP_TYPE;
-
-	return get_terms( $args );
-}
-
 function directorist_get_directory_meta( int $directory_id, string $meta_key ) {
 	if ( ! term_exists( $directory_id, ATBDP_DIRECTORY_TYPE ) ) {
 		return false;
@@ -201,4 +181,61 @@ function directorist_delete_category_directory( $category_id ) {
 
 function directorist_delete_location_directory( $location_id ) {
 	directorist_delete_term_directory( $location_id );
+}
+
+/**
+ * Get directory General tab settings.
+ *
+ * @param int $directory_id
+ * @since 7.8.9
+ *
+ * @return array
+ */
+function directorist_get_directory_general_settings( $directory_id ) {
+	$settings = (array) directorist_get_directory_meta( $directory_id, 'general_config' );
+	$defaults = array(
+		'icon'          => '',
+		'preview_image' => '',
+	);
+
+	return array_merge( $defaults, $settings );
+}
+
+function directorist_get_directories( array $args = array() ) {
+	$defaults = array(
+		'hide_empty' => false,
+		'default_only' => false,
+	);
+
+	$args = wp_parse_args( $args, $defaults );
+
+	if ( $args['default_only'] ) {
+		$args['number']     = 1;
+		$args['meta_value'] = '1';
+		$args['meta_key']   = '_default';
+
+		unset( $args['default_only'] );
+	}
+
+	$args['taxonomy'] = ATBDP_DIRECTORY_TYPE;
+
+	return get_terms( $args );
+}
+
+function directorist_get_directories_for_template( array $args = array() ) {
+	$directories = directorist_get_directories( $args );
+
+	if ( is_wp_error( $directories ) ) {
+		return array();
+	}
+
+	return array_reduce( $directories, static function( $carry, $directory ) {
+		$carry[ $directory->term_id ] = array(
+			'term' => $directory,
+			'name' => $directory->name,
+			'data' => directorist_get_directory_general_settings( $directory->term_id ),
+		);
+
+		return $carry;
+	}, array() );
 }
