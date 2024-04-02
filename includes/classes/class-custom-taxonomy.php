@@ -42,6 +42,8 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 
 			add_filter( 'term_updated_messages', array( $this, 'add_term_updated_messages' ) );
 
+			add_filter( 'views_edit-at_biz_dir-location', array( $this, 'add_directory_filter' ) );
+
 			add_action( 'delete_' . ATBDP_DIRECTORY_TYPE, array( $this, 'clean_directory_to_taxonomy_relation' ) );
 		}
 
@@ -109,8 +111,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 
 			if ( $action === 'directory_reset_to_empty' ) {
 				foreach ( $terms as $term ) {
-					delete_term_meta( $term, '_directory_type' );
-					delete_term_meta( $term, '_directory_type_' . $default_directory );
+					directorist_delete_term_directory( $term );
 				}
 
 				$location = add_query_arg( 'message', 7, $location );
@@ -118,8 +119,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 
 			if ( $action === 'directory_reset_to_default' && $default_directory ) {
 				foreach ( $terms as $term ) {
-					update_term_meta( $term, '_directory_type', $default_directory );
-					update_term_meta( $term, '_directory_type_' . $default_directory, 1 );
+					directorist_update_term_directory( $term, array( $default_directory ) );
 				}
 
 				$location = add_query_arg( 'message', 7, $location );
@@ -882,6 +882,24 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 			if ( ! directorist_is_multi_directory_enabled() || ( 1 == count( $this->get_listing_types() ) ) ) {
 				return $this->get_current_listing_type();
 			}
+		}
+
+		public function add_directory_filter( $filters ) {
+			$directories = directorist_get_directories( array(
+				'fields'  => 'id=>name',
+				'order'   => 'asc',
+				'orderby' => 'id'
+			) );
+
+			if ( is_wp_error( $directories ) ) {
+				return array();
+			}
+
+			$filters = array(
+				'all' => 'All'
+			);
+
+			return array_merge( $filters, $directories );
 		}
 	}
 endif;
