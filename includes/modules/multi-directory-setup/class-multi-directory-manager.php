@@ -515,7 +515,7 @@ class Multi_Directory_Manager {
             $this->add_missing_single_listing_section_id();
 
             $listing_type_id = ( ! empty( $_REQUEST['listing_type_id'] ) ) ? absint( $_REQUEST['listing_type_id'] ) : 0;
-            $listing_type_id = ( ! $enable_multi_directory ) ? default_directory_type() : $listing_type_id;
+            $listing_type_id = ( ! $enable_multi_directory ) ? directorist_get_default_directory() : $listing_type_id;
 
             $this->update_fields_with_old_data( $listing_type_id );
 

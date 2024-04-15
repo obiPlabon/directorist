@@ -511,7 +511,7 @@ class Directorist_Listing_Form {
 	public function type_hidden_field() {
 		$value             		= get_post_meta( $this->get_add_listing_id(), '_directory_type', true );
 		$current_directory_type = $this->get_current_listing_type();
-		$default_directory 		= default_directory_type();
+		$default_directory 		= directorist_get_default_directory();
 		$directory_type         = ! empty( $current_directory_type ) ? $current_directory_type : $default_directory;
 		$current_type      		= ! empty( $value ) ? $value : $directory_type;
 		printf( '<input type="hidden" name="directory_type" value="%s">', esc_attr( $current_type ) );

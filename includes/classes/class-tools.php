@@ -79,7 +79,7 @@
 
             $data                  = array();
             $preview_image         = isset( $_POST['listing_img'] ) ? directorist_clean( wp_unslash( $_POST['listing_img'] ) ) : '';
-            $default_directory     =  directorist_default_directory();
+            $default_directory     = directorist_get_default_directory();
             $directory_type        = isset( $_POST['directory_type'] ) ? absint( $_POST['directory_type'] ) : 0;
             $directory_type        = ( empty( $directory_type ) ) ? $default_directory : $directory_type;
             $title                 = isset( $_POST['listing_title'] ) ? directorist_clean( wp_unslash( $_POST['listing_title'] ) ) : '';
@@ -370,7 +370,7 @@
 
 
         public function prepare_data(){
-            $this->default_directory = default_directory_type();
+            $this->default_directory = directorist_get_default_directory();
             $this->setup_fields();
         }
 

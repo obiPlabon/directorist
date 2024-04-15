@@ -167,7 +167,7 @@ class ATBDP_Metabox {
 	public function render_expire_date( $listing_id, $term_id )
 	{
 		// show expiration date and featured listing.
-		$directory_type         = isset( $term_id ) ? $term_id : default_directory_type();
+		$directory_type         = isset( $term_id ) ? $term_id : directorist_get_default_directory();
 		$expiration				= get_term_meta( $directory_type, 'default_expiration', true );
 		$expire_in_days         = ! empty( $expiration ) ? $expiration : '90';
 		$f_active               = directorist_is_featured_listing_enabled();
@@ -223,7 +223,7 @@ class ATBDP_Metabox {
 		wp_enqueue_script( 'atbdp-google-map-front' );
         wp_enqueue_script( 'atbdp-markerclusterer' );
 		$all_types     	= directory_types();
-		$default     	= default_directory_type();
+		$default     	= directorist_get_default_directory();
 		$current_type   =  get_post_meta( $post->ID, '_directory_type', true );
 		$value 			= $current_type ? $current_type : $default;
 		wp_nonce_field( 'listing_info_action', 'listing_info_nonce' );
@@ -302,7 +302,7 @@ class ATBDP_Metabox {
 
 		if(ATBDP_POST_TYPE !=$post->post_type) return; // vail if it is not our post type
 		// show expiration date and featured listing.
-		$directory_type         = default_directory_type();
+		$directory_type         = directorist_get_default_directory();
 		$expiration				= get_term_meta( $directory_type, 'default_expiration', true );
 		$expire_in_days         = ! empty( $expiration ) ? $expiration : '90';
 		$f_active               = directorist_is_featured_listing_enabled();

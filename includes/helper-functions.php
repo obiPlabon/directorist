@@ -992,7 +992,7 @@ if (!function_exists('calc_listing_expiry_date')) {
      */
     function calc_listing_expiry_date($start_date = NULL, $expire = NULL, $directory_type = '' )
     {
-        $type = $directory_type ? $directory_type : default_directory_type();
+        $type = $directory_type ? $directory_type : directorist_get_default_directory();
         $exp_days = get_term_meta( $type, 'default_expiration', true );
         $exp_days = !empty( $exp_days ) ? $exp_days : 0;
         $expired_date = !empty($expire) ? $expire : $exp_days;
@@ -2467,7 +2467,7 @@ function atbdp_get_listing_attachment_ids( $listing_id ) {
 	if ( empty( $gallery_images ) ) {
 		return $attachment_ids;
 	}
-	
+
     $attachment_ids = array_merge( $attachment_ids, $gallery_images );
 
     return $attachment_ids;
@@ -4026,10 +4026,10 @@ function directorist_password_reset_url( $user, $password_reset = true, $confirm
 
 /**
  * Get allowed mime types.
- * 
+ *
  * @param string $filterby Filter allowed mime types by group. eg. image, audio, video, document etc.
  * @param string $return_type Get the full mime types map or only extensions. Valid args are extension and .extension.
- * 
+ *
  * @return array
  */
 function directorist_get_mime_types( $filterby = '', $return_type = '' ) {
@@ -4204,7 +4204,7 @@ function directorist_background_image_process( $images ) {
 		}
 
 		$should_dispatch = true;
-		
+
 		ATBDP()->background_image_process->push_to_queue( array( $image_id => $image_path ) );
 	}
 
@@ -4224,7 +4224,7 @@ function directorist_background_image_process( $images ) {
 function directorist_get_listing_edit_status( $directory_type ) {
 	$edit_listing_status = get_term_meta( $directory_type, 'edit_listing_status', true );
 	$new_listing_status  = get_term_meta( $directory_type, 'new_listing_status', true );
-    
+
     if ( 'publish' !== $new_listing_status && 'publish' === $edit_listing_status ) {
         $edit_listing_status = $new_listing_status;
     }

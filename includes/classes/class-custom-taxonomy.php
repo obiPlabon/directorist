@@ -96,7 +96,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 								}
 							}
 						} else {
-							update_term_meta( $data->term_id, '_directory_type', array( default_directory_type() ) );
+							update_term_meta( $data->term_id, '_directory_type', array( directorist_get_default_directory() ) );
 						}
 					}
 				}
