@@ -222,7 +222,7 @@ class ATBDP_Metabox {
 	public function listing_form_info_meta( $post ) {
 		wp_enqueue_script( 'atbdp-google-map-front' );
         wp_enqueue_script( 'atbdp-markerclusterer' );
-		$all_types     	= directory_types();
+		$all_types     	= directorist_get_directories();
 		$default     	= directorist_get_default_directory();
 		$current_type   =  get_post_meta( $post->ID, '_directory_type', true );
 		$value 			= $current_type ? $current_type : $default;

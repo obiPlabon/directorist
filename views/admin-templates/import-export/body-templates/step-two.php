@@ -58,12 +58,14 @@ function csv_from_builder( $data = [] ) {
 								?><input type="hidden" class="atbdp_map_to" name="<?php echo esc_attr( $post_key ); ?>" value="<?php echo esc_attr( $post_key ); ?>"><?php
 							}
 						else:
-							if( count( directory_types() ) > 1 ) { ?>
+							$directories = directorist_get_directories();
+
+							if ( count( $directories ) > 1 ) { ?>
 								<label for="directory_type"><?php esc_html_e('Select Directory', 'directorist'); ?></label>
 								<select class="directorist_directory_type_in_import" id="directory_type">
 									<option value="">--Select--</option>
 									<?php
-									foreach( directory_types() as $term ) {
+									foreach( $directories as $term ) {
 										$default = get_term_meta( $term->term_id, '_default', true ); ?>
 											<option <?php echo !empty( $default ) ? 'selected' : ''; ?> value="<?php echo esc_attr( $term->term_id); ?>"><?php echo esc_attr( $term->name ); ?></option>
 									<?php } ?>

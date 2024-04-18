@@ -815,8 +815,11 @@ class Directorist_Listing_Form {
 		} else {
 			// if no listing type exists
 			if ( $listing_type_count == 0 ) {
+				$directories_count = directorist_get_directories( array(
+					'fields' => 'count'
+				) );
 
-				if( ! directory_types() ) {
+				if ( (int) $directories_count > 0 ) {
 					if( current_user_can('manage_options') || current_user_can('edit_pages') ) {
 						$args['error_notice'] = sprintf( __('Please add a directory type first %s', 'directorist' ), '<a href="'. admin_url() .'edit.php?post_type=at_biz_dir&page=atbdp-directory-types">Add Now</a>' );
 					} else {
