@@ -133,9 +133,15 @@ class Multi_Directory_Manager {
 
     // has_multidirectory
     public static function has_multidirectory() {
-        $directory_types = directorist_get_directories();
+		$directories_count = directorist_get_directories( array(
+			'fields' => 'count'
+		) );
 
-        return ( ! is_wp_error( $directory_types ) && ! empty( $directory_types ) ) ? true : false;
+		if ( is_wp_error( $directories_count ) ) {
+			return false;
+		}
+
+		return ( (int) $directories_count > 0 );
     }
 
     // has_old_listings_data
