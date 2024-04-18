@@ -74,20 +74,19 @@
                     <?php endif; ?>
                 </div>
                 <?php
-                    $all_items =  wp_count_terms('atbdp_listing_types');
-                    $listing_types = get_terms([
-                       'taxonomy'   => 'atbdp_listing_types',
-                       'hide_empty' => false,
-                       'orderby'    => 'date',
-                       'order'      => 'DSCE',
-                     ]);
+				$directories = directorist_get_directories( array(
+					'orderby' => 'term_id',
+					'order'   => 'ASC',
+				) );
+
+				$directories_count = ( is_wp_error( $directories ) || empty( $directories ) ) ? 0 : count( $directories );
                 ?>
                 <div class="directorist_builder__content--right">
                     <div class="directorist_builder--tab">
                         <div class="atbd_tab_nav">
                             <ul>
                                 <li class="directorist_builder--tab-item">
-                                    <a href="#" target="all" class="atbd_tn_link tabItemActive"><?php esc_html_e( 'All','directorist' ); ?><span class="directorist_count">(<?php echo esc_attr( ! empty( $all_items ) ? $all_items : 0 ); ?>)</span></a>
+                                    <a href="#" target="all" class="atbd_tn_link tabItemActive"><?php esc_html_e( 'All','directorist' ); ?><span class="directorist_count">(<?php echo esc_attr( $directories_count ); ?>)</span></a>
                                 </li>
                             </ul>
                         </div>
@@ -105,14 +104,14 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <?php
-                                            if( $listing_types ) {
-                                                foreach( $listing_types as $listing_type) {
-                                                    $default = get_term_meta( $listing_type->term_id, '_default', true );
-                                                    $edit_link = admin_url('edit.php' . '?post_type=at_biz_dir&page=atbdp-directory-types&listing_type_id=' . absint( $listing_type->term_id ) . '&action=edit');
-                                                    $delete_link = admin_url('admin-post.php' . '?listing_type_id=' . absint( $listing_type->term_id ) . '&action=delete_listing_type');
-                                                    $delete_link = wp_nonce_url( $delete_link, 'delete_listing_type');
-                                                    $created_time = get_term_meta( $listing_type->term_id, '_created_date', true );
+										<?php
+										if ( ! is_wp_error( $directories ) ) {
+											foreach ( $directories as $listing_type) {
+												$default = get_term_meta( $listing_type->term_id, '_default', true );
+												$edit_link = admin_url('edit.php' . '?post_type=at_biz_dir&page=atbdp-directory-types&listing_type_id=' . absint( $listing_type->term_id ) . '&action=edit');
+												$delete_link = admin_url('admin-post.php' . '?listing_type_id=' . absint( $listing_type->term_id ) . '&action=delete_listing_type');
+												$delete_link = wp_nonce_url( $delete_link, 'delete_listing_type');
+												$created_time = get_term_meta( $listing_type->term_id, '_created_date', true );
                                             ?>
                                             <tr class="directory-type-row" data-term-id="<?php echo esc_attr( $listing_type->term_id ); ?>">
                                                 <td>
