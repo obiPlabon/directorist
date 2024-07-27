@@ -117,7 +117,7 @@ window.addEventListener('DOMContentLoaded', () => {
         event.preventDefault();
         // Clear out the preview image and set no image as placeholder
         $('.listing-img-container').html(
-            `<img src="${directorist_admin.AdminAssetPath}images/no-image.png" alt="Listing Image" />`
+            `<img src="${directorist_admin.assets_path}images/no-image.png" alt="Listing Image" />`
         );
         // Hide the delete image link
         delImgLink.addClass('hidden');
@@ -132,7 +132,7 @@ window.addEventListener('DOMContentLoaded', () => {
         // if no image exist then add placeholder and hide remove image button
         if ($('.single_attachment').length === 0) {
             $('.listing-img-container').html(
-                `<img src="${directorist_admin.AdminAssetPath
+                `<img src="${directorist_admin.assets_path
             }images/no-image.png" alt="Listing Image" /><p>No images</p> ` +
                 `<small>(allowed formats jpeg. png. gif)</small>`
             );
@@ -147,32 +147,36 @@ window.addEventListener('DOMContentLoaded', () => {
     } else {
         $('.atbd_tagline_moto_field').fadeOut();
     }
-    if ($('.directorist-form-pricing-field').hasClass('price-type-both')) {
-        $('#price').show();
-        $('#price_range').hide();
-    }
-    $('.directorist_pricing_options label').on( 'click', function () {
-        const $this = $(this);
-        $this.children('input[type=checkbox]').prop('checked') == true
-            ? $(`#${$this.data('option')}`).show()
-            : $(`#${$this.data('option')}`).hide();
-        const $sibling = $this.siblings('label');
-        $sibling.children('input[type=checkbox]').prop('checked', false);
-        $(`#${$sibling.data('option')}`).hide();
-    });
 
-    $('.directorist_pricing_options label').on( 'click', function () {
-        const self = $( this );
+    /**
+     * Price field.
+     */
+    // if ( $( '.directorist-form-pricing-field' ).hasClass( 'price-type-both' ) ) {
+    //     $('#price, #price_range').hide();
+    // }
 
-        const current_input = self.attr( 'for' );
-        const current_field = `#${self.data('option')}`;
+    // $( '.directorist_pricing_options label' ).on( 'click', function() {
+    //     const $this = $(this);
+    //     $this.children('input[type=checkbox]').prop('checked') == true
+    //         ? $(`#${$this.data('option')}`).show()
+    //         : $(`#${$this.data('option')}`).hide();
+    //     const $sibling = $this.siblings('label');
+    //     $sibling.children('input[type=checkbox]').prop('checked', false);
+    //     $(`#${$sibling.data('option')}`).hide();
+    // } );
 
-        $( '.directorist_pricing_options input[type=checkbox]' ).prop( 'checked', false );
-        $( '.directorist_pricing_options input[id='+ current_input +']' ).attr( 'checked', true );
+    // $('.directorist_pricing_options label').on( 'click', function () {
+    //     const self = $( this );
 
-        $('.directory_pricing_field').hide();
-        $( current_field ).show();
-		});
+    //     const current_input = self.attr( 'for' );
+    //     const current_field = `#${self.data('option')}`;
+
+    //     $( '.directorist_pricing_options input[type=checkbox]' ).prop( 'checked', false );
+    //     $( '.directorist_pricing_options input[id='+ current_input +']' ).attr( 'checked', true );
+
+    //     $('.directory_pricing_field').hide();
+    //     $( current_field ).show();
+    // });
 
     $('#atbd_optional_field_check').on('change', function () {
         $(this).is(':checked') ?
@@ -634,7 +638,7 @@ $( fields_elm[ field ].elm ).val( fields_elm[ field ].default );
                 directorist_nonce: directorist_admin.directorist_nonce,
             },
             success(response) {
-                
+
                 if ( response.error ) {
                     console.log({ response });
                     return;
@@ -734,36 +738,60 @@ $( fields_elm[ field ].elm ).val( fields_elm[ field ].default );
     });
 
     function assetsNeedToWorkInVirtualDom() {
-        // price range
-        /* $('#price_range').hide();
-        const pricing = $('#atbd_listing_pricing').val();
-        if (pricing === 'range') {
-            $('#price').hide();
-            $('#price_range').show();
-        } */
+        function getPriceTypeInput(typeId) {
+            return $(`#${$(`[for="${typeId}"]`).data('option')}`);
+        }
 
-        $('.atbd_pricing_options label').on('click', function () {
-            const $this = $(this);
-            $this.children('input[type=checkbox]').prop('checked') == true ?
-                $(`#${$this.data('option')}`).show() :
-                $(`#${$this.data('option')}`).hide();
-            const $sibling = $this.siblings('label');
-            $sibling.children('input[type=checkbox]').prop('checked', false);
-            $(`#${$sibling.data('option')}`).hide();
-        });
+        $( '.directorist-form-pricing-field__options' ).on( 'change', 'input', function() {
+            const $otherOptions = $(this).parent().siblings('.directorist-checkbox').find( 'input' );
 
-        $('.directorist_pricing_options label').on('click', function () {
-            const self = $(this);
+            $otherOptions.prop( 'checked', false );
+            getPriceTypeInput( $otherOptions.attr('id') ).hide();
 
-            const current_input = self.attr('for');
-            const current_field = `#${self.data('option')}`;
+            if ( this.checked ) {
+                getPriceTypeInput( this.id ).show();
+            } else {
+                getPriceTypeInput( this.id ).hide();
+            }
+        } );
 
-            $('.directorist_pricing_options input[type=checkbox]').prop('checked', false);
-            $('.directorist_pricing_options input[id=' + current_input + ']').attr('checked', true);
+        // Must be placed after the event listener.
+        if ( $( '.directorist-form-pricing-field' ).hasClass( 'price-type-both' ) ) {
+            $( '#price_range, #price' ).hide();
 
-            $('.directory_pricing_field').hide();
-            $(current_field).show();
-        });
+            const $selectedPriceType = $( '.directorist-form-pricing-field__options input:checked' );
+
+            if ( $selectedPriceType.length ) {
+                getPriceTypeInput( $selectedPriceType.attr( 'id' ) ).show();
+            } else {
+                $( $( '.directorist-form-pricing-field__options input' ).get(0) )
+                    .prop( 'checked', true )
+                    .trigger( 'change' );
+            }
+        }
+
+        // $('.atbd_pricing_options label').on('click', function () {
+        //     const $this = $(this);
+        //     $this.children('input[type=checkbox]').prop('checked') == true ?
+        //         $(`#${$this.data('option')}`).show() :
+        //         $(`#${$this.data('option')}`).hide();
+        //     const $sibling = $this.siblings('label');
+        //     $sibling.children('input[type=checkbox]').prop('checked', false);
+        //     $(`#${$sibling.data('option')}`).hide();
+        // });
+
+        // $('.directorist_pricing_options label').on('click', function () {
+        //     const self = $(this);
+
+        //     const current_input = self.attr('for');
+        //     const current_field = `#${self.data('option')}`;
+
+        //     $('.directorist_pricing_options input[type=checkbox]').prop('checked', false);
+        //     $('.directorist_pricing_options input[id=' + current_input + ']').attr('checked', true);
+
+        //     $('.directory_pricing_field').hide();
+        //     $(current_field).show();
+        // });
 
         let imageUpload;
         if (imageUpload) {

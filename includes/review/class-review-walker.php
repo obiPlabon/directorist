@@ -161,16 +161,22 @@ class Walker extends Walker_Comment {
 					<?php
 					echo wp_kses_post( $comment_reply_link );
 
-					echo wp_kses_post( directorist_get_comment_edit_link(
+					$edit_link = directorist_get_comment_edit_link(
 						array_merge(
 							$args,
 							array(
-								'edit_text' => sprintf( __( '%s Edit', 'directorist' ), '<i class="fas fa-pencil-alt" aria-hidden="true"></i>' ),
+								'edit_text' => sprintf( __( '%s Edit', 'directorist' ), directorist_icon( 'fas fa-pencil-alt', false ) ),
 								'depth'      => $depth,
 								'max_depth'  => $args['max_depth']
 							)
 						)
-					) );
+					);
+
+					if ( $edit_link ) {
+
+						echo wp_kses_post( $edit_link );
+						
+					}
 					?>
 				</div>
 				<?php endif; ?>

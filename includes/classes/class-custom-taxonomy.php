@@ -7,7 +7,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 
 		public function __construct() {
 
-			add_action( 'init', array( $this, 'add_custom_taxonomy' ), 0 );
+			add_action( 'init', array( $this, 'add_custom_taxonomy' ), 15 );
 			add_filter( 'manage_' . ATBDP_CATEGORY . '_custom_column', array( $this, 'category_rows' ), 15, 3 );
 			add_filter( 'manage_edit-' . ATBDP_CATEGORY . '_columns', array( $this, 'category_columns' ) );
 
@@ -261,13 +261,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 			// get current group
 			$icon_name                = get_term_meta( $term->term_id, 'category_icon', true );
 			$selected_directory_types = (array) get_term_meta( $term->term_id, '_directory_type', true );
-			$fa_icons                 = get_fa_icons(); // returns the array of FA icon names
-			$directory_types          = get_terms(
-				array(
-					'taxonomy'   => ATBDP_TYPE,
-					'hide_empty' => false,
-				)
-			);
+			$directory_types          = directorist_get_directories();
 			$default_listing_type = $this->default_listing_type();
 			if ( ! $default_listing_type ) {
 				?>
@@ -294,16 +288,10 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 			<?php } ?>
 			<tr class="form-field term-group-wrap">
 			<th scope="row"><label for="category_icon"><?php esc_html_e( 'Category Icon', 'directorist' ); ?></label></th>
-			<td><select class="postform gg" id="category_icon" name="category_icon">
-					<?php foreach ( $fa_icons as $_fa_name ) : ?>
-						<option value="<?php echo esc_attr( $_fa_name ); ?>" <?php selected( $_fa_name, $icon_name ); ?>>
-							<span>
-								<?php echo esc_html( $_fa_name ); ?>
-								<i class="<?php echo esc_attr( $_fa_name ); ?>"></i>
-							</span>
-						</option>
-					<?php endforeach; ?>
-				</select></td>
+			<td>
+                <div class="directorist-category-icon-picker"></div>
+                <input type="hidden" class="category_icon_value" value="<?php echo esc_attr( $icon_name ); ?>" name="category_icon">
+            </td>
 			</tr>
 			<?php
 			// get current cat image
@@ -338,12 +326,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 			$directory_type       = get_term_meta( $term->term_id, '_directory_type', true );
 			$value                = ! empty( $directory_type ) ? $directory_type : array();
 			$image_src            = ( $image_id ) ? wp_get_attachment_url( (int) $image_id ) : '';
-			$directory_types      = get_terms(
-				array(
-					'taxonomy'   => ATBDP_TYPE,
-					'hide_empty' => false,
-				)
-			);
+			$directory_types      = directorist_get_directories();
 			$default_listing_type = $this->default_listing_type();
 			if ( ! $default_listing_type ) { ?>
 			<tr class="form-field term-group-wrap">
@@ -429,13 +412,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 		}
 
 		public function add_category_form_fields( $taxonomy ) {
-			$fa_icons             = get_fa_icons(); // returns the array of FA icon names
-			$directory_types      = get_terms(
-				array(
-					'taxonomy'   => ATBDP_TYPE,
-					'hide_empty' => false,
-				)
-			);
+			$directory_types      = directorist_get_directories();
 			$default_listing_type = $this->default_listing_type();
 			if ( ! $default_listing_type ) {
 				?>
@@ -458,13 +435,8 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 			<?php } ?>
 			<div class="form-field term-group">
 				<label for="category_icon"><?php esc_html_e( 'Category Icon', 'directorist' ); ?></label>
-				<select class="postform" id="category_icon" name="category_icon">
-					<?php foreach ( $fa_icons as $_fa_name ) : ?>
-						<option value="<?php echo esc_attr( $_fa_name ); ?>">
-							<?php echo esc_html( $_fa_name ); ?>
-						</option>
-					<?php endforeach; ?>
-				</select>
+				<div class="directorist-category-icon-picker"></div>
+                <input type="hidden" class="category_icon_value" value="" name="category_icon">
 			</div>
 			<div class="form-field term-group">
 				<label for="atbdp-categories-image-id"><?php esc_html_e( 'Image', 'directorist' ); ?></label>
@@ -481,12 +453,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 		}
 
 		public function add_location_form_fields( $taxonomy ) {
-			$directory_types      = get_terms(
-				array(
-					'taxonomy'   => ATBDP_TYPE,
-					'hide_empty' => false,
-				)
-			);
+			$directory_types      = directorist_get_directories();
 			$default_listing_type = $this->default_listing_type();
 			if ( ! $default_listing_type ) {
 				?>
@@ -522,11 +489,15 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 		}
 
 		public function add_custom_taxonomy() {
+			$this->register_category();
+			$this->register_location();
+			$this->register_tag();
+		}
 
-			/*LOCATION*/
+		protected function register_location() {
 			$labels = array(
-				'name'              => _x( 'Locations', 'Location general name', 'directorist' ),
-				'singular_name'     => _x( 'Location', 'Location singular name', 'directorist' ),
+				'name'              => _x( 'Listing Locations', 'Location general name', 'directorist' ),
+				'singular_name'     => _x( 'Listing Location', 'Location singular name', 'directorist' ),
 				'search_items'      => __( 'Search Location', 'directorist' ),
 				'all_items'         => __( 'All Locations', 'directorist' ),
 				'parent_item'       => __( 'Parent Location', 'directorist' ),
@@ -547,9 +518,11 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 				'query_var'         => true,
 				'public'            => true,
 				'show_in_nav_menus' => true,
+				'capabilities'      => array(
+					'assign_terms' => get_post_type_object( ATBDP_POST_TYPE )->cap->publish_posts,
+				),
 			);
 
-			// get the rewrite slug from the user settings, if exist use it.
 			$slug = ATBDP_LOCATION;
 			if ( ! empty( $slug ) ) {
 				$args['rewrite'] = array(
@@ -557,11 +530,13 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 				);
 			}
 
-			/*CATEGORY*/
+			register_taxonomy( ATBDP_LOCATION, ATBDP_POST_TYPE, $args );
+		}
 
-			$labels2 = array(
-				'name'              => _x( 'Categories', 'Category general name', 'directorist' ),
-				'singular_name'     => _x( 'Category', 'Category singular name', 'directorist' ),
+		protected function register_category() {
+			$labels = array(
+				'name'              => _x( 'Listing Categories', 'Category general name', 'directorist' ),
+				'singular_name'     => _x( 'Listing Category', 'Category singular name', 'directorist' ),
 				'search_items'      => __( 'Search category', 'directorist' ),
 				'all_items'         => __( 'All categories', 'directorist' ),
 				'parent_item'       => __( 'Parent category', 'directorist' ),
@@ -573,28 +548,33 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 				'menu_name'         => __( 'Categories', 'directorist' ),
 			);
 
-			$args2 = array(
+			$args = array(
 				'hierarchical'      => true,
-				'labels'            => $labels2,
+				'labels'            => $labels,
 				'show_ui'           => true,
 				'show_admin_column' => true,
 				'query_var'         => true,
 				'public'            => true,
 				'show_in_nav_menus' => true,
+				'capabilities'      => array(
+					'assign_terms' => get_post_type_object( ATBDP_POST_TYPE )->cap->publish_posts,
+				),
 			);
 
-			// get the rewrite slug from the user settings, if exist use it.
 			$slug = ATBDP_CATEGORY;
 			if ( ! empty( $slug ) ) {
-				$args2['rewrite'] = array(
+				$args['rewrite'] = array(
 					'slug' => $slug,
 				);
 			}
 
-			/*TAGS*/
-			$labels3 = array(
-				'name'              => _x( 'Tags', 'Tag general name', 'directorist' ),
-				'singular_name'     => _x( 'Tag', 'Tag singular name', 'directorist' ),
+			register_taxonomy( ATBDP_CATEGORY, ATBDP_POST_TYPE, $args );
+		}
+
+		protected function register_tag() {
+			$labels = array(
+				'name'              => _x( 'Listing Tags', 'Tag general name', 'directorist' ),
+				'singular_name'     => _x( 'Listing Tag', 'Tag singular name', 'directorist' ),
 				'search_items'      => __( 'Search tag', 'directorist' ),
 				'all_items'         => __( 'All Tags', 'directorist' ),
 				'parent_item'       => __( 'Parent tag', 'directorist' ),
@@ -606,18 +586,17 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 				'menu_name'         => __( 'Tags', 'directorist' ),
 			);
 
-			$capabilities = array(
-				'assign_terms' => 'publish_at_biz_dirs',
-			);
-			$args3        = array(
+			$args       = array(
 				'hierarchical'      => false,
-				'labels'            => $labels3,
+				'labels'            => $labels,
 				'show_ui'           => true,
 				'show_admin_column' => true,
 				'query_var'         => true,
 				'public'            => true,
 				'show_in_nav_menus' => true,
-				'capabilities'      => $capabilities,
+				'capabilities'      => array(
+					'assign_terms' => get_post_type_object( ATBDP_POST_TYPE )->cap->publish_posts,
+				),
 			);
 
 			// get the rewrite slug from the user settings, if exist use it.
@@ -628,23 +607,17 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 				);
 			}
 
-			register_taxonomy( ATBDP_LOCATION, ATBDP_POST_TYPE, $args );
-
-			register_taxonomy( ATBDP_CATEGORY, ATBDP_POST_TYPE, $args2 );
-
-			register_taxonomy( ATBDP_TAGS, ATBDP_POST_TYPE, $args3 );
-
+			register_taxonomy( ATBDP_TAGS, ATBDP_POST_TYPE, $args );
 		}
 
 		public function category_columns( $original_columns ) {
 			$new_columns = $original_columns;
 			array_splice( $new_columns, 1 ); // in this way we could place our columns on the first place after the first checkbox.
-			$enable_multi_directory = get_directorist_option( 'enable_multi_directory' );
 
 			$new_columns['ID'] = __( 'ID', 'directorist' );
-
 			$new_columns['atbdp_category_icon'] = __( 'Icon', 'directorist' );
-			if ( ! empty( $enable_multi_directory ) ) {
+
+			if ( directorist_is_multi_directory_enabled() ) {
 				$new_columns['atbdp_category_directory_type'] = __( 'Directory Type', 'directorist' );
 			}
 
@@ -654,8 +627,8 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 		public function location_columns( $original_columns ) {
 			$new_columns = $original_columns;
 			array_splice( $new_columns, 2 ); // in this way we could place our columns on the first place after the first checkbox.
-			$enable_multi_directory = get_directorist_option( 'enable_multi_directory' );
-			if ( ! empty( $enable_multi_directory ) ) {
+
+			if ( directorist_is_multi_directory_enabled() ) {
 				$new_columns['atbdp_location_directory_type'] = __( 'Directory Type', 'directorist' );
 			}
 
@@ -839,21 +812,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 		}
 
 		public function get_listing_types() {
-			$listing_types = array();
-			$args          = array(
-				'taxonomy'   => ATBDP_TYPE,
-				'hide_empty' => false,
-			);
-			$all_types     = get_terms( $args );
-
-			foreach ( $all_types as $type ) {
-				$listing_types[ $type->term_id ] = array(
-					'term' => $type,
-					'name' => $type->name,
-					'data' => get_term_meta( $type->term_id, 'general_config', true ),
-				);
-			}
-			return $listing_types;
+			return directorist_get_directories_for_template();
 		}
 
 		public function get_current_listing_type() {
@@ -877,8 +836,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 		}
 
 		public function default_listing_type() {
-			$enable_multi_directory = get_directorist_option( 'enable_multi_directory' );
-			if ( empty( $enable_multi_directory ) || ( 1 == count( $this->get_listing_types() ) ) ) {
+			if ( ! directorist_is_multi_directory_enabled() || ( 1 == count( $this->get_listing_types() ) ) ) {
 				return $this->get_current_listing_type();
 			}
 		}

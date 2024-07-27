@@ -1,6 +1,7 @@
 <?php
 
-namespace Directorist;
+namespace Directorist\Multi_Directory;
+
 class Multi_Directory_Migration {
 
     public $multi_directory_manager = null;
@@ -25,10 +26,7 @@ class Multi_Directory_Migration {
         $add_directory      = $this->multi_directory_manager->add_directory( $add_directory_args );
 
         if ( $add_directory['status']['success'] ) {
-            $directory_types = get_terms([
-                'taxonomy'   => ATBDP_DIRECTORY_TYPE,
-                'hide_empty' => false,
-            ]);
+            $directory_types = directorist_get_directories();
 
             if ( ! empty( $directory_types ) ) {
                 foreach ( $directory_types as $directory_type ) {
@@ -92,7 +90,7 @@ class Multi_Directory_Migration {
         $listings_card_common_data = [ 'listings_card_wedgets' => $listings_card_wedgets ];
 
         $fields = apply_filters( 'atbdp_multidirectory_migration_fields', [
-            "icon"          => "fa fa-home",
+            "icon"          => "las la-home",
             "singular_name" => "listing",
             "plural_name"   => "listings",
             "permalink"     => "listing",
@@ -506,7 +504,7 @@ class Multi_Directory_Migration {
         $video_group_field_keys        = [];
 
         $single_listings_preset_fields["tag"] = [
-            'icon'         => 'la la-tag',
+            'icon'         => 'las la-tag',
             "widget_name"  => "tag",
             "widget_group" => "preset_widgets",
         ];
@@ -514,7 +512,7 @@ class Multi_Directory_Migration {
         if ( ! empty( get_directorist_option( 'display_map_field', true ) ) ) {
             $map_group_field_keys[] = 'map';
             $single_listings_preset_fields["map"] = [
-                'icon'         => 'la la-map',
+                'icon'         => 'las la-map',
                 "widget_name"  => "map",
                 "widget_group" => "preset_widgets",
             ];
@@ -523,7 +521,7 @@ class Multi_Directory_Migration {
         if ( ! empty( get_directorist_option( 'display_map_field', true ) ) ) {
             $contact_info_group_field_keys[] = 'address';
             $single_listings_preset_fields["address"] = [
-                "icon"                  => "la la-map",
+                "icon"                  => "las la-map",
                 'address_link_with_map' => false,
                 "widget_name"           => "address",
                 "widget_group"          => "preset_widgets",
@@ -533,7 +531,7 @@ class Multi_Directory_Migration {
         if ( ! empty( get_directorist_option( 'display_phone_field', true ) ) ) {
             $contact_info_group_field_keys[] = 'phone';
             $single_listings_preset_fields["phone"] = [
-                "icon"         => "la la-phone",
+                "icon"         => "las la-phone",
                 "widget_name"  => "phone",
                 "widget_group" => "preset_widgets",
             ];
@@ -542,7 +540,7 @@ class Multi_Directory_Migration {
         if ( ! empty( get_directorist_option( 'display_phone_field2', true ) ) ) {
             $contact_info_group_field_keys[] = 'phone2';
             $single_listings_preset_fields["phone2"] = [
-                "icon"         => "la la-phone",
+                "icon"         => "las la-phone",
                 "widget_name"  => "phone2",
                 "widget_group" => "preset_widgets",
             ];
@@ -551,7 +549,7 @@ class Multi_Directory_Migration {
         if ( ! empty( get_directorist_option( 'display_zip_field', true ) ) ) {
             $contact_info_group_field_keys[] = 'zip';
             $single_listings_preset_fields["zip"] = [
-                "icon"         => "la la-street-view",
+                "icon"         => "las la-street-view",
                 "widget_name"  => "zip",
                 "widget_group" => "preset_widgets",
             ];
@@ -560,7 +558,7 @@ class Multi_Directory_Migration {
         if ( ! empty( get_directorist_option( 'display_email_field', true ) ) ) {
             $contact_info_group_field_keys[] = 'email';
             $single_listings_preset_fields["email"] = [
-                "icon"         => "la la-envelope",
+                "icon"         => "las la-envelope",
                 "widget_name"  => "email",
                 "widget_group" => "preset_widgets",
             ];
@@ -569,7 +567,7 @@ class Multi_Directory_Migration {
         if ( ! empty( get_directorist_option( 'display_website_field', true ) ) ) {
             $contact_info_group_field_keys[] = 'website';
             $single_listings_preset_fields["website"] = [
-                "icon"         => "la la-globe",
+                "icon"         => "las la-globe",
                 "widget_name"  => "website",
                 "widget_group" => "preset_widgets",
             ];
@@ -578,7 +576,7 @@ class Multi_Directory_Migration {
         if ( ! empty( get_directorist_option( 'display_fax', true ) ) ) {
             $contact_info_group_field_keys[] = 'fax';
             $single_listings_preset_fields["fax"] = [
-                "icon"         => "la la-fax",
+                "icon"         => "las la-fax",
                 "widget_name"  => "fax",
                 "widget_group" => "preset_widgets",
             ];
@@ -587,7 +585,7 @@ class Multi_Directory_Migration {
         if ( ! empty( get_directorist_option( 'display_social_info_field', true ) ) ) {
             $contact_info_group_field_keys[] = 'social_info';
             $single_listings_preset_fields["social_info"] = [
-                "icon"         => "la la-share-alt",
+                "icon"         => "las la-share-alt",
                 "widget_name"  => "social_info",
                 "widget_group" => "preset_widgets",
             ];
@@ -596,7 +594,7 @@ class Multi_Directory_Migration {
         if ( ! empty( get_directorist_option( 'display_video_field', true ) ) ) {
             $video_group_field_keys[] = 'video';
             $single_listings_preset_fields["video"] = [
-                "icon"         => "la la-video",
+                "icon"         => "las la-video",
                 "widget_name"  => "video",
                 "widget_group" => "preset_widgets",
             ];
@@ -648,7 +646,7 @@ class Multi_Directory_Migration {
                 "label"  => get_directorist_option( 'tags_section_lable', __( 'Tags', 'directorist' ) ),
                 "fields" => [ "tag" ],
                 'type'   => 'general_group',
-                'icon'   => 'la la-tags',
+                'icon'   => 'las la-tags',
                 'custom_block_id'      => '',
                 'custom_block_classes' => '',
             ];
@@ -659,7 +657,7 @@ class Multi_Directory_Migration {
                 "label"  => get_directorist_option( 'custom_section_lable', __( 'Features', 'directorist' ) ),
                 "fields" => array_keys( $single_listings_custom_fields ),
                 'type'   => 'general_group',
-                'icon'   => 'la la-bars',
+                'icon'   => 'las la-bars',
                 'custom_block_id'      => '',
                 'custom_block_classes' => '',
             ];
@@ -670,7 +668,7 @@ class Multi_Directory_Migration {
                 "label"  => get_directorist_option( 'listing_location_text', __( 'Location', 'directorist' ) ),
                 "fields" => $map_group_field_keys,
                 'type'   => 'general_group',
-                'icon'   => 'la la-map',
+                'icon'   => 'las la-map',
                 'custom_block_id'      => '',
                 'custom_block_classes' => '',
             ];
@@ -681,7 +679,7 @@ class Multi_Directory_Migration {
                 "label"                => get_directorist_option( 'contact_info_text', __( 'Contact Information', 'directorist' ) ),
                 "fields"               => $contact_info_group_field_keys,
                 'type'                 => 'general_group',
-                'icon'                 => 'la la-envelope-o',
+                'icon'                 => 'las la-envelope-open',
                 'custom_block_id'      => '',
                 'custom_block_classes' => '',
             ];
@@ -692,7 +690,7 @@ class Multi_Directory_Migration {
                 "label"                => get_directorist_option( 'atbd_video_title', __( 'Video', 'directorist' ) ),
                 "fields"               => $video_group_field_keys,
                 'type'                 => 'general_group',
-                'icon'                 => 'la la-video-camera',
+                'icon'                 => 'las la-video',
                 'custom_block_id'      => '',
                 'custom_block_classes' => '',
             ];
@@ -715,7 +713,7 @@ class Multi_Directory_Migration {
                 'type'                 => 'widget_group',
                 'widget_group'         => 'other_widgets',
                 'widget_name'          => 'contact_listings_owner',
-                'icon'                 => 'la la-phone',
+                'icon'                 => 'las la-phone',
                 'custom_block_id'      => '',
                 'custom_block_classes' => '',
             ];
@@ -808,7 +806,6 @@ class Multi_Directory_Migration {
                 'field_key' => 'tag',
                 "options" => [
                     'label'              => 'Tag',
-                    'tags_filter_source' => 'all_tags',
                     'widget_name'        => 'tag',
                     'widget_group'       => 'available_widgets',
                 ],
@@ -998,7 +995,7 @@ class Multi_Directory_Migration {
                 "label"       => "Bookmark",
                 "widget_name" => "bookmark",
                 "widget_key"  => "bookmark",
-                'icon'        => 'la la-hart',
+                'icon'        => 'las la-heart',
             ];
         }
         if ( '1' == get_directorist_option( 'enable_report_abuse', true ) ) {
@@ -1008,7 +1005,7 @@ class Multi_Directory_Migration {
                 "hook"        => "atbdp_single_listings_title",
                 "widget_name" => "share",
                 "widget_key"  => "share",
-                "icon"        => "la la-share"
+                "icon"        => "las la-share"
             ];
         }
         if ( '1' == get_directorist_option( 'enable_social_share', true ) ) {
@@ -1018,7 +1015,7 @@ class Multi_Directory_Migration {
                 "hook"        => "atbdp_single_listings_title",
                 "widget_name" => "report",
                 "widget_key"  => "report",
-                "icon"        => "la la-flag"
+                "icon"        => "las la-flag"
             ];
         }
 
@@ -1653,7 +1650,7 @@ class Multi_Directory_Migration {
                 "hook"        => "atbdp_listings_location",
                 "widget_name" => "listings_location",
                 "widget_key"  => "listings_location",
-                "icon"        => "la la-map-marker"
+                "icon"        => "las la-map-marker"
             ],
             'phone' => [
                 "type"        => "list-item",
@@ -1661,7 +1658,7 @@ class Multi_Directory_Migration {
                 "label"       => "Phone",
                 "widget_name" => "phone",
                 "widget_key"  => "phone",
-                "icon"        => "la la-phone"
+                "icon"        => "las la-phone"
 
             ],
             'website' => [
@@ -1670,7 +1667,7 @@ class Multi_Directory_Migration {
                 "label"       => "Listings Website",
                 "widget_name" => "website",
                 "widget_key"  => "website",
-                "icon"        => "la la-globe"
+                "icon"        => "las la-globe"
 
             ],
             'posted_date' => [
@@ -1679,7 +1676,7 @@ class Multi_Directory_Migration {
                 "hook"        => "atbdp_listings_posted_date",
                 "widget_name" => "posted_date",
                 "widget_key"  => "posted_date",
-                "icon"        => "la la-clock-o",
+                "icon"        => "las la-clock",
                 "date_type"   => "days_ago"
             ],
             'view_count' => [
@@ -1688,7 +1685,7 @@ class Multi_Directory_Migration {
                 "hook"        => "atbdp_view_count",
                 "widget_name" => "view_count",
                 "widget_key"  => "view_count",
-                "icon"        => "fa fa-heart"
+                "icon"        => "las la-heart"
             ],
             'category' => [
                 "type"        => "category",
@@ -1696,7 +1693,7 @@ class Multi_Directory_Migration {
                 "hook"        => "atbdp_category",
                 "widget_name" => "category",
                 "widget_key"  => "category",
-                "icon"        => "fa fa-folder"
+                "icon"        => "las la-folder"
             ],
             'contact_button' => [
                 "type"        => "button",
@@ -1704,7 +1701,7 @@ class Multi_Directory_Migration {
                 "hook"        => "atbdp_open_close_badge",
                 "widget_name" => "contact_button",
                 "widget_key"  => "contact_button",
-                "icon"        => "uil uil-phone"
+                "icon"        => "las la-phone"
             ],
 
         ];
