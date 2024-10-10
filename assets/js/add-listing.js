@@ -584,7 +584,6 @@ $(function () {
           scrollTo('.' + uploader.uploaders_data.element_id);
           break;
         }
-        selectedImages = uploader.media_uploader.getTheFiles();
         uploader.media_uploader.getTheFiles().forEach(function (file) {
           selectedImages.push({
             field: uploader.uploaders_data.meta_name,
@@ -597,18 +596,24 @@ $(function () {
       var counter = 0;
       function uploadImage() {
         var formData = new FormData();
-        formData.append('action', 'directorist_upload_listing_image');
-        formData.append('directorist_nonce', directorist.directorist_nonce);
-        formData.append('image', selectedImages[counter]);
-        formData.append('image', selectedImages[counter].file);
+
+        // formData.append( 'action', 'directorist_upload_listing_image' );
+        // formData.append( 'directorist_nonce', directorist.directorist_nonce );
+        // formData.append( 'file', selectedImages[ counter ] );
+        // formData.append( 'action', 'directorist_upload_listing_image' );
+        // formData.append( 'directorist_nonce', directorist.directorist_nonce );
+        formData.append('file', selectedImages[counter].file);
         formData.append('field', selectedImages[counter].field);
         $.ajax({
           method: 'POST',
           processData: false,
           contentType: false,
-          url: localized_data.ajaxurl,
+          mimeType: 'multipart/form-data',
+          async: true,
+          url: directorist.rest_url + 'directorist/v1/temp-media-upload',
           data: formData,
-          beforeSend: function beforeSend() {
+          beforeSend: function beforeSend(xhr) {
+            xhr.setRequestHeader('X-WP-Nonce', directorist.rest_nonce);
             disableSubmitButton();
             var totalImages = selectedImages.length;
             if (totalImages === 1) {
@@ -619,14 +624,10 @@ $(function () {
             }
           },
           success: function success(response) {
-            if (!response.success) {
-              enableSubmitButton();
-              $notification.show().html("<span class=\"atbdp_error\">".concat(response.data, "</span>"));
-              return;
-            }
+            var data = JSON.parse(response);
             uploadedImages.push({
               field: selectedImages[counter].field,
-              file: response.data
+              file: data.file
             });
             counter++;
             if (counter < selectedImages.length) {
@@ -635,9 +636,10 @@ $(function () {
               submitForm($form, uploadedImages);
             }
           },
-          error: function error(response) {
+          error: function error(xhr) {
+            var data = JSON.parse(xhr.responseText);
             enableSubmitButton();
-            $notification.html("<span class=\"atbdp_error\">".concat(response.responseJSON.data, "</span>"));
+            $notification.html("<span class=\"atbdp_error\">".concat(data.message, "</span>"));
           }
         });
       }
