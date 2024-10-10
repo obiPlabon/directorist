@@ -522,7 +522,6 @@ $(function() {
                     break;
                 }
 
-                selectedImages = uploader.media_uploader.getTheFiles();
                 uploader.media_uploader.getTheFiles().forEach( function( file ) {
                     selectedImages.push( {
                         field: uploader.uploaders_data.meta_name,
@@ -538,19 +537,25 @@ $(function() {
             function uploadImage() {
                 const formData = new FormData();
 
-                formData.append( 'action', 'directorist_upload_listing_image' );
-                formData.append( 'directorist_nonce', directorist.directorist_nonce );
-                formData.append( 'image', selectedImages[ counter ] );
-                formData.append( 'image', selectedImages[ counter ].file );
+                // formData.append( 'action', 'directorist_upload_listing_image' );
+                // formData.append( 'directorist_nonce', directorist.directorist_nonce );
+                // formData.append( 'file', selectedImages[ counter ] );
+                // formData.append( 'action', 'directorist_upload_listing_image' );
+                // formData.append( 'directorist_nonce', directorist.directorist_nonce );
+                formData.append( 'file', selectedImages[ counter ].file );
                 formData.append( 'field', selectedImages[ counter ].field );
 
                 $.ajax( {
                     method: 'POST',
                     processData: false,
                     contentType: false,
-                    url: localized_data.ajaxurl,
+                    mimeType: 'multipart/form-data',
+                    async: true,
+                    url: directorist.rest_url + 'directorist/v1/temp-media-upload',
                     data: formData,
-                    beforeSend() {
+                    beforeSend( xhr ) {
+                        xhr.setRequestHeader( 'X-WP-Nonce', directorist.rest_nonce );
+
                         disableSubmitButton();
 
                         const totalImages = selectedImages.length;
@@ -566,31 +571,26 @@ $(function() {
                         }
                     },
                     success( response ) {
-                        if ( ! response.success ) {
-                            enableSubmitButton()
-
-                            $notification.show().html(`<span class="atbdp_error">${response.data}</span>`);
-
-                            return;
-                        }
+                        const data = JSON.parse( response );
 
                         uploadedImages.push( {
                             field: selectedImages[ counter ].field,
-                            file: response.data
+                            file: data.file
                         } );
 
                         counter++;
-
                         if ( counter < selectedImages.length ) {
                             uploadImage();
                         } else {
                             submitForm( $form, uploadedImages );
                         }
                     },
-                    error(response) {
+                    error( xhr ) {
+                        const data = JSON.parse( xhr.responseText );
+
                         enableSubmitButton();
 
-                        $notification.html(`<span class="atbdp_error">${response.responseJSON.data}</span>`);
+                        $notification.html(`<span class="atbdp_error">${data.message}</span>`);
                     }
                 } );
             }

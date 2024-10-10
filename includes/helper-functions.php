@@ -4577,3 +4577,7 @@ function directorist_download_plugin( array $args = array() ) {
 
     return $status;
 }
+
+function directorist_get_temp_upload_dir() {
+	return 'directorist_temp_uploads';
+}

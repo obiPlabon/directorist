@@ -49,63 +49,63 @@ if ( ! class_exists( 'ATBDP_Add_Listing' ) ) :
 			add_action( 'wp_ajax_add_listing_action', array( $this, 'atbdp_submit_listing' ) );
 			add_action( 'wp_ajax_nopriv_add_listing_action', array( $this, 'atbdp_submit_listing' ) );
 
-			add_action( 'wp_ajax_directorist_upload_listing_image', array( __CLASS__, 'upload_listing_image' ) );
-			add_action( 'wp_ajax_nopriv_directorist_upload_listing_image', array( __CLASS__, 'upload_listing_image' ) );
+			// add_action( 'wp_ajax_directorist_upload_listing_image', array( __CLASS__, 'upload_listing_image' ) );
+			// add_action( 'wp_ajax_nopriv_directorist_upload_listing_image', array( __CLASS__, 'upload_listing_image' ) );
 		}
 
-		public static function upload_listing_image() {
-			try {
-				if ( ! directorist_verify_nonce() ) {
-					throw new Exception( __( 'Invalid request.', 'directorist' ), 400 );
-				}
+		// public static function upload_listing_image() {
+		// 	try {
+		// 		if ( ! directorist_verify_nonce() ) {
+		// 			throw new Exception( __( 'Invalid request.', 'directorist' ), 400 );
+		// 		}
 
-				$image = ! empty( $_FILES['image'] ) ? directorist_clean( $_FILES['image'] ) : array();
+		// 		$image = ! empty( $_FILES['image'] ) ? directorist_clean( $_FILES['image'] ) : array();
 
-				if ( empty( $image ) ) {
-					return;
-				}
+		// 		if ( empty( $image ) ) {
+		// 			return;
+		// 		}
 
-				// Set temporary upload directory.
-				add_filter( 'upload_dir', array( __CLASS__, 'set_temporary_upload_dir' ) );
+		// 		// Set temporary upload directory.
+		// 		add_filter( 'upload_dir', array( __CLASS__, 'set_temporary_upload_dir' ) );
 
-				// handle file upload
-				$status = wp_handle_upload(
-					$image,
-					array(
-						'test_form' => true,
-						'test_type' => true,
-						'action'    => 'directorist_upload_listing_image',
-						'mimes'     => directorist_get_mime_types( 'image' ),
-					)
-				);
+		// 		// handle file upload
+		// 		$status = wp_handle_upload(
+		// 			$image,
+		// 			array(
+		// 				'test_form' => true,
+		// 				'test_type' => true,
+		// 				'action'    => 'directorist_upload_listing_image',
+		// 				'mimes'     => directorist_get_mime_types( 'image' ),
+		// 			)
+		// 		);
 
-				// Restore to default upload directory.
-				remove_filter( 'upload_dir', array( __CLASS__, 'set_temporary_upload_dir' ) );
+		// 		// Restore to default upload directory.
+		// 		remove_filter( 'upload_dir', array( __CLASS__, 'set_temporary_upload_dir' ) );
 
-				if ( ! empty( $status['error'] ) ) {
-					throw new Exception( sprintf( '%s - (%s)', $status['error'], $image['name'] ), 500 );
-				}
+		// 		if ( ! empty( $status['error'] ) ) {
+		// 			throw new Exception( sprintf( '%s - (%s)', $status['error'], $image['name'] ), 500 );
+		// 		}
 
-				if ( empty( $status['url'] ) ) {
-					throw new Exception( sprintf( __( 'Could not upload (%s), please try again.', 'directorist' ), $image['name'] ), 500 );
-				}
+		// 		if ( empty( $status['url'] ) ) {
+		// 			throw new Exception( sprintf( __( 'Could not upload (%s), please try again.', 'directorist' ), $image['name'] ), 500 );
+		// 		}
 
-				wp_send_json_success( basename( $status['url'] ) );
+		// 		wp_send_json_success( basename( $status['url'] ) );
 
-			} catch ( Exception $e ) {
+		// 	} catch ( Exception $e ) {
 
-				wp_send_json_error( $e->getMessage(), $e->getCode() );
+		// 		wp_send_json_error( $e->getMessage(), $e->getCode() );
 
-			}
-		}
+		// 	}
+		// }
 
-		public static function set_temporary_upload_dir( $upload ) {
-			$upload['subdir'] = '/directorist_temp_uploads/' . date( 'nj' );
-			$upload['path']   = $upload['basedir'] . $upload['subdir'];
-			$upload['url']    = $upload['baseurl'] . $upload['subdir'];
+		// public static function set_temporary_upload_dir( $upload ) {
+		// 	$upload['subdir'] = '/directorist_temp_uploads/' . date( 'nj' );
+		// 	$upload['path']   = $upload['basedir'] . $upload['subdir'];
+		// 	$upload['url']    = $upload['baseurl'] . $upload['subdir'];
 
-			return $upload;
-		}
+		// 	return $upload;
+		// }
 
 		/**
 		 * Not sure what this function does.
@@ -116,16 +116,16 @@ if ( ! class_exists( 'ATBDP_Add_Listing' ) ) :
 		 *
 		 * @return mixed
 		 */
-		private function atbdp_get_file_attachment_id( $array, $name ) {
-			$id = null;
-			foreach ( $array as $item ) {
-				if ( $item['name'] === $name ) {
-					$id = $item['id'];
-					break;
-				}
-			}
-			return $id;
-		}
+		// private function atbdp_get_file_attachment_id( $array, $name ) {
+		// 	$id = null;
+		// 	foreach ( $array as $item ) {
+		// 		if ( $item['name'] === $name ) {
+		// 			$id = $item['id'];
+		// 			break;
+		// 		}
+		// 	}
+		// 	return $id;
+		// }
 
 
 		/**
@@ -548,7 +548,7 @@ if ( ! class_exists( 'ATBDP_Add_Listing' ) ) :
 
 			try {
 				$upload_dir                    = wp_get_upload_dir();
-				$temp_dir                      = $upload_dir['basedir'] . '/directorist_temp_uploads/' . date( 'nj' ) . '/';
+				$temp_dir                      = trailingslashit( $upload_dir['basedir'] ) . trailingslashit( directorist_get_temp_upload_dir() . DIRECTORY_SEPARATOR . date( 'nj' ) );
 				$target_dir                    = trailingslashit( $upload_dir['path'] );
 				$uploaded_images               = $old_images;
 				$background_processable_images = array();
