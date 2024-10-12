@@ -313,11 +313,13 @@ class Builder_Data {
                                 'type'  => 'text',
                                 'label' => __( 'Custom block ID', 'directorist' ),
                                 'value' => '',
+                                'field_type' => 'advanced',
                             ],
                             'custom_block_classes' => [
                                 'type'  => 'text',
                                 'label' => __( 'Custom block Classes', 'directorist' ),
                                 'value' => '',
+                                'field_type' => 'advanced',
                             ],
                             'review_cookies_consent' => [
                                 'label' => __( 'Show Cookies Consent', 'directorist' ),
@@ -452,14 +454,16 @@ class Builder_Data {
                                 'value' => true,
                             ],
                             'custom_block_id'      => [
-                                'type'  => 'text',
-                                'label' => __( 'Custom block ID', 'directorist' ),
-                                'value' => '',
+                                'type'       => 'text',
+                                'label'      => __( 'Custom block ID', 'directorist' ),
+                                'value'      => '',
+                                'field_type' => 'advanced',
                             ],
                             'custom_block_classes' => [
-                                'type'  => 'text',
-                                'label' => __( 'Custom block Classes', 'directorist' ),
-                                'value' => '',
+                                'type'       => 'text',
+                                'label'      => __( 'Custom block Classes', 'directorist' ),
+                                'value'      => '',
+                                'field_type' => 'advanced',
                             ],
                         ],
                     ],
@@ -482,11 +486,13 @@ class Builder_Data {
                                 'type'  => 'text',
                                 'label' => __( 'Custom block ID', 'directorist' ),
                                 'value' => '',
+                                'field_type' => 'advanced',
                             ],
                             'custom_block_classes' => [
                                 'type'  => 'text',
                                 'label' => __( 'Custom block Classes', 'directorist' ),
                                 'value' => '',
+                                'field_type' => 'advanced',
                             ],
                         ],
                         'accepted_widgets' => [
@@ -561,14 +567,16 @@ class Builder_Data {
                                 'value' => 'Related Listings',
                             ],
                             'custom_block_id'      => [
-                                'type'  => 'text',
-                                'label' => __( 'Custom block ID', 'directorist' ),
-                                'value' => '',
+                                'type'       => 'text',
+                                'label'      => __( 'Custom block ID', 'directorist' ),
+                                'value'      => '',
+                                'field_type' => 'advanced',
                             ],
                             'custom_block_classes' => [
-                                'type'  => 'text',
-                                'label' => __( 'Custom block Classes', 'directorist' ),
-                                'value' => '',
+                                'type'       => 'text',
+                                'label'      => __( 'Custom block Classes', 'directorist' ),
+                                'value'      => '',
+                                'field_type' => 'advanced',
                             ],
                             'similar_listings_logics'                     => [
                                 'type'    => 'radio',
@@ -2143,31 +2151,34 @@ class Builder_Data {
                     'addNewGroupButtonLabel' => __( 'Add Section', 'directorist' ),
                 ],
                 'groupFields'     => [
-                    'section_id'           => [
-                        'type'    => 'text',
-                        'disable' => true,
-                        'label'   => 'Section ID',
-                        'value'   => '',
+                    'label'                => [
+                        'type'  => 'text',
+                        'label' => __( 'Label', 'directorist' ),
+                        'value' => 'Section',
                     ],
                     'icon'                 => [
                         'type'  => 'icon',
                         'label' => __( 'Block/Section Icon', 'directorist' ),
                         'value' => '',
                     ],
-                    'label'                => [
-                        'type'  => 'text',
-                        'label' => __( 'Label', 'directorist' ),
-                        'value' => 'Section',
+                    'section_id'           => [
+                        'type'    => 'text',
+                        'disable' => true,
+                        'label'   => 'Section ID',
+                        'value'   => '',
+                        'field_type' => 'advanced',
                     ],
                     'custom_block_id'      => [
                         'type'  => 'text',
                         'label' => __( 'Custom block ID', 'directorist' ),
                         'value' => '',
+                        'field_type' => 'advanced',
                     ],
                     'custom_block_classes' => [
                         'type'  => 'text',
                         'label' => __( 'Custom block Classes', 'directorist' ),
                         'value' => '',
+                        'field_type' => 'advanced',
                     ],
                     'shortcode'            => [
                         'type'        => 'shortcode-list',
@@ -2203,10 +2214,6 @@ class Builder_Data {
                             ],
                         ],
 
-                    ],
-                    'isAdvanced' => [
-                        'lessText' => __( 'Basic', 'directorist' ),
-                        'moreText' => __( 'Advanced', 'directorist' ),
                     ],
                 ],
                 'value'           => [],
@@ -2623,7 +2630,7 @@ class Builder_Data {
                     ],
 
                     'expiration'      => [
-                        'title'             => __( 'Default Listing Expiration Days', 'directorist' ),
+                        'title'             => __( 'Default listing expiration days', 'directorist' ),
                         'description'       => __( 'Set the number of days before a listing automatically expires.', 'directorist' ),
                         'fields'            => [
                             'default_expiration',
