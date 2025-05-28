@@ -193,10 +193,6 @@ function directorist_update_term_directory( $term_id, array $directory_ids = arr
 	}
 
 	update_term_meta( $term_id, '_directory_type', $directory_ids );
-
-	foreach ( $directory_ids as $directory_id ) {
-		update_term_meta( $term_id, '_directory_type_' . $directory_id, true );
-	}
 }
 
 function directorist_update_location_directory( $location_id, array $directory_ids = array(), $append = false) {
@@ -208,13 +204,7 @@ function directorist_update_category_directory( $location_id, array $directory_i
 }
 
 function directorist_delete_term_directory( $term_id ) {
-	$directory_ids = directorist_get_term_directory( $term_id );
-
 	delete_term_meta( $term_id, '_directory_type' );
-
-	foreach ( $directory_ids as $directory_id ) {
-		delete_term_meta( $term_id, '_directory_type_' . $directory_id );
-	}
 }
 
 function directorist_get_term_directory( $term_id ) {
@@ -329,4 +319,30 @@ function directorist_get_category_custom_field_relations( $directory_id ) {
  */
 function directorist_is_preview_enabled( $directory_id ) {
 	return (bool) directorist_get_directory_meta( $directory_id, 'preview_mode' );
+}
+
+function directorist_add_term_directories_performance_key( $term_id = 0, $directory_ids = array() ) {
+	if ( empty( $term_id ) ) {
+		return;
+	}
+
+	foreach ( $directory_ids as $directory_id ) {
+		update_term_meta( $term_id, '_directory_type_' . $directory_id, true );
+	}
+}
+
+function directorist_delete_term_directories_performance_key( $term_id = 0 ) {
+	if ( empty( $term_id ) ) {
+		return;
+	}
+
+	global $wpdb;
+
+	$wpdb->query(
+		$wpdb->prepare(
+			"DELETE FROM {$wpdb->termmeta} WHERE term_id = %d AND meta_key LIKE %s",
+			$term_id,
+			'\_directory\_type\_%'
+		)
+	);
 }
