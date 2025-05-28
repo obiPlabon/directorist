@@ -277,15 +277,15 @@ abstract class Terms_Controller extends Abstract_Controller {
 
                 $terms = array_filter(
                     $terms, function( $term ) use( $queried_directories ) {
-                        $directories = get_term_meta( $term->term_id, '_directory_type', true );
+                        $directories = directorist_get_term_directory( $term->term_id );
 
-                        if ( empty( $directories ) || ! is_array( $directories ) ) {
+                        if ( empty( $directories ) ) {
                             return false;
                         }
 
                         $exists = array_intersect( $queried_directories, $directories );
                         return ( count( $exists ) > 0 );
-                    } 
+                    }
                 );
 
                 $offset       = $prepared_args['offset'] ? $prepared_args['offset'] : 0;

@@ -64,7 +64,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
                 if ( ! empty( $term_data ) ) {
                     foreach ( $term_data as $data ) {
 
-                        $old_data = get_term_meta( $data->term_id, '_directory_type', true );
+                        $old_data = directorist_get_term_directory( $data->term_id );
 
                         $results = is_array( $old_data ) ? $old_data[0] : $old_data;
 
@@ -153,7 +153,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
 
         public function edit_taxonomy_view_link( $actions, $tag ) {
             // Get the directory_type from the term meta
-            $directory_type         = get_term_meta( $tag->term_id, '_directory_type', true );
+            $directory_type         = directorist_get_term_directory( $tag->term_id );
             $enable_multi_directory = get_directorist_option( 'enable_multi_directory' );
             $directory_type_slug    = is_array( $directory_type ) && ! empty( $directory_type[0] ) ? $this->get_directory_type_slug( absint( $directory_type[0] ) ) : 0;
 
@@ -283,7 +283,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
             $directories          = directorist_get_directories(
                 [
                     'fields' => 'id=>name',
-                ] 
+                ]
             );
 
             wp_nonce_field( directorist_get_nonce_key(), 'directorist_nonce' );
@@ -344,7 +344,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
             $directories          = directorist_get_directories(
                 [
                     'fields' => 'id=>name',
-                ] 
+                ]
             );
 
             wp_nonce_field( directorist_get_nonce_key(), 'directorist_nonce' );
@@ -443,7 +443,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
             $directories = directorist_get_directories(
                 [
                     'fields' => 'id=>name',
-                ] 
+                ]
             );
 
             wp_nonce_field( directorist_get_nonce_key(), 'directorist_nonce' );
@@ -485,7 +485,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
             $directories          = directorist_get_directories(
                 [
                     'fields' => 'id=>name'
-                ] 
+                ]
             );
 
             wp_nonce_field( directorist_get_nonce_key(), 'directorist_nonce' );
@@ -681,7 +681,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
                 $directories = directorist_get_directories(
                     [
                         'fields'  => 'id=>name',
-                    ] 
+                    ]
                 );
 
                 $directories = array_intersect_key( $directories, array_flip( $selected_directories ) );
@@ -705,7 +705,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
                 $directories = directorist_get_directories(
                     [
                         'fields'  => 'id=>name',
-                    ] 
+                    ]
                 );
 
                 $directories = array_intersect_key( $directories, array_flip( $selected_directories ) );
@@ -938,7 +938,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
                     'fields'  => 'id=>name',
                     'order'   => 'asc',
                     'orderby' => 'id'
-                ] 
+                ]
             );
 
             if ( is_wp_error( $directories ) ) {

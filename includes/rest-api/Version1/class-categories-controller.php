@@ -58,10 +58,7 @@ class Categories_Controller extends Terms_Controller {
 
         // Category directory type.
         if ( directorist_is_multi_directory_enabled() ) {
-            $directory = get_term_meta( $item->term_id, '_directory_type', true );
-            if ( ! empty( $directory ) && is_array( $directory ) ) {
-                $data['directory'] = array_map( 'absint', $directory );
-            }
+            $data['directory'] = directorist_get_category_directory( $item->term_id );
         }
 
         // Category image.
@@ -261,7 +258,7 @@ class Categories_Controller extends Terms_Controller {
                     'taxonomy'               => ATBDP_TYPE,
                     'update_term_meta_cache' => false,
                     'hide_empty'             => false,
-                ] 
+                ]
             );
 
             if ( is_wp_error( $directory ) || empty( $directory ) ) {
