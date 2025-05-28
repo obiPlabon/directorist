@@ -304,7 +304,7 @@ class Directorist_Listing_Search_Form {
                 [
                     'fields'     => 'ids',
                     'slug'       => $this->directory_type,
-                ] 
+                ]
             );
 
             if ( ! is_wp_error( $directories ) && ! empty( $directories ) && ! in_array( $default_directory_id, $directories, true ) ) {
@@ -552,7 +552,7 @@ class Directorist_Listing_Search_Form {
         $cats = get_categories( $args );
 
         foreach ( $cats as $cat ) {
-            $directory_type      = get_term_meta( $cat->term_id, '_directory_type', true );
+            $directory_type      = directorist_get_category_directory( $cat->term_id );
             $directory_type      = ! empty( $directory_type ) ? $directory_type : [];
             $listing_type_id     = $this->listing_type;
 

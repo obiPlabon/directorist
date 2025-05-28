@@ -145,7 +145,7 @@ class Directorist_Listing_Taxonomy {
 
         $all_terms      = get_terms( $this->tax, $args );
         $total_terms    = wp_count_terms( $this->tax, array_merge( $args, ['number' => 0, 'offset' => 0] ) );
-        
+
         $this->terms            = array_slice( $all_terms, $offset, $this->per_page );
         $this->total_pages      = ( $this->per_page > 0 ) ? ceil( $total_terms / $this->per_page ) : 1;
         $this->current_page     = $current_page; // Store current page for reference
@@ -251,7 +251,7 @@ class Directorist_Listing_Taxonomy {
                 'prev_text' => apply_filters( 'directorist_pagination_prev_text', directorist_icon( 'fas fa-chevron-left', false ) ),
                 'next_text' => apply_filters( 'directorist_pagination_next_text', directorist_icon( 'fas fa-chevron-right', false ) ),
                 'type'      => 'array', // Generate an array of links instead of a string
-            ] 
+            ]
         );
 
         if ( ! $links ) {
@@ -270,11 +270,11 @@ class Directorist_Listing_Taxonomy {
                 } else {
                     $page_number = 1; // Default to page 1 if no number is found
                 }
-    
+
                 // Add the `data-page` attribute
                 $link = str_replace( '<a ', '<a data-page="' . esc_attr( $page_number ) . '" ', $link );
                 return $link;
-            }, $links 
+            }, $links
         );
         ?>
 
@@ -291,7 +291,7 @@ class Directorist_Listing_Taxonomy {
         $result = [];
 
         foreach ( $this->terms as $term ) {
-            
+
             $current_listing_type   = $this->current_listing_type;
             $count                  = 0;
             if ( $this->hide_empty || $this->show_count ) {
@@ -314,7 +314,7 @@ class Directorist_Listing_Taxonomy {
             }
 
             $child_terms    = get_term_children( $term->term_id, $this->tax );
-            
+
             $directory_type = '';
             if ( isset( $this->directory_type ) && is_array( $this->directory_type ) && count( $this->directory_type ) === 1 ) {
                 $directory_type = sanitize_text_field( wp_unslash( $this->directory_type[0] ) );
@@ -322,10 +322,10 @@ class Directorist_Listing_Taxonomy {
 
             if ( ! empty( $_GET['directory_type'] ) ) {
                 $directory_type = sanitize_text_field( wp_unslash( $_GET['directory_type'] ) );
-            } 
+            }
 
             if ( ! empty( $_GET['directory_type'] ) && 'all' == $_GET['directory_type'] ) {
-                $term_directory_types = get_term_meta( $term->term_id, '_directory_type', true );
+                $term_directory_types = directorist_get_term_directory( $term->term_id );
 
                 if ( is_array( $term_directory_types ) ) {
                     $directory_type = $term_directory_types[0];
@@ -338,7 +338,7 @@ class Directorist_Listing_Taxonomy {
             }
 
             $permalink = ( $this->type == 'category' ) ? ATBDP_Permalink::atbdp_get_category_page( $term, $directory_type ) : ATBDP_Permalink::atbdp_get_location_page( $term, $directory_type );
-            
+
             $data = [
                 'term'      => $term,
                 'has_child' => ! empty( $child_terms ) ? true : false,

@@ -199,8 +199,8 @@ function directorist_update_location_directory( $location_id, array $directory_i
     directorist_update_term_directory( $location_id, $directory_ids, $append );
 }
 
-function directorist_update_category_directory( $location_id, array $directory_ids = [], $append = false ) {
-    directorist_update_term_directory( $location_id, $directory_ids, $append );
+function directorist_update_category_directory( $category_id, array $directory_ids = [], $append = false ) {
+    directorist_update_term_directory( $category_id, $directory_ids, $append );
 }
 
 function directorist_delete_term_directory( $term_id ) {

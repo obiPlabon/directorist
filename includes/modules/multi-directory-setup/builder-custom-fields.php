@@ -54,7 +54,7 @@ function get_cetagory_options() {
         [
             'taxonomy'   => ATBDP_CATEGORY,
             'hide_empty' => false,
-        ] 
+        ]
     );
 
     $directory_type = isset( $_GET['listing_type_id'] ) ? absint( $_GET['listing_type_id'] ) : directorist_get_default_directory();
@@ -69,7 +69,7 @@ function get_cetagory_options() {
     }
 
     foreach ( $terms as $term ) {
-        $term_directory_types = get_term_meta( $term->term_id, '_directory_type', true );
+        $term_directory_types = directorist_get_category_directory( $term->term_id );
 
         if ( is_array( $term_directory_types ) && in_array( $directory_type, $term_directory_types, true ) ) {
             $options[] = [

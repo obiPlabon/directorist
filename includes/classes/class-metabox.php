@@ -30,7 +30,7 @@ class ATBDP_Metabox {
             wp_send_json(
                 [
                     'error' => esc_html__( 'Invalid nonce!', 'directorist' ),
-                ] 
+                ]
             );
         }
 
@@ -81,7 +81,7 @@ class ATBDP_Metabox {
                 'listing_pop_locations'     => $listing_pop_locations,
                 'required_js_scripts'       => $required_script_src,
                 'listing_expiration'        => $listing_expiration
-            ] 
+            ]
         );
 
     }
@@ -103,9 +103,7 @@ class ATBDP_Metabox {
 
         if ( $terms ) {
             foreach ( $terms as $term ) {
-                $directory_type     = get_term_meta( $term->term_id, '_directory_type', true );
-                $directory_type     = ! empty( $directory_type ) ? $directory_type : [];
-                $directory_type_int = array_map( 'intval', $directory_type );
+                $directory_type_int = directorist_get_term_directory( $term->term_id );
                 $checked            = in_array( $term->term_id, $saving_values, true ) ? 'checked' : '';
                 if ( in_array( $term_id, $directory_type_int, true ) ) { ?>
                     <li id="<?php echo esc_attr( $taxonomy_id ); ?>-<?php echo esc_attr( $term->term_id ); ?>">
@@ -144,8 +142,7 @@ class ATBDP_Metabox {
 
         if ( $terms ) {
             foreach ( $terms as $term ) {
-                $directory_type = get_term_meta( $term->term_id, '_directory_type', true );
-                $directory_type = ! empty( $directory_type ) ? $directory_type : [];
+                $directory_type = directorist_get_term_directory( $term->term_id );
                 $checked        = in_array( $term->term_id, $saving_values ) ? 'checked' : '';
                 if ( in_array( $term_id, $directory_type ) ) { ?>
                     <li id="popular-<?php echo esc_attr( $taxonomy_id ); ?>-<?php echo esc_attr( $term->term_id ); ?>" class="popular-category"><label class="selectit"><input value="<?php echo esc_attr( $term->term_id ); ?>" type="checkbox" id="in-popular-<?php echo esc_attr( $taxonomy_id ); ?>-<?php echo esc_attr( $term->term_id ); ?>" <?php echo ! empty( $checked ) ? esc_attr( $checked ) : ''; ?>> <?php echo esc_html( $term->name ); ?></label></li>
@@ -438,7 +435,7 @@ class ATBDP_Metabox {
                     'day'   => (int) $expire_date['jj'],
                     'hour'  => (int) $expire_date['hh'],
                     'min'   => (int) $expire_date['mn']
-                ] 
+                ]
             );
         } else {
             $expire_date = calc_listing_expiry_date( '', $default_expiration, $directory_id ); // get the expiry date in mysql date format using the default expiration date.
@@ -475,7 +472,7 @@ class ATBDP_Metabox {
                         // Used it for backward compatibility.
                             '_listing_status' => 'post_status',
                         ],
-                    ] 
+                    ]
                 );
             }
         }

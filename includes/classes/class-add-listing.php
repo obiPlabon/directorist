@@ -304,8 +304,8 @@ if ( ! class_exists( 'ATBDP_Add_Listing' ) ) :
                                 'nonce_expired' => $nonce_expired,
                                 'error'         => true,
                                 'error_msg'     => implode( '<br>', $error->get_error_messages() ),
-                            ] 
-                        ) 
+                            ]
+                        )
                     );
                 }
 
@@ -439,7 +439,7 @@ if ( ! class_exists( 'ATBDP_Add_Listing' ) ) :
                             [
                                 'ID'          => $listing_id,
                                 'post_status' => 'pending',
-                            ] 
+                            ]
                         );
                     }
                 }
@@ -483,7 +483,7 @@ if ( ! class_exists( 'ATBDP_Add_Listing' ) ) :
                     [
                         'error'     => true,
                         'error_msg' => $e->getMessage(),
-                    ], $e->getCode() 
+                    ], $e->getCode()
                 );
             }
         }
@@ -526,7 +526,7 @@ if ( ! class_exists( 'ATBDP_Add_Listing' ) ) :
                     }
 
                     return true;
-                }, ARRAY_FILTER_USE_BOTH 
+                }, ARRAY_FILTER_USE_BOTH
             );
         }
 
@@ -741,7 +741,7 @@ if ( ! class_exists( 'ATBDP_Add_Listing' ) ) :
                     } else {
                         $location_ids[] = (int) $location_added['term_id'];
 
-                        update_term_meta( $location_added['term_id'], '_directory_type', [ $posted_data['directory_id'] ] );
+                        directorist_update_location_directory( $location_added['term_id'], [ $posted_data['directory_id'] ] );
                     }
                 }
 
@@ -797,7 +797,7 @@ if ( ! class_exists( 'ATBDP_Add_Listing' ) ) :
                     } else {
                         $category_ids[] = $category_added['term_id'];
 
-                        update_term_meta( $category_added['term_id'], '_directory_type', [ $posted_data['directory_id'] ] );
+                        directorist_update_category_directory( $category_added['term_id'], [ $posted_data['directory_id'] ] );
                     }
                 }
 
