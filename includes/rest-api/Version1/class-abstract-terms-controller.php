@@ -267,52 +267,39 @@ abstract class Terms_Controller extends Abstract_Controller {
             $total_terms  = $this->total_terms;
         } else {
             if ( ! empty( $request['directory'] ) ) {
-                $_prepared_args = $prepared_args;
+                $directories = is_array( $request['directory'] ) ? $request['directory'] : [ $request['directory'] ];
 
-                unset( $_prepared_args['number'] );
-                unset( $_prepared_args['offset'] );
-
-                $terms               = get_terms( $taxonomy, $_prepared_args );
-                $queried_directories = ( is_array( $request['directory'] ) ) ? $request['directory'] : [ $request['directory'] ];
-
-                $terms = array_filter(
-                    $terms, function( $term ) use( $queried_directories ) {
-                        $directories = directorist_get_term_directory( $term->term_id );
-
-                        if ( empty( $directories ) ) {
-                            return false;
-                        }
-
-                        $exists = array_intersect( $queried_directories, $directories );
-                        return ( count( $exists ) > 0 );
-                    }
+                $meta_queries = array_reduce(
+                    $directories, static function( $carry, $directory_id )  {
+                        $carry[] = [
+                            'key'     => '_directory_type_' . $directory_id,
+                            'compare' => 'EXISTS',
+                        ];
+                        return $carry;
+                    }, [
+                        'relation' => 'OR',
+                    ] 
                 );
 
-                $offset       = $prepared_args['offset'] ? $prepared_args['offset'] : 0;
-                $query_result = array_slice( $terms, $offset, $prepared_args['number'] );
-                $total_terms  = count( $terms );
+                $prepared_args['meta_query'] = $meta_queries;
+            }
 
-                if ( $offset >= $total_terms ) {
-                    $query_result = [];
-                }
-            } else {
-                $query_result = get_terms( $taxonomy, $prepared_args );
+            $query_result = get_terms( $taxonomy, $prepared_args );
 
-                $count_args = $prepared_args;
-                unset( $count_args['number'] );
-                unset( $count_args['offset'] );
-                $total_terms = wp_count_terms( $taxonomy, $count_args );
+            $count_args = $prepared_args;
+            unset( $count_args['number'] );
+            unset( $count_args['offset'] );
+            $total_terms = wp_count_terms( $taxonomy, $count_args );
 
-                // Ensure we don't return results when offset is out of bounds.
-                // See https://core.trac.wordpress.org/ticket/35935.
-                if ( $prepared_args['offset'] && $prepared_args['offset'] >= $total_terms ) {
-                    $query_result = [];
-                }
+            // Ensure we don't return results when offset is out of bounds.
+            // See https://core.trac.wordpress.org/ticket/35935.
+            if ( $prepared_args['offset'] && $prepared_args['offset'] >= $total_terms ) {
+                $query_result = [];
+            }
 
-                // wp_count_terms can return a falsy value when the term has no children.
-                if ( ! $total_terms ) {
-                    $total_terms = 0;
-                }
+            // wp_count_terms can return a falsy value when the term has no children.
+            if ( ! $total_terms ) {
+                $total_terms = 0;
             }
         }
 
