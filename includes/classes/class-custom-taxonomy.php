@@ -976,7 +976,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
                 return $args;
             }
 
-            if ( in_array( ATBDP_CATEGORY, $taxonomies, true ) ) {
+            if ( in_array( ATBDP_CATEGORY, $taxonomies, true ) || in_array( ATBDP_LOCATION, $taxonomies, true ) ) {
                 $directory = (int) ( $_GET['directory'] ?? -1 );
 
                 if ( $directory !== -1 ) {
