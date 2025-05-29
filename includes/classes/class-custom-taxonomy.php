@@ -40,8 +40,9 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
             add_action( 'wp_loaded', [ $this, 'directorist_bulk_term_update' ] );
 
             // Filter.
-            // add_filter( 'views_edit-' . ATBDP_CATEGORY, array( $this, 'add_directory_filter' ) );
-            // add_filter( 'views_edit-' . ATBDP_LOCATION, array( $this, 'add_directory_filter' ) );
+            add_filter( 'views_edit-' . ATBDP_CATEGORY, array( $this, 'add_directory_filter' ) );
+            add_filter( 'views_edit-' . ATBDP_LOCATION, array( $this, 'add_directory_filter' ) );
+            add_filter( 'get_terms_args', array( $this, 'filter_terms_by_directory' ), 10, 2 );
 
             add_action( 'delete_' . ATBDP_DIRECTORY_TYPE, [ $this, 'delete_directory_to_category_location_relation' ] );
         }
@@ -945,7 +946,7 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
                 return $filters;
             }
 
-            $current_directory = (int) ( $_GET['directory'] ?? 0 );
+            $current_directory = (int) ( $_GET['directory'] ?? -1 );
 
             $filters = [
                 'directory-filter-all' => sprintf(
@@ -966,6 +967,24 @@ if ( ! class_exists( 'ATBDP_Custom_Taxonomy' ) ) :
             }
 
             return $filters;
+        }
+
+        public function filter_terms_by_directory( $args, $taxonomies ) {
+            if ( ! is_admin() || empty( $_GET['taxonomy'] ) ||
+                ( $_GET['taxonomy'] !== ATBDP_CATEGORY && $_GET['taxonomy'] !== ATBDP_LOCATION )
+                ) {
+                return $args;
+            }
+
+            if ( in_array( ATBDP_CATEGORY, $taxonomies, true ) ) {
+                $directory = (int) ( $_GET['directory'] ?? -1 );
+
+                if ( $directory !== -1 ) {
+                    $args['meta_key'] = '_directory_type_' . $directory;
+                }
+            }
+
+            return $args;
         }
 
         public function delete_directory_to_category_location_relation( $directory_id ) {
